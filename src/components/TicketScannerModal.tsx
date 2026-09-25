@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  BrowserMultiFormatReader 
-} from '@zxing/library';
+import { BrowserMultiFormatReader } from '@zxing/library';
 import jsQR from 'jsqr';
 import { 
   QrCode, 
@@ -25,11 +23,11 @@ import {
   Utensils, 
   Check, 
   Copy, 
-  SwitchCamera,
-  Shield,
-  Loader2,
-  Zap,
-  ZapOff
+  SwitchCamera, 
+  Shield, 
+  Loader2, 
+  Zap, 
+  ZapOff 
 } from 'lucide-react';
 import { 
   validateTicketAgainstFirestore, 
@@ -40,7 +38,7 @@ import {
 import { EventTicketPass, UserProfile } from '../types';
 import { triggerFestiveCelebration, playCelebrationChime } from '../utils/confettiCelebration';
 
-interface TicketQrScannerOverlayProps {
+export interface TicketScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser?: UserProfile | null;
@@ -48,7 +46,7 @@ interface TicketQrScannerOverlayProps {
   onTicketValidated?: (result: TicketValidationResult) => void;
 }
 
-export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
+export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
   isOpen,
   onClose,
   currentUser,
@@ -56,7 +54,7 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
   onTicketValidated,
 }) => {
   const [activeTab, setActiveTab] = useState<'camera' | 'upload' | 'manual'>('camera');
-  
+
   // Camera & ZXing reader state
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
@@ -123,7 +121,7 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
         onTicketValidated(result);
       }
     } catch (err) {
-      console.error('Validation error:', err);
+      console.error('Ticket validation error:', err);
     } finally {
       setIsVerifying(false);
     }
@@ -174,7 +172,6 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
               handleValidatePayload(text);
             }
           }
-          // Ignored non-fatal frame decode errors
         }
       );
 
@@ -195,11 +192,11 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
     } catch (err: any) {
       console.warn('ZXing Camera initialization error:', err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setCameraError('Camera permission was denied. Please allow camera access in browser settings or use the Image Upload / Manual Input tabs below.');
+        setCameraError('Camera permission was denied. Please grant camera access in browser settings or use Image Upload / Manual Input.');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-        setCameraError('No video camera was detected on this device. Please use Image Upload or Manual ID entry.');
+        setCameraError('No video camera detected on this device. Please use Image Upload or Manual ID entry.');
       } else {
-        setCameraError(`Camera notice: ${err.message || 'Unable to start camera stream.'} Please use the Upload or Manual Code tabs.`);
+        setCameraError(`Camera notice: ${err.message || 'Unable to start camera stream.'} Try Image Upload or Manual Input.`);
       }
     }
   }, [selectedDeviceId, stopCamera, handleValidatePayload]);
@@ -261,7 +258,6 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
           return;
         }
       } catch (zxingErr) {
-        // Fallback to Canvas / jsQR
         console.debug('ZXing image decode fallback to jsQR:', zxingErr);
       }
 
@@ -307,7 +303,6 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
       );
       if (res.success) {
         setAdmitSuccess(`Successfully admitted pass ${validationResult.ticketId} into IAM Kolkata Fest.`);
-        // Refresh validation state
         setValidationResult(prev => prev ? {
           ...prev,
           status: 'already_used',
@@ -416,7 +411,7 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
                   </span>
                 </div>
                 <p className="text-xs text-emerald-300/80">
-                  Instant QR check-in & verification against Firestore tickets
+                  Instant QR check-in & verification against Firestore database
                 </p>
               </div>
             </div>
@@ -432,7 +427,7 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
           </div>
 
           <div className="p-4 sm:p-6 space-y-5">
-            {/* Mode Selector Tabs (only when not showing a validation result) */}
+            {/* Mode Selector Tabs */}
             {!validationResult && (
               <div className="grid grid-cols-3 gap-2 p-1 bg-black/40 rounded-2xl border border-emerald-500/20 text-xs font-semibold">
                 <button
@@ -509,7 +504,6 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
                   {/* Target Scanner Reticle Overlay */}
                   <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-8">
                     <div className="relative w-48 h-48 sm:w-56 sm:h-56 border-2 border-dashed border-emerald-400/80 rounded-2xl flex items-center justify-center">
-                      {/* Corner marks */}
                       <span className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg" />
                       <span className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg" />
                       <span className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg" />
@@ -946,4 +940,4 @@ function TicketQrIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export default TicketQrScannerOverlay;
+export default TicketScannerModal;

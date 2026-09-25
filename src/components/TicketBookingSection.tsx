@@ -54,6 +54,7 @@ import {
   BookingConfirmationPayload 
 } from '../utils/confirmationEmailService';
 import { ConfirmationEmailModal } from './ConfirmationEmailModal';
+import emailjs from '@emailjs/browser';
 import { supabase, recordPurchaseToSupabase, getSupabaseClient } from '../lib/supabase';
 import { 
   bookingAttendeeSchema, 
@@ -63,7 +64,7 @@ import {
   NAME_REGEX
 } from '../utils/validation';
 import { TurnstileWidget } from './TurnstileWidget';
-import { TicketQrScannerOverlay } from './TicketQrScannerOverlay';
+import { TicketScannerModal } from './TicketScannerModal';
 import { PaymentVerifyingAnimation } from './PaymentVerifyingAnimation';
 
 interface TicketBookingSectionProps {
@@ -92,6 +93,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   } | null>(null);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailSuccessMessage, setEmailSuccessMessage] = useState<string | null>(null);
+  const [emailToast, setEmailToast] = useState<string | null>(null);
 
   // Rate Limiting & Cooldown (10-second debounce against spam clicks)
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
@@ -767,20 +769,43 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       };
 
       try {
-        const info = await sendConfirmationNotification(emailPayload);
+        await emailjs.send(
+          'service_b9a7jvb',
+          'template_en0ot6l',
+          {
+            to_email: bookedPass.customerEmail,
+            guest_name: bookedPass.customerName,
+            phone_number: bookedPass.customerPhone,
+            booking_id: bookedPass.id,
+            dining_session: bookedPass.slot,
+            pass_count: bookedPass.ticketQuantity,
+            total_amount: `₹${bookedPass.totalAmount}/-`,
+          },
+          'k5ATfv--D0jJo2aUM'
+        );
+        setEmailToast(`Confirmation email sent to ${bookedPass.customerEmail}!`);
+        setTimeout(() => setEmailToast(null), 6000);
+        setEmailSuccessMessage(
+          `Confirmation email with your QR ticket was sent to ${bookedPass.customerEmail}`
+        );
         setConfirmationDispatchInfo({
-          sent: info.success,
-          message: info.message,
-          service: info.service,
-          status: info.status || 200,
+          sent: true,
+          message: `Confirmation email dispatched to ${bookedPass.customerEmail}`,
+          service: 'emailjs',
+          status: 200,
         });
-        if (info.status === 200 || info.success) {
-          setEmailSuccessMessage(
-            `EmailJS Confirmed (Status 200 OK): Confirmation email with your QR ticket was sent to ${bookedPass.customerEmail}`
-          );
-        }
       } catch (emailErr: any) {
-        console.warn('Confirmation dispatch error:', emailErr);
+        console.warn('Confirmation email dispatch notice:', emailErr);
+        // Also fallback to sendConfirmationNotification
+        try {
+          const info = await sendConfirmationNotification(emailPayload);
+          setConfirmationDispatchInfo({
+            sent: info.success,
+            message: info.message,
+            service: info.service,
+            status: info.status || 200,
+          });
+        } catch (_) {}
       } finally {
         setIsSendingEmail(false);
       }
@@ -884,20 +909,42 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       };
 
       try {
-        const info = await sendConfirmationNotification(fallbackPayload);
+        await emailjs.send(
+          'service_b9a7jvb',
+          'template_en0ot6l',
+          {
+            to_email: fallbackPass.customerEmail,
+            guest_name: fallbackPass.customerName,
+            phone_number: fallbackPass.customerPhone,
+            booking_id: fallbackPass.id,
+            dining_session: fallbackPass.slot,
+            pass_count: fallbackPass.ticketQuantity,
+            total_amount: `₹${fallbackPass.totalAmount}/-`,
+          },
+          'k5ATfv--D0jJo2aUM'
+        );
+        setEmailToast(`Confirmation email sent to ${fallbackPass.customerEmail}!`);
+        setTimeout(() => setEmailToast(null), 6000);
+        setEmailSuccessMessage(
+          `Confirmation email with your QR ticket was sent to ${fallbackPass.customerEmail}`
+        );
         setConfirmationDispatchInfo({
-          sent: info.success,
-          message: info.message,
-          service: info.service,
-          status: info.status || 200,
+          sent: true,
+          message: `Confirmation email dispatched to ${fallbackPass.customerEmail}`,
+          service: 'emailjs',
+          status: 200,
         });
-        if (info.status === 200 || info.success) {
-          setEmailSuccessMessage(
-            `EmailJS Confirmed (Status 200 OK): Confirmation email with your QR ticket was sent to ${fallbackPass.customerEmail}`
-          );
-        }
       } catch (err: any) {
-        console.warn('Fallback confirmation dispatch error:', err);
+        console.warn('Fallback confirmation dispatch notice:', err);
+        try {
+          const info = await sendConfirmationNotification(fallbackPayload);
+          setConfirmationDispatchInfo({
+            sent: info.success,
+            message: info.message,
+            service: info.service,
+            status: info.status || 200,
+          });
+        } catch (_) {}
       } finally {
         setIsSendingEmail(false);
       }
@@ -990,6 +1037,32 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       id="ticket-booking" 
       className="relative py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-[#040e0a] border-y border-emerald-500/20 scroll-mt-20 overflow-hidden"
     >
+      {/* Floating Confirmation Email Toast Notification */}
+      <AnimatePresence>
+        {emailToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-[#062618] border border-emerald-400 text-emerald-100 shadow-2xl flex items-center gap-3 backdrop-blur-xl max-w-md ring-1 ring-emerald-400/30"
+          >
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shrink-0">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-emerald-300">Email Dispatched</p>
+              <p className="text-xs text-stone-200 truncate">{emailToast}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEmailToast(null)}
+              className="text-stone-400 hover:text-stone-200 text-xs font-bold cursor-pointer p-1"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Subtle background ambient glows */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 right-0 w-80 h-80 bg-teal-950/30 rounded-full blur-3xl pointer-events-none" />
@@ -2907,8 +2980,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         />
       )}
 
-      {/* QR Code Scanner & Firestore Validation Overlay */}
-      <TicketQrScannerOverlay
+      {/* Real-time @zxing Camera QR Code Scanner Modal */}
+      <TicketScannerModal
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
         currentUser={currentUser}

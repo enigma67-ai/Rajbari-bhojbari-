@@ -337,7 +337,7 @@ export async function sendEmailJsConfirmation(
 
   // Read Vite Environment Variables with live production credentials
   const emailJsServiceId = import.meta.env?.VITE_EMAILJS_SERVICE_ID || 'service_b9a7jvb';
-  const emailJsTemplateId = import.meta.env?.VITE_EMAILJS_TEMPLATE_ID || 'template_zkrj4e8';
+  const emailJsTemplateId = import.meta.env?.VITE_EMAILJS_TEMPLATE_ID || 'template_en0ot6l';
   const emailJsPublicKey = import.meta.env?.VITE_EMAILJS_PUBLIC_KEY || 'k5ATfv--D0jJo2aUM';
 
   const isEmailJsConfigured = Boolean(
@@ -352,20 +352,23 @@ export async function sendEmailJsConfirmation(
   // Exact template parameters required by user prompt
   const templateParams: Record<string, unknown> = {
     to_email: data.customerEmail,
+    guest_name: data.customerName,
     to_name: data.customerName,
+    phone_number: data.customerPhone,
+    customer_phone: data.customerPhone,
+    booking_id: data.bookingId,
+    dining_session: data.slot,
+    pass_count: data.quantity,
+    total_amount: formattedAmount,
+    booking_amount: formattedAmount,
     qr_code_link: qrCodeUrl,
     venue: EVENT_VENUE,
     date_time: dateTime,
     official_email: OFFICIAL_EMAIL,
     official_phone: OFFICIAL_PHONE,
-    // Extra mapped parameters for template design flexibility
-    booking_id: data.bookingId,
-    total_amount: formattedAmount,
-    booking_amount: formattedAmount,
     payment_method: data.paymentMethod,
     cash_warning: cashWarningText,
     quantity: data.quantity,
-    customer_phone: data.customerPhone,
   };
 
   if (isEmailJsConfigured) {
