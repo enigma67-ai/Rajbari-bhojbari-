@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
 import { MenuSection } from './components/MenuSection';
@@ -477,6 +478,9 @@ export default function App() {
         onClose={() => setCelebrationData(null)}
         data={celebrationData}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );
