@@ -141,47 +141,64 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
   // Supabase Auth Session Detection & Auto-fill
   useEffect(() => {
-    // 1. Register real-time auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setAuthSession(session);
-      if (session?.user) {
-        if (session.user.email) {
-          setEmail(session.user.email);
+    let authSub: { unsubscribe: () => void } | null = null;
+    try {
+      // 1. Register real-time auth state listener
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+        try {
+          setAuthSession(session || null);
+          if (session?.user) {
+            const userEmail = session?.user?.email || '';
+            const userName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || '';
+            if (userEmail) {
+              setEmail(userEmail);
+            }
+            if (userName) {
+              setName(userName);
+            }
+            // Clean the URL by removing OAuth tokens/queries (?code=... or hash) using window.history.replaceState
+            if (typeof window !== 'undefined' && (window.location.search.includes('code=') || window.location.hash.includes('access_token'))) {
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          } else if (event === 'SIGNED_OUT') {
+            setAuthSession(null);
+          }
+        } catch (listenerErr) {
+          console.warn('Auth state change listener notice:', listenerErr);
         }
-        const userFullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
-        if (userFullName) {
-          setName(userFullName);
-        }
-        // Clean the URL by removing OAuth tokens/queries (?code=... or hash) using window.history.replaceState
-        if (typeof window !== 'undefined' && (window.location.search.includes('code=') || window.location.hash.includes('access_token'))) {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        setAuthSession(null);
-      }
-    });
+      });
+      authSub = data?.subscription || null;
+    } catch (err) {
+      console.warn('Supabase onAuthStateChange error:', err);
+    }
 
     // 2. Check existing cached session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setAuthSession(session);
-        if (session.user.email) {
-          setEmail(session.user.email);
+    try {
+      supabase.auth.getSession().then(({ data }) => {
+        const session = data?.session;
+        if (session?.user) {
+          setAuthSession(session);
+          const userEmail = session?.user?.email || '';
+          const userName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || '';
+          if (userEmail) {
+            setEmail(userEmail);
+          }
+          if (userName) {
+            setName(userName);
+          }
+          if (typeof window !== 'undefined' && (window.location.search.includes('code=') || window.location.hash.includes('access_token'))) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
         }
-        const userFullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
-        if (userFullName) {
-          setName(userFullName);
-        }
-        if (typeof window !== 'undefined' && (window.location.search.includes('code=') || window.location.hash.includes('access_token'))) {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
-    }).catch((err) => {
-      console.warn('Supabase session load notice:', err);
-    });
+      }).catch((err) => {
+        console.warn('Supabase session load notice:', err);
+      });
+    } catch (mountErr) {
+      console.warn('Supabase getSession catch:', mountErr);
+    }
 
     return () => {
-      subscription?.unsubscribe();
+      authSub?.unsubscribe();
     };
   }, []);
 

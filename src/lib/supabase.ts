@@ -91,8 +91,11 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // ==============================================================================
 // 🔑 SUPABASE CONFIGURATION
 // ==============================================================================
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://rrvjsyppggtthqfxvquq.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJydmpzeXBwZ2d0dGhxZnh2cXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.mock_key';
+const rawUrl = (typeof import.meta.env.VITE_SUPABASE_URL === 'string' ? import.meta.env.VITE_SUPABASE_URL : '').trim().replace(/\.$/, '');
+const supabaseUrl = rawUrl || 'https://rrvjsyppggtthqfxvquq.supabase.co';
+
+const rawKey = (typeof import.meta.env.VITE_SUPABASE_ANON_KEY === 'string' ? import.meta.env.VITE_SUPABASE_ANON_KEY : '').trim();
+const supabaseAnonKey = rawKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJydmpzeXBwZ2d0dGhxZnh2cXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.mock_key';
 
 export const SUPABASE_URL = supabaseUrl;
 export const SUPABASE_ANON_KEY = supabaseAnonKey;
@@ -108,19 +111,38 @@ export const isSupabaseConfigured = (): boolean => {
   );
 };
 
-// Singleton Supabase Client with local storage session persistence
-export const supabase: SupabaseClient = createClient(
-  supabaseUrl,
-  supabaseAnonKey,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    },
+// Safe Singleton Supabase Client with local storage session persistence
+function createSafeSupabaseClient(): SupabaseClient {
+  try {
+    return createClient(
+      supabaseUrl,
+      supabaseAnonKey,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        },
+      }
+    );
+  } catch (err) {
+    console.warn('Safe Supabase client creation fallback:', err);
+    return createClient(
+      'https://rrvjsyppggtthqfxvquq.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJydmpzeXBwZ2d0dGhxZnh2cXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.mock_key',
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      }
+    );
   }
-);
+}
+
+export const supabase: SupabaseClient = createSafeSupabaseClient();
 
 export function getSupabaseClient(): SupabaseClient | null {
   if (!isSupabaseConfigured()) {
