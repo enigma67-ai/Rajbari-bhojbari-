@@ -111,7 +111,7 @@ export const isSupabaseConfigured = (): boolean => {
   );
 };
 
-// Safe Singleton Supabase Client with local storage session persistence
+// Safe Singleton Supabase Client with local storage session persistence and PKCE flow
 function createSafeSupabaseClient(): SupabaseClient {
   try {
     return createClient(
@@ -122,6 +122,7 @@ function createSafeSupabaseClient(): SupabaseClient {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
+          flowType: 'pkce',
           storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         },
       }
@@ -136,6 +137,7 @@ function createSafeSupabaseClient(): SupabaseClient {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
+          flowType: 'pkce',
         },
       }
     );
