@@ -139,6 +139,31 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     email: false,
   });
 
+  // Dual Login (Google + Email OTP) State
+  const [authTab, setAuthTab] = useState<'google' | 'email'>('google');
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpStatusMsg, setOtpStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [otpCountdown, setOtpCountdown] = useState(0);
+
+  // Email OTP countdown timer
+  useEffect(() => {
+    if (otpCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setOtpCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
+
   // Supabase Auth Session Detection & Auto-fill
   useEffect(() => {
     let authSub: { unsubscribe: () => void } | null = null;
@@ -152,6 +177,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             const userName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || '';
             if (userEmail) {
               setEmail(userEmail);
+              if (!otpEmail) setOtpEmail(userEmail);
             }
             if (userName) {
               setName(userName);
@@ -182,6 +208,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           const userName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || '';
           if (userEmail) {
             setEmail(userEmail);
+            if (!otpEmail) setOtpEmail(userEmail);
           }
           if (userName) {
             setName(userName);
@@ -202,7 +229,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     };
   }, []);
 
-  // Google Sign-In & Sign-Out handlers
+  // Google Sign-In handler (One-click OAuth)
   const handleGoogleSignIn = async () => {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -225,10 +252,110 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     }
   };
 
+  // Email OTP: Send passwordless magic code
+  const handleSendEmailOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanEmail = (otpEmail || email).trim().toLowerCase();
+    if (!cleanEmail || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(cleanEmail)) {
+      setOtpStatusMsg({ type: 'error', text: 'Please enter a valid email address to receive your OTP code.' });
+      return;
+    }
+
+    setIsSendingOtp(true);
+    setOtpStatusMsg(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setIsOtpSent(true);
+      setOtpCountdown(60);
+      setOtpEmail(cleanEmail);
+      setOtpStatusMsg({
+        type: 'success',
+        text: `6-digit OTP code sent to ${cleanEmail}. Check your inbox or spam folder!`,
+      });
+    } catch (err: any) {
+      console.error('Email OTP send error:', err);
+      setOtpStatusMsg({
+        type: 'error',
+        text: err?.message || 'Failed to send OTP code. Please check your email and try again.',
+      });
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  // Email OTP: Verify 6-digit code
+  const handleVerifyEmailOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanCode = otpCode.trim().replace(/\D/g, '');
+    const cleanEmail = otpEmail.trim().toLowerCase();
+
+    if (cleanCode.length !== 6) {
+      setOtpStatusMsg({ type: 'error', text: 'Please enter the full 6-digit verification code.' });
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    setOtpStatusMsg(null);
+
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: cleanCode,
+        type: 'email',
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.session) {
+        setAuthSession(data.session);
+        setEmail(cleanEmail);
+        const nameFromMeta = data.session.user?.user_metadata?.full_name || data.session.user?.user_metadata?.name || '';
+        if (nameFromMeta && !name) {
+          setName(nameFromMeta);
+        }
+        setOtpStatusMsg({
+          type: 'success',
+          text: '✓ Email verified successfully! You are logged in.',
+        });
+        setIsOtpSent(false);
+        setOtpCode('');
+      } else {
+        setOtpStatusMsg({
+          type: 'error',
+          text: 'Verification could not be completed. Please request a new code.',
+        });
+      }
+    } catch (err: any) {
+      console.error('Email OTP verify error:', err);
+      setOtpStatusMsg({
+        type: 'error',
+        text: err?.message || 'Invalid or expired OTP code. Please enter the correct code.',
+      });
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
       setAuthSession(null);
+      setIsOtpSent(false);
+      setOtpCode('');
+      setOtpStatusMsg(null);
     } catch (err) {
       console.error('Sign out error:', err);
     }
@@ -1008,64 +1135,200 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto bg-stone-900/90 border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
           >
-            {/* Supabase Auth Session Detection: Logged-in Pill OR Sign In with Google Prompt */}
+            {/* Supabase Auth Session Detection: Logged-in Pill OR Dual Login Accordion */}
             {isUserAuthenticated ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 text-xs text-emerald-200 shadow-sm">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 text-xs text-emerald-200 shadow-sm">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center font-bold text-xs shrink-0">
                     ✓
                   </span>
-                  <span className="truncate">
-                    Logged in as: <strong className="text-white font-mono">{userDisplayEmail}</strong>
-                  </span>
+                  <div className="truncate">
+                    <span className="text-emerald-400 font-semibold block text-[11px]">Authentication Verified</span>
+                    <span className="text-white font-mono text-xs">Logged in as: <strong>{userDisplayEmail}</strong></span>
+                  </div>
                 </div>
                 <button
                   type="button"
                   id="ticket-signout-btn"
                   onClick={handleSignOut}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-[11px] font-semibold transition-colors border border-stone-700 shrink-0 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-semibold transition-colors border border-stone-700 shrink-0 cursor-pointer shadow-sm"
                 >
-                  <LogOut className="w-3 h-3 text-stone-400" />
+                  <LogOut className="w-3.5 h-3.5 text-stone-400" />
                   <span>Sign Out</span>
                 </button>
               </div>
             ) : (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-stone-900 to-amber-950/30 border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-                <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Sign in with Google to Continue</span>
+              <div className="rounded-2xl bg-[#071810] border border-amber-500/40 p-4 sm:p-5 shadow-lg space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-800/80 pb-3">
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Guest Authentication Required</span>
+                    </div>
+                    <p className="text-[11px] text-stone-400">
+                      Sign in to verify your festival pass booking and auto-fill your attendee profile.
+                    </p>
                   </div>
-                  <p className="text-[11px] text-stone-300">
-                    Authentication is required to book tickets and auto-fill your attendee profile.
-                  </p>
+
+                  {/* Tab Selector: Google vs Email OTP */}
+                  <div className="flex items-center p-1 rounded-xl bg-stone-900 border border-stone-800 text-xs shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('google');
+                        setOtpStatusMsg(null);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        authTab === 'google'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-stone-400 hover:text-stone-200'
+                      }`}
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                      </svg>
+                      <span>Google OAuth</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('email');
+                        setOtpStatusMsg(null);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        authTab === 'email'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-stone-400 hover:text-stone-200'
+                      }`}
+                    >
+                      <Mail className="w-3.5 h-3.5 text-stone-300" />
+                      <span>Email OTP</span>
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  id="ticket-google-signin-btn"
-                  onClick={handleGoogleSignIn}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-stone-100 text-stone-900 font-bold text-xs shadow transition-all shrink-0 cursor-pointer active:scale-95 hover:shadow-md"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                    />
-                  </svg>
-                  <span>Sign in with Google</span>
-                </button>
+
+                {/* Option A: Sign In with Google */}
+                {authTab === 'google' && (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                    <p className="text-xs text-stone-300 leading-relaxed">
+                      Instant one-click authentication with your Google Account. Secure PKCE authorization.
+                    </p>
+                    <button
+                      type="button"
+                      id="ticket-google-signin-btn"
+                      onClick={handleGoogleSignIn}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-stone-100 text-stone-900 font-bold text-xs shadow-md transition-all shrink-0 cursor-pointer active:scale-95 hover:shadow-lg"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                      </svg>
+                      <span>Sign in with Google</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Option B: Sign In with Email OTP */}
+                {authTab === 'email' && (
+                  <div className="space-y-3 pt-1">
+                    {!isOtpSent ? (
+                      <form onSubmit={handleSendEmailOtp} className="flex flex-col sm:flex-row gap-2">
+                        <div className="relative flex-1">
+                          <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                          <input
+                            type="email"
+                            required
+                            value={otpEmail}
+                            onChange={(e) => {
+                              setOtpEmail(e.target.value);
+                              if (otpStatusMsg) setOtpStatusMsg(null);
+                            }}
+                            placeholder="Enter your email for OTP"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={isSendingOtp}
+                          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                        >
+                          {isSendingOtp ? (
+                            <span>Sending OTP...</span>
+                          ) : (
+                            <>
+                              <span>Send OTP Code</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                          )}
+                        </button>
+                      </form>
+                    ) : (
+                      <form onSubmit={handleVerifyEmailOtp} className="space-y-3">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            required
+                            maxLength={6}
+                            inputMode="numeric"
+                            value={otpCode}
+                            onChange={(e) => {
+                              setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                              if (otpStatusMsg) setOtpStatusMsg(null);
+                            }}
+                            placeholder="Enter 6-digit OTP code"
+                            className="flex-1 px-4 py-2.5 rounded-xl bg-stone-950 border border-emerald-500/60 font-mono tracking-widest text-center text-sm text-amber-300 placeholder-stone-600 focus:outline-none focus:border-emerald-400"
+                          />
+                          <button
+                            type="submit"
+                            disabled={isVerifyingOtp || otpCode.length < 6}
+                            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                          >
+                            {isVerifyingOtp ? <span>Verifying...</span> : <span>Verify OTP</span>}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-stone-400 px-1">
+                          <span>Sent to <strong className="text-stone-300 font-mono">{otpEmail}</strong></span>
+                          {otpCountdown > 0 ? (
+                            <span className="text-stone-500">Resend code in {otpCountdown}s</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSendEmailOtp()}
+                              className="text-amber-400 hover:text-amber-300 underline cursor-pointer"
+                            >
+                              Resend OTP
+                            </button>
+                          )}
+                        </div>
+                      </form>
+                    )}
+
+                    {/* Alert Banner for OTP Status */}
+                    {otpStatusMsg && (
+                      <div
+                        className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                          otpStatusMsg.type === 'success'
+                            ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200'
+                            : 'bg-rose-950/80 border border-rose-500/40 text-rose-200'
+                        }`}
+                      >
+                        {otpStatusMsg.type === 'success' ? (
+                          <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0">✓</span>
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        )}
+                        <span>{otpStatusMsg.text}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
