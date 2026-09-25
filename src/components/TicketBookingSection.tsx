@@ -281,7 +281,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       setOtpEmail(cleanEmail);
       setOtpStatusMsg({
         type: 'success',
-        text: `6-digit OTP code sent to ${cleanEmail}. Check your inbox or spam folder!`,
+        text: '6-digit OTP code sent! Please check your Inbox and Spam folder.',
       });
     } catch (err: any) {
       console.error('Email OTP send error:', err);
@@ -328,7 +328,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         }
         setOtpStatusMsg({
           type: 'success',
-          text: '✓ Email verified successfully! You are logged in.',
+          text: '✓ Logged in successfully!',
         });
         setIsOtpSent(false);
         setOtpCode('');
