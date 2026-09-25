@@ -20,6 +20,7 @@ import { CelebrationModal, CelebrationData } from './components/CelebrationModal
 // Types & Data
 import { MenuItem, CartItem, UserProfile, EventTicketPass } from './types';
 import { Bot, Sparkles, ShoppingBag, Ticket } from 'lucide-react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { 
   auth, 
   onAuthStateChanged, 
@@ -477,6 +478,9 @@ export default function App() {
         onClose={() => setCelebrationData(null)}
         data={celebrationData}
       />
+
+      {/* Vercel Speed Insights */}
+      <SpeedInsights />
 
     </div>
   );
