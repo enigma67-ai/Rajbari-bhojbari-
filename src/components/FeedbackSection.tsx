@@ -66,7 +66,18 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
   currentUser,
   onOpenAuth,
 }) => {
-  const [reviews, setReviews] = useState<FeedbackEntry[]>(DEFAULT_REVIEWS);
+  const [reviews, setReviews] = useState<FeedbackEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem('rb_guest_reviews');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // Ignore JSON parse error
+    }
+    return DEFAULT_REVIEWS;
+  });
   const [rating, setRating] = useState<number>(5);
   const [sustainabilityRating, setSustainabilityRating] = useState<number>(5);
   const [selectedMohol, setSelectedMohol] = useState<string>('overall');
@@ -102,7 +113,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
     }
   }, [currentUser]);
 
-  // Load reviews from backend
+  // Load reviews from backend with graceful fallback
   const loadReviews = async () => {
     try {
       const res = await fetch('/api/feedback');
@@ -112,9 +123,14 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
       const data = await res.json();
       if (data && Array.isArray(data.reviews) && data.reviews.length > 0) {
         setReviews(data.reviews);
+        try {
+          localStorage.setItem('rb_guest_reviews', JSON.stringify(data.reviews));
+        } catch {
+          // Ignore local storage error
+        }
       }
     } catch (err) {
-      console.error('Feedback fetch notice:', err);
+      // Graceful silent fallback to offline/cached reviews
     }
   };
 
@@ -147,6 +163,31 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
     setFormErrors({});
     setIsSubmitting(true);
+    
+    // Create new local review entry
+    const newEntry: FeedbackEntry = {
+      id: "fb_" + Date.now(),
+      guestName: sanitizeName(guestName) || "Honored Royal Guest",
+      contact: sanitizeString(contact) || "Visitor",
+      rating,
+      sustainabilityRating,
+      moholVisited: selectedMohol,
+      favoriteDish,
+      comment: sanitizeString(comment),
+      date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+    };
+
+    // Optimistic UI update
+    setReviews((prev) => {
+      const updated = [newEntry, ...prev.filter(r => r.id !== newEntry.id)];
+      try {
+        localStorage.setItem('rb_guest_reviews', JSON.stringify(updated));
+      } catch {
+        // Ignore local storage quota error
+      }
+      return updated;
+    });
+
     try {
       const res = await fetch('/api/feedback', {
         method: 'POST',
@@ -168,18 +209,22 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
           const data = await res.json();
           if (data && Array.isArray(data.reviews)) {
             setReviews(data.reviews);
+            try {
+              localStorage.setItem('rb_guest_reviews', JSON.stringify(data.reviews));
+            } catch {
+              // Ignore
+            }
           }
         }
-        setSubmitSuccess(true);
-        setComment('');
-        loadReviews();
-        setTimeout(() => setSubmitSuccess(false), 5000);
       }
     } catch (err) {
-      console.error('Submit feedback notice:', err);
+      // Local copy already saved
     } finally {
+      setSubmitSuccess(true);
+      setComment('');
       setIsSubmitting(false);
       setCooldownRemaining(10); // 10-second cooldown after submission to prevent spam clicks
+      setTimeout(() => setSubmitSuccess(false), 5000);
     }
   };
 

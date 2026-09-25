@@ -91,34 +91,33 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // ==============================================================================
 // 🔑 SUPABASE CONFIGURATION
 // ==============================================================================
-export const SUPABASE_URL = 
-  import.meta.env?.VITE_SUPABASE_URL || 'https://rrvjsyppggtthqfxvquq.supabase.co';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://rrvjsyppggtthqfxvquq.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJydmpzeXBwZ2d0dGhxZnh2cXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.mock_key';
 
-export const SUPABASE_ANON_KEY = 
-  import.meta.env?.VITE_SUPABASE_ANON_KEY || 'PASTE_YOUR_SUPABASE_ANON_API_KEY_HERE';
+export const SUPABASE_URL = supabaseUrl;
+export const SUPABASE_ANON_KEY = supabaseAnonKey;
 
 // Check if developer has replaced default placeholders
 export const isSupabaseConfigured = (): boolean => {
   return Boolean(
-    SUPABASE_URL &&
-    SUPABASE_ANON_KEY &&
-    !SUPABASE_URL.includes('PASTE_YOUR') &&
-    !SUPABASE_ANON_KEY.includes('PASTE_YOUR') &&
-    SUPABASE_URL.startsWith('http')
+    supabaseUrl &&
+    supabaseAnonKey &&
+    !supabaseUrl.includes('PASTE_YOUR') &&
+    !supabaseAnonKey.includes('PASTE_YOUR') &&
+    supabaseUrl.startsWith('http')
   );
 };
 
-// Singleton Supabase Client
-const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJydmpzeXBwZ2d0dGhxZnh2cXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.mock_key';
-
+// Singleton Supabase Client with local storage session persistence
 export const supabase: SupabaseClient = createClient(
-  SUPABASE_URL || 'https://rrvjsyppggtthqfxvquq.supabase.co',
-  (SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('PASTE_YOUR')) ? SUPABASE_ANON_KEY : fallbackKey,
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     },
   }
 );

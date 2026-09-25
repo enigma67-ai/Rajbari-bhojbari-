@@ -141,32 +141,43 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
   // Supabase Auth Session Detection & Auto-fill
   useEffect(() => {
-    // 1. Check existing session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // 1. Register real-time auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setAuthSession(session);
       if (session?.user) {
         if (session.user.email) {
           setEmail(session.user.email);
         }
-        const userFullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
+        const userFullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
         if (userFullName) {
           setName(userFullName);
         }
+        // Clean the URL by removing OAuth tokens/queries (?code=... or hash) using window.history.replaceState
+        if (typeof window !== 'undefined' && (window.location.search.includes('code=') || window.location.hash.includes('access_token'))) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setAuthSession(null);
       }
     });
 
-    // 2. Register real-time auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthSession(session);
+    // 2. Check existing cached session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        setAuthSession(session);
         if (session.user.email) {
           setEmail(session.user.email);
         }
-        const userFullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
+        const userFullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
         if (userFullName) {
           setName(userFullName);
         }
+        if (typeof window !== 'undefined' && (window.location.search.includes('code=') || window.location.hash.includes('access_token'))) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
       }
+    }).catch((err) => {
+      console.warn('Supabase session load notice:', err);
     });
 
     return () => {
@@ -177,7 +188,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   // Google Sign-In & Sign-Out handlers
   const handleGoogleSignIn = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin,
@@ -186,6 +197,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       if (error) {
         console.error('Supabase Google OAuth error:', error);
         if (onOpenAuth) onOpenAuth();
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url;
       }
     } catch (err) {
       console.error('Google Sign-In failed:', err);

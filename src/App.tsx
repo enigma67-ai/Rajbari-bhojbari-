@@ -176,8 +176,8 @@ export default function App() {
       }
     });
 
-    // Supabase Auth State Change Listener (OAuth redirects and session refresh)
-    const { data: supabaseAuthListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // 1. Supabase Check Cached Session on Mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const su = session.user;
         const phoneFormatted = su.phone || '';
@@ -193,6 +193,45 @@ export default function App() {
         setCurrentUser(profile);
         try {
           localStorage.setItem('rb_user', JSON.stringify(profile));
+        } catch (_) {}
+      }
+    });
+
+    // 2. Supabase Auth State Change Listener (OAuth redirects and session refresh)
+    const { data: supabaseAuthListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const su = session.user;
+        const phoneFormatted = su.phone || '';
+        const profile: UserProfile = {
+          id: su.id,
+          name: su.user_metadata?.full_name || su.user_metadata?.name || (phoneFormatted ? `Eco Guest (${phoneFormatted.slice(-4)})` : 'Eco Guest'),
+          emailOrPhone: su.email || phoneFormatted || 'supabase_user',
+          role: (su.user_metadata?.role as any) || 'guest',
+          institution: su.user_metadata?.institution || 'IAM Kolkata',
+          sustainabilityKarma: 120,
+          tokens: ['welcome_patron', 'zero_waste_2026', 'supabase_auth'],
+        };
+        setCurrentUser(profile);
+        try {
+          localStorage.setItem('rb_user', JSON.stringify(profile));
+        } catch (_) {}
+
+        // Clean the URL by removing OAuth tokens/queries (?code=... or hash) using window.history.replaceState
+        if (typeof window !== 'undefined' && (window.location.search.includes('code=') || window.location.hash.includes('access_token'))) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Record login audit in Supabase
+        recordUserLoginToSupabase({
+          id: profile.id,
+          name: profile.name,
+          emailOrPhone: profile.emailOrPhone,
+          role: profile.role,
+        }, 'google');
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+        try {
+          localStorage.removeItem('rb_user');
         } catch (_) {}
       }
     });
