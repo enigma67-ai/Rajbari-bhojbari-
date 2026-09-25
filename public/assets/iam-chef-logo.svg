@@ -1,0 +1,32 @@
+<svg viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="250" cy="250" r="238" fill="#F4EFE6" stroke="#1E2833" stroke-width="16" />
+  <circle cx="250" cy="250" r="222" fill="#FAF6EE" stroke="#C5A059" stroke-width="3" />
+  <path d="M165 110L168 122L180 125L168 128L165 140L162 128L150 125L162 122Z" fill="#C5A059" />
+  <path d="M375 140L378 152L390 155L378 158L375 170L372 158L360 155L372 152Z" fill="#C5A059" />
+  <path d="M175 150 C155 115 175 70 215 65 C225 35 275 35 285 65 C325 70 345 115 325 150 Z" fill="#FFFFFF" stroke="#1E2833" stroke-width="9" stroke-linejoin="round" />
+  <path d="M198 140 L302 140 L308 215 C308 220 300 226 250 226 C200 226 192 220 192 215 Z" fill="#EFECE4" stroke="#1E2833" stroke-width="9" stroke-linejoin="round" />
+  <path d="M242 165 L250 159 L258 165 Z" fill="#1E293B" stroke="#1E293B" stroke-width="1" />
+  <text x="250" y="191" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#1E293B" letter-spacing="2.5">IAM</text>
+  <text x="250" y="200" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="6" fill="#475569" letter-spacing="1.2">HOTEL SCHOOL</text>
+  <rect x="156" y="235" width="22" height="42" rx="10" fill="#334155" stroke="#1E2833" stroke-width="8" />
+  <rect x="322" y="235" width="22" height="42" rx="10" fill="#334155" stroke="#1E2833" stroke-width="8" />
+  <rect x="172" y="192" width="156" height="116" rx="54" fill="#FFFFFF" stroke="#1E2833" stroke-width="10" />
+  <rect x="186" y="206" width="128" height="86" rx="40" fill="#0F172A" stroke="#1E2833" stroke-width="5" />
+  <path d="M214 246 C219 233 231 233 236 246" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" />
+  <path d="M264 246 C269 233 281 233 286 246" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" />
+  <path d="M241 262 C245 272 255 272 259 262" fill="#38BDF8" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" />
+  <rect x="234" y="302" width="32" height="20" fill="#CBD5E1" stroke="#1E2833" stroke-width="7" />
+  <path d="M215 315 L285 315 L280 332 L220 332 Z" fill="#F8FAFC" stroke="#C5A059" stroke-width="5" />
+  <path d="M236 322 L248 328 L236 334 Z" fill="#0F172A" />
+  <path d="M264 322 L252 328 L264 334 Z" fill="#0F172A" />
+  <path d="M170 472 L180 342 C185 328 205 320 220 320 L280 320 C295 320 315 328 320 342 L330 472 Z" fill="#FFFFFF" stroke="#1E2833" stroke-width="10" stroke-linejoin="round" />
+  <path d="M180 340 L135 435 L175 450 L205 375 Z" fill="#FFFFFF" stroke="#1E2833" stroke-width="8" />
+  <path d="M320 340 L365 435 L325 450 L295 375 Z" fill="#FFFFFF" stroke="#1E2833" stroke-width="8" />
+  <path d="M272 320 C295 320 338 340 355 400 L320 440 L285 365 Z" fill="#881337" stroke="#1E2833" stroke-width="6" />
+  <path d="M272 320 L285 365 L320 440" stroke="#C5A059" stroke-width="7" stroke-linecap="round" />
+  <rect x="194" y="360" width="46" height="18" rx="4" fill="#1E293B" stroke="#C5A059" stroke-width="2.5" />
+  <text x="217" y="373" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="9" fill="#F8FAFC" letter-spacing="1.2">HOSPI</text>
+  <path d="M185 435 C205 440 295 440 315 435 L318 465 C295 470 205 470 182 465 Z" fill="#9F1239" stroke="#1E2833" stroke-width="7" />
+  <path d="M242 410 C242 390 248 368 250 365 C252 368 258 390 258 410 L250 422 Z" fill="#F1F5F9" stroke="#1E2833" stroke-width="6" stroke-linejoin="round" />
+  <line x1="250" y1="366" x2="250" y2="420" stroke="#334155" stroke-width="2.5" stroke-linecap="round" />
+</svg>

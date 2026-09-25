@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rajbari Bhojbari 2026 | The Zero-Waste AI Food Fest</title>
+    <meta name="description" content="Rajbari Bhojbari 2026: The Zero-Waste AI Food Fest at IAM Kolkata Campus. Celebrating authentic Bengali heritage gastronomy with zero-waste culinary innovation." />
+    <meta property="og:title" content="Rajbari Bhojbari 2026 | The Zero-Waste AI Food Fest" />
+    <meta property="og:description" content="Rajbari Bhojbari 2026: The Zero-Waste AI Food Fest at IAM Kolkata Campus. Celebrating authentic Bengali heritage gastronomy with zero-waste culinary innovation." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/assets/iam-chef-logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- =========================================================================
+         📊 VISITOR TRACKING: MICROSOFT CLARITY
+         PASTE_YOUR_CLARITY_PROJECT_ID_HERE
+         Replace 'PASTE_YOUR_CLARITY_PROJECT_ID_HERE' below with your unique Clarity
+         Project ID from https://clarity.microsoft.com/ (e.g. 'abcdef1234')
+         ========================================================================= -->
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          if (i && !i.includes("PASTE_YOUR")) {
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          } else {
+            console.info("[Microsoft Clarity] Script tag active. Replace 'PASTE_YOUR_CLARITY_PROJECT_ID_HERE' with your real Clarity Project ID to start recording sessions.");
+          }
+      })(window, document, "clarity", "script", "PASTE_YOUR_CLARITY_PROJECT_ID_HERE");
+    </script>
+
+    <!-- Official Payment Gateway Drop-in Scripts -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- Suppress Cloud Proxy HMR WebSocket Modal Overlays -->
+    <script>
+      window.addEventListener('unhandledrejection', function(event) {
+        if (
+          event.reason &&
+          (
+            (typeof event.reason === 'string' && event.reason.includes('failed to connect to websocket')) ||
+            (event.reason.message && (
+              event.reason.message.includes('websocket') ||
+              event.reason.message.includes('WebSocket') ||
+              event.reason.message.includes('failed to connect')
+            ))
+          )
+        ) {
+          event.preventDefault();
+          console.warn('[vite:hmr] WebSocket connection closed by cloud proxy; modal overlay suppressed.');
+        }
+      });
+    </script>
+  </head>
+  <body class="bg-[#06120d] text-emerald-50 selection:bg-emerald-400 selection:text-stone-950 antialiased font-sans">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

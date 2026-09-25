@@ -1,0 +1,134 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "UserProfile",
+      "description": "User profile with role, dietary preferences, and contact details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["guest", "student_ambassador", "faculty_judge", "royal_patron"] },
+        "dietaryPreferences": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role", "createdAt"]
+    },
+    "booking": {
+      "title": "Booking",
+      "description": "Banquet table order and dining reservation at Rajbari Bhojbari",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "serviceCharge": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["upi", "card", "counter"] },
+        "paymentStatus": { "type": "string", "enum": ["confirmed", "pending"] },
+        "dineSlot": { "type": "string" },
+        "seatCount": { "type": "number" },
+        "specialRequests": { "type": "string" },
+        "bookingCode": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "customerName", "totalAmount", "paymentStatus", "dineSlot", "createdAt"]
+    },
+    "chatMessage": {
+      "title": "ChatMessage",
+      "description": "Persisted conversational multi-turn interaction with BHOJ-Bot",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "text": { "type": "string" },
+        "source": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "role", "text", "createdAt"]
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "Royal guestbook entry and sustainability evaluation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "guestName": { "type": "string" },
+        "contact": { "type": "string" },
+        "rating": { "type": "number" },
+        "sustainabilityRating": { "type": "number" },
+        "moholVisited": { "type": "string" },
+        "favoriteDish": { "type": "string" },
+        "comment": { "type": "string" },
+        "date": { "type": "string" },
+        "certificateId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "guestName", "rating", "moholVisited", "comment", "createdAt"]
+    },
+    "ticketPass": {
+      "title": "TicketPass",
+      "description": "Official QR event entry pass for IAM AI Zero-Waste Food Fest 2026",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "ticketQuantity": { "type": "number" },
+        "basePricePerTicket": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "slot": { "type": "string" },
+        "eventDate": { "type": "string" },
+        "welcomeDrink": { "type": "string" },
+        "starterDish": { "type": "string" },
+        "mainsDish": { "type": "string" },
+        "dessertDish": { "type": "string" },
+        "qrCodeUrl": { "type": "string" },
+        "gateLocation": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "scanned": { "type": "boolean" },
+        "scannedAt": { "type": "string" },
+        "entryStatus": { "type": "string" },
+        "admittedBy": { "type": "string" },
+        "bookedAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "customerName", "customerEmail", "totalAmount"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "#/entities/userProfile",
+      "description": "User account document"
+    },
+    "/users/{userId}/bookings/{bookingId}": {
+      "schema": "#/entities/booking",
+      "description": "User specific banquet table orders and passes"
+    },
+    "/users/{userId}/tickets/{ticketId}": {
+      "schema": "#/entities/ticketPass",
+      "description": "User specific event tickets and passes"
+    },
+    "/users/{userId}/chatHistory/{messageId}": {
+      "schema": "#/entities/chatMessage",
+      "description": "User conversational history with BHOJ-Bot"
+    },
+    "/tickets/{ticketId}": {
+      "schema": "#/entities/ticketPass",
+      "description": "Global issued ticket passes for QR verification and gate entry"
+    },
+    "/feedbacks/{feedbackId}": {
+      "schema": "#/entities/feedback",
+      "description": "Public guestbook reviews and certificates"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId);
+
+      match /bookings/{bookingId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /chatHistory/{messageId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /tickets/{ticketId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /tickets/{ticketId} {
+      allow read: if true;
+      allow create: if request.resource.data.customerName is string
+                    && request.resource.data.customerEmail is string
+                    && request.resource.data.totalAmount is number;
+      allow update: if isAuthenticated() 
+                    || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['scanned', 'scannedAt', 'entryStatus', 'admittedBy', 'updatedAt'])
+                    || (request.resource.data.customerName is string && request.resource.data.customerEmail is string && request.resource.data.totalAmount is number);
+    }
+
+    match /feedbacks/{feedbackId} {
+      allow read: if true;
+      allow create: if request.resource.data.guestName is string 
+                    && request.resource.data.rating is number
+                    && request.resource.data.comment is string;
+      allow update, delete: if isAuthenticated() && request.auth.token.role == 'faculty_judge';
+    }
+  }
+}
