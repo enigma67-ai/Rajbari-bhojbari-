@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { FESTIVAL_INFO } from '../data/festData';
 import { IAMChefLogo } from './IAMChefLogo';
+import heroBgImage from '../assets/1790315575567.png';
 
 interface HeroBannerProps {
   onExploreMenu: () => void;
@@ -70,12 +71,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
     <div 
       className="relative overflow-hidden bg-cover bg-center bg-no-repeat border-b border-emerald-500/20 py-12 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8"
       style={{
-        backgroundImage: `url('/1790315575567.png')`,
+        backgroundImage: `url(${heroBgImage})`,
       }}
     >
       {/* Crucial Dark Overlay: Darkens the background so white 'Rajbari Bhojbari' text, green buttons, and countdown remain crystal clear */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/80 via-black/75 to-green-950/80 pointer-events-none" />
-      <div className="absolute inset-0 z-0 bg-black/50 pointer-events-none" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/85 via-black/80 to-green-950/85 pointer-events-none" />
+      <div className="absolute inset-0 z-0 bg-black/60 pointer-events-none" />
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-600/30 via-teal-900/20 to-transparent" />
       
       {/* Subtle Digital Grid Overlay */}

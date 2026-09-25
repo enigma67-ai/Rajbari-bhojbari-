@@ -16,7 +16,8 @@ import {
   Loader2,
   Copy,
   Check,
-  User
+  User,
+  AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { CartItem, UserProfile } from '../types';
@@ -24,6 +25,7 @@ import { saveUserBooking, SavedBooking } from '../lib/firebase';
 import { recordPurchaseToSupabase } from '../lib/supabase';
 import { triggerFestiveCelebration, playCelebrationChime } from '../utils/confettiCelebration';
 import { CelebrationData } from './CelebrationModal';
+import { PaymentVerifyingAnimation } from './PaymentVerifyingAnimation';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -47,7 +49,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   onOpenAuth,
 }) => {
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cash'>('upi');
-  const [step, setStep] = useState<'review' | 'payment_details' | 'otp_verify' | 'confirmed'>('review');
+  const [step, setStep] = useState<'review' | 'payment_details' | 'verifying' | 'otp_verify' | 'confirmed'>('review');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -75,6 +77,179 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const taxes = Math.round(subtotal * 0.05); // 5% GST Taxes
   const sustainabilityCess = Math.round(subtotal * 0.02); // 2% eco initiative fee
   const grandTotal = subtotal + taxes + sustainabilityCess;
+
+  // Visual Feedback & Database Verification Handler for UPI UTR Submission
+  const handleSubmitUpiPayment = async () => {
+    if (!currentUser) {
+      setErrorMsg('Please log in before submitting payment so your purchase history is securely tied to your personal account.');
+      if (onOpenAuth) onOpenAuth();
+      return;
+    }
+
+    const cleanUtr = upiUtr.replace(/\D/g, '');
+    if (cleanUtr.length !== 12) {
+      setUtrError('Please enter a valid 12-digit numeric UPI reference / UTR number from your payment receipt.');
+      return;
+    }
+
+    setUtrError(null);
+    setErrorMsg('');
+    setStep('verifying');
+    setIsProcessing(true);
+
+    const startTime = Date.now();
+
+    try {
+      // 1. Create UPI Payment Intent
+      const resIntent = await fetch('/api/payments/create-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: grandTotal,
+          method: 'upi',
+          items: cart.map(i => ({ id: i.dish.id, name: i.dish.name, qty: i.quantity, price: i.dish.price })),
+          customerInfo: {
+            name: currentUser?.name || 'Honored Eco Guest',
+            contact: currentUser?.emailOrPhone || upiVpa,
+          },
+        }),
+      });
+
+      let intentRes: any = null;
+      try {
+        intentRes = await resIntent.json();
+      } catch (_) {}
+
+      if (!resIntent.ok) {
+        throw new Error((intentRes && intentRes.error) || 'Failed to initiate UPI gateway reconciliation');
+      }
+
+      // 2. Reconcile & Verify with 12-digit UTR
+      const resConfirm = await fetch('/api/payments/verify-and-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          intentId: intentRes.intentId,
+          upiRef: `UTR-${cleanUtr}`,
+          upiUtr: cleanUtr,
+        }),
+      });
+
+      let confirmRes: any = null;
+      try {
+        confirmRes = await resConfirm.json();
+      } catch (_) {}
+
+      if (!resConfirm.ok) {
+        throw new Error((confirmRes && confirmRes.error) || 'UPI UTR verification failed');
+      }
+
+      // 3. Persist Booking to Firestore Database
+      const effectiveUserId = currentUser?.id || 'guest_user';
+      const bookingRecord: Omit<SavedBooking, 'id'> = {
+        userId: effectiveUserId,
+        customerName: currentUser?.name || cardDetails.name || 'Honored Eco Guest',
+        customerEmail: currentUser?.emailOrPhone || upiVpa || 'guest@iam.ac.in',
+        customerPhone: currentUser?.emailOrPhone || '9876543210',
+        items: cart.map(i => ({
+          id: i.dish.id,
+          name: i.dish.name,
+          bengaliName: i.dish.bengaliName,
+          mohol: i.dish.mohol,
+          price: i.dish.price,
+          quantity: i.quantity,
+        })),
+        subtotal,
+        serviceCharge: sustainabilityCess,
+        totalAmount: grandTotal,
+        paymentMethod: 'upi',
+        paymentStatus: 'confirmed',
+        dineSlot: 'Eco Dining Slot: 12:30 PM - 02:30 PM',
+        seatCount: 2,
+        specialRequests: 'Traditional bronze utensils requested',
+        bookingCode: confirmRes.booking.bookingId || 'RB-2026-' + Math.floor(10000 + Math.random() * 90000),
+        createdAt: new Date().toISOString(),
+      };
+
+      const saved = await saveUserBooking(effectiveUserId, bookingRecord);
+      if (onBookingCreated) {
+        onBookingCreated(saved);
+      }
+
+      // 4. Persist to Supabase Database
+      if (currentUser?.id) {
+        try {
+          await recordPurchaseToSupabase({
+            bookingId: confirmRes.booking.bookingId || bookingRecord.bookingCode,
+            userId: currentUser.id,
+            customerName: currentUser.name || bookingRecord.customerName,
+            customerEmail: currentUser.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : (bookingRecord.customerEmail || 'guest@iam.ac.in'),
+            customerPhone: !currentUser.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : (bookingRecord.customerPhone || ''),
+            totalAmount: grandTotal,
+            paymentMethod: 'UPI_QR',
+            paymentStatus: 'confirmed',
+            diningSlot: bookingRecord.dineSlot,
+            eventDate: 'Friday, 9th October 2026',
+            passQuantity: cart.reduce((acc, i) => acc + i.quantity, 0),
+            items: cart.map(i => ({
+              id: i.dish.id,
+              name: i.dish.name,
+              bengaliName: i.dish.bengaliName,
+              mohol: i.dish.mohol,
+              category: i.dish.category,
+              price: i.dish.price,
+              quantity: i.quantity,
+              totalPrice: i.dish.price * i.quantity,
+              status: i.dish.price === 0 ? 'Complimentary Tasting (₹0)' : 'A La Carte / Feast Item',
+            })),
+            qrCodeUrl: confirmRes.booking.ticketPassQr || confirmRes.booking.qrCodeUrl || '',
+            transactionId: `UTR-${cleanUtr}`,
+            upiUtr: cleanUtr,
+          });
+        } catch (supaErr) {
+          console.warn('Supabase sync notice:', supaErr);
+        }
+      }
+
+      // Ensure engaging animation finishes its visual cycle (min 2.4s) before transition
+      const elapsed = Date.now() - startTime;
+      const minEngagementTime = 2400;
+      if (elapsed < minEngagementTime) {
+        await new Promise((resolve) => setTimeout(resolve, minEngagementTime - elapsed));
+      }
+
+      setConfirmedBooking(confirmRes.booking);
+      setStep('confirmed');
+      onClearCart();
+
+      // Trigger grand celebratory chimes and confetti
+      triggerFestiveCelebration();
+      playCelebrationChime();
+
+      if (onCelebration && confirmRes?.booking) {
+        onCelebration({
+          type: 'meal',
+          bookingCode: confirmRes.booking.bookingId || 'RB-2026-FEAST',
+          guestName: currentUser?.name || 'Honored Eco Guest',
+          guestPhone: currentUser?.emailOrPhone,
+          guestEmail: currentUser?.emailOrPhone,
+          amount: grandTotal,
+          paymentMethod: 'upi',
+          items: cart.map((i) => ({
+            name: i.dish.name,
+            quantity: i.quantity,
+            mohol: i.dish.mohol,
+            price: i.dish.price,
+          })),
+          dineSlot: 'Eco Dining Slot: 12:30 PM - 02:30 PM',
+        });
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Payment verification failed. Please check network or review UTR.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleInitiatePayment = async () => {
     // Require user to be logged in before submitting payment
@@ -473,14 +648,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     </span>
                   </div>
 
-                  <img
-                    src="/1790315575567.png"
-                    alt="HDFC SmartHub Vyapar QR"
-                    className="w-48 h-auto object-contain rounded-xl"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = '/assets/1790315575567.png';
-                    }}
-                  />
+                  <div className="w-52 max-w-full p-2 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                    <img
+                      src="https://i.postimg.cc/4dkfnBP3/IMG-20260925-WA0013.jpg"
+                      alt="HDFC SmartHub Vyapar QR"
+                      className="w-full h-auto object-contain rounded-xl"
+                    />
+                  </div>
 
                   <p className="text-[10px] text-stone-600 font-bold mt-2">
                     Scan with Google Pay, PhonePe, Paytm or BHIM
@@ -503,23 +677,54 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   </span>
                 </div>
 
-                <div className="space-y-1 text-left pt-1">
-                  <label className="text-xs font-semibold text-stone-300 block">
-                    Enter 12-digit UPI Reference / UTR Number
-                  </label>
-                  <input
-                    id="modal-upi-utr-input"
-                    type="text"
-                    maxLength={12}
-                    value={upiUtr}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 12);
-                      setUpiUtr(val);
-                      if (utrError && val.length === 12) setUtrError(null);
-                    }}
-                    placeholder="e.g. 629031940128"
-                    className="w-full px-3 py-2.5 rounded-xl bg-black/60 border border-stone-700 text-xs font-mono text-emerald-200 focus:outline-none focus:border-emerald-400"
-                  />
+                <div className="space-y-1.5 text-left pt-1">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="modal-upi-utr-input" className="text-xs font-semibold text-stone-300 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Enter 12-digit UPI Reference / UTR Number <span className="text-rose-400">*</span></span>
+                    </label>
+                    <span className={`text-[11px] font-mono ${upiUtr.length === 12 ? 'text-emerald-400 font-bold' : 'text-stone-400'}`}>
+                      {upiUtr.length}/12 digits
+                    </span>
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      id="modal-upi-utr-input"
+                      type="text"
+                      maxLength={12}
+                      value={upiUtr}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 12);
+                        setUpiUtr(val);
+                        if (utrError && val.length === 12) setUtrError(null);
+                      }}
+                      placeholder="e.g. 629031940128"
+                      className={`w-full px-3.5 py-3 rounded-xl bg-black/60 border text-xs sm:text-sm font-mono tracking-wider text-emerald-200 placeholder:text-stone-600 focus:outline-none transition-all ${
+                        utrError
+                          ? 'border-rose-500 focus:border-rose-400 ring-1 ring-rose-500/50'
+                          : upiUtr.length === 12
+                          ? 'border-emerald-500 focus:border-emerald-400 ring-1 ring-emerald-500/50'
+                          : 'border-stone-700 focus:border-emerald-400'
+                      }`}
+                    />
+                    {upiUtr.length === 12 && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-500/40">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Validated
+                      </span>
+                    )}
+                  </div>
+
+                  {utrError ? (
+                    <p className="text-xs text-rose-400 flex items-center gap-1.5 mt-1 font-medium">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>{utrError}</span>
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-stone-400">
+                      Scan the QR above with any UPI app (GPay/PhonePe/Paytm/BHIM), complete the ₹{grandTotal}/- payment, then enter the 12-digit UTR from your receipt.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -639,9 +844,19 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               <button
                 type="button"
                 id="pay-confirm-initiate-btn"
-                onClick={!currentUser ? onOpenAuth : handleInitiatePayment}
+                onClick={
+                  !currentUser
+                    ? onOpenAuth
+                    : paymentMethod === 'upi'
+                    ? handleSubmitUpiPayment
+                    : handleInitiatePayment
+                }
                 disabled={isProcessing}
-                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-stone-950 font-bold text-sm tracking-wide shadow-lg hover:from-amber-500 hover:to-amber-400 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className={`flex-1 py-3.5 rounded-xl font-bold text-sm tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  paymentMethod === 'upi' && upiUtr.length === 12
+                    ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-stone-950 shadow-emerald-500/20'
+                    : 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-stone-950 hover:from-amber-500 hover:to-amber-400'
+                }`}
               >
                 {isProcessing ? (
                   <>
@@ -653,6 +868,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     <Lock className="w-4 h-4" />
                     <span>Sign In to Unlock Payment (₹{grandTotal})</span>
                   </>
+                ) : paymentMethod === 'upi' ? (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>
+                      {upiUtr.length === 12
+                        ? `Submit UTR & Confirm Payment (₹${grandTotal})`
+                        : `Submit 12-Digit UTR to Confirm (₹${grandTotal})`}
+                    </span>
+                  </>
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4" />
@@ -662,6 +886,28 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               </button>
             </div>
           </div>
+        )}
+
+        {/* STEP: 'VERIFYING PAYMENT...' VISUAL FEEDBACK COMPONENT */}
+        {step === 'verifying' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="animate-fade-in"
+          >
+            <PaymentVerifyingAnimation
+              amount={grandTotal}
+              utr={upiUtr}
+              merchantTid="62903194"
+              error={errorMsg}
+              onRetry={() => {
+                setErrorMsg('');
+                setStep('payment_details');
+              }}
+            />
+          </motion.div>
         )}
 
         {/* STEP 3: OTP VERIFICATION FOR CARD / UPI */}

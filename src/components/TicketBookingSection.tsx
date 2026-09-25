@@ -60,6 +60,7 @@ import {
 } from '../utils/validation';
 import { TurnstileWidget } from './TurnstileWidget';
 import { TicketQrScannerOverlay } from './TicketQrScannerOverlay';
+import { PaymentVerifyingAnimation } from './PaymentVerifyingAnimation';
 
 interface TicketBookingSectionProps {
   currentUser: UserProfile | null;
@@ -428,6 +429,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   // Finalize booking state & record pass
   const finalizePassBooking = async (verifiedUtr?: string) => {
     setIsProcessingPayment(true);
+    const startTime = Date.now();
     const activeUtr = verifiedUtr || upiUtr.replace(/\D/g, '') || ('UTR' + Math.floor(100000000000 + Math.random() * 900000000000));
 
     try {
@@ -549,6 +551,13 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         onPassBooked(bookedPass);
       }
 
+      // Ensure minimum engagement time so all verification animation stages are smoothly displayed
+      const elapsed = Date.now() - startTime;
+      const minEngagementTime = 2400;
+      if (elapsed < minEngagementTime) {
+        await new Promise((resolve) => setTimeout(resolve, minEngagementTime - elapsed));
+      }
+
       triggerCelebration(bookedPass);
       setCurrentStep('pass');
       document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
@@ -649,6 +658,13 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           transactionId: fallbackPass.transactionId,
           upiUtr: activeUtr,
         }).catch(e => console.warn('Supabase fallback purchase record:', e));
+      }
+
+      // Ensure minimum engagement time even on fallback so user sees the verification progress
+      const elapsed = Date.now() - startTime;
+      const minEngagementTime = 2400;
+      if (elapsed < minEngagementTime) {
+        await new Promise((resolve) => setTimeout(resolve, minEngagementTime - elapsed));
       }
 
       triggerCelebration(fallbackPass);
@@ -1638,14 +1654,11 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </div>
 
                 {/* Uploaded HDFC SmartHub Vyapar QR image */}
-                <div className="w-56 h-auto p-1 bg-white rounded-2xl flex items-center justify-center">
+                <div className="w-60 sm:w-64 max-w-full p-2 bg-white rounded-2xl flex items-center justify-center shadow-sm">
                   <img
-                    src="/1790315575567.png"
+                    src="https://i.postimg.cc/4dkfnBP3/IMG-20260925-WA0013.jpg"
                     alt="HDFC SmartHub Vyapar Merchant QR Code"
                     className="w-full h-auto object-contain rounded-xl"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = '/assets/1790315575567.png';
-                    }}
                   />
                 </div>
 
@@ -1899,6 +1912,31 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             </div>
           </motion.div>
         )}
+
+        {/* Full Visual Feedback 'Verifying Payment...' Animation Overlay */}
+        <AnimatePresence>
+          {isProcessingPayment && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 15 }}
+                className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-[#160c08] border border-emerald-500/40 rounded-3xl shadow-2xl p-6 sm:p-8 text-stone-200"
+              >
+                <PaymentVerifyingAnimation
+                  amount={grandTotal}
+                  utr={upiUtr}
+                  merchantTid="62903194"
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* STEP 4: Generated Digital Pass / E-Ticket */}
         {currentStep === 'pass' && generatedPass && (

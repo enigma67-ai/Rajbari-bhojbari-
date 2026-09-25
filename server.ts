@@ -9,16 +9,21 @@ import { createServer as createViteServer } from "vite";
 dotenv.config();
 
 // Production vs Development detection:
-// - Running compiled dist/server.cjs or with NODE_ENV=production -> production
-// - Running with tsx in AI Studio sandbox -> development
-const isProduction = process.env.NODE_ENV === "production" || 
-  process.env.npm_lifecycle_event === "start" || 
+// - Running in Cloud Run preview/production deployment (K_SERVICE includes '-pre-' or NODE_ENV=production or npm start)
+// - Running in AI Studio dev sandbox (K_SERVICE includes '-dev-' and not NODE_ENV=production)
+const isProduction =
+  process.env.NODE_ENV === "production" ||
+  process.env.npm_lifecycle_event === "start" ||
+  (Boolean(process.env.K_SERVICE) && !process.env.K_SERVICE?.includes("-dev-")) ||
   (typeof __filename !== "undefined" && __filename.includes("dist"));
 
 // Port Resolution:
 // - In AI Studio development sandbox, Nginx reverse proxy listens on 8080 and forwards to 3000. Dev servers in that sandbox must listen on 3000.
 // - In Google Cloud Run deployments, Cloud Run automatically injects process.env.PORT (typically 8080) and sends health checks directly to that port.
-const isAiStudioDev = !isProduction && (fs.existsSync("/app/control-plane-api") || fs.existsSync("/app/start.sh"));
+const isAiStudioDev = !isProduction && (
+  Boolean(process.env.K_SERVICE?.includes("-dev-")) || 
+  (process.env.DEFAULT_APP_PORT === "3000" && Boolean(process.env.NGINX_PORT))
+);
 const PORT = isAiStudioDev ? 3000 : (process.env.PORT ? parseInt(process.env.PORT, 10) : 8080);
 
 const app = express();
@@ -485,11 +490,18 @@ app.post("/api/payments/verify-and-confirm", (req, res) => {
     return;
   }
 
-  if (booking.method !== "cash") {
-    // Validate OTP (or allow 123456 as standard fallback)
+  if (booking.method === "card") {
+    // Validate OTP for Card transactions (or allow 123456 as standard fallback)
     const isValid = otp === booking.otpCode || otp === "123456";
     if (!isValid) {
       res.status(400).json({ error: "Incorrect payment verification OTP. Please try again." });
+      return;
+    }
+  } else if (booking.method === "upi") {
+    // Validate 12-digit UTR for UPI transactions
+    const cleanUtr = (upiRef || req.body.upiUtr || "").toString().replace(/\D/g, "");
+    if (cleanUtr.length !== 12 && cleanUtr.length < 8) {
+      res.status(400).json({ error: "Invalid UPI Reference / UTR Number. Must be a 12-digit transaction ID." });
       return;
     }
   }
@@ -1025,9 +1037,9 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = fs.existsSync(path.join(process.cwd(), "dist"))
+    const distPath = fs.existsSync(path.join(process.cwd(), "dist", "index.html"))
       ? path.join(process.cwd(), "dist")
-      : __dirname;
+      : (fs.existsSync(path.join(process.cwd(), "dist")) ? path.join(process.cwd(), "dist") : __dirname);
     app.use(express.static(distPath));
     app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
