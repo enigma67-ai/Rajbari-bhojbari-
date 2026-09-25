@@ -64,7 +64,7 @@ export const bookingAttendeeSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'Name must be at least 2 characters.')
+    .min(3, 'Full name must be at least 3 characters.')
     .max(60, 'Name must not exceed 60 characters.')
     .regex(NAME_REGEX, 'Name can only contain letters, spaces, hyphens, and apostrophes (no special characters).')
     .transform(sanitizeName),

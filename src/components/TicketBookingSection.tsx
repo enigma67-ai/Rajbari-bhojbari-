@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Ticket, 
@@ -32,9 +32,12 @@ import {
   PartyPopper,
   ShieldCheck,
   Loader2,
-  Leaf
+  Leaf,
+  LogOut,
+  LogIn
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import type { Session } from '@supabase/supabase-js';
 import { EventTicketPass, StarterOptionType, MainsOptionType, UserProfile } from '../types';
 import { saveTicketPass } from '../lib/firebase';
 import { triggerFestiveCelebration, playCelebrationChime } from '../utils/confettiCelebration';
@@ -51,12 +54,13 @@ import {
   BookingConfirmationPayload 
 } from '../utils/confirmationEmailService';
 import { ConfirmationEmailModal } from './ConfirmationEmailModal';
-import { recordPurchaseToSupabase, getSupabaseClient } from '../lib/supabase';
+import { supabase, recordPurchaseToSupabase, getSupabaseClient } from '../lib/supabase';
 import { 
   bookingAttendeeSchema, 
   sanitizeName, 
   sanitizePhoneDigits, 
-  sanitizeString 
+  sanitizeString,
+  NAME_REGEX
 } from '../utils/validation';
 import { TurnstileWidget } from './TurnstileWidget';
 import { TicketQrScannerOverlay } from './TicketQrScannerOverlay';
@@ -115,21 +119,88 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     setCooldownRemaining(seconds);
   };
 
-  // Step 1: Mandatory Attendee Details
-  const [name, setName] = useState(currentUser?.name || '');
-  const [phone, setPhone] = useState(
-    currentUser?.emailOrPhone && !currentUser.emailOrPhone.includes('@')
-      ? currentUser.emailOrPhone.replace(/\+91\s?/, '')
-      : '98301 44521'
-  );
-  const [email, setEmail] = useState(
-    currentUser?.emailOrPhone?.includes('@')
-      ? currentUser.emailOrPhone
-      : 'guest@iam.ac.in'
-  );
+  // Step 1: Mandatory Attendee Details (Initial states are empty strings with NO hardcoded dummy defaults)
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [slot, setSlot] = useState('Grand Aristocratic Dinner (7:30 PM - 10:30 PM)');
   const [eventDate, setEventDate] = useState('Friday, 9th October 2026');
+
+  // Supabase Auth Session & Auto-fill State
+  const [authSession, setAuthSession] = useState<Session | null>(null);
+  const [touched, setTouched] = useState<{
+    name: boolean;
+    phone: boolean;
+    email: boolean;
+  }>({
+    name: false,
+    phone: false,
+    email: false,
+  });
+
+  // Supabase Auth Session Detection & Auto-fill
+  useEffect(() => {
+    // 1. Check existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthSession(session);
+      if (session?.user) {
+        if (session.user.email) {
+          setEmail(session.user.email);
+        }
+        const userFullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
+        if (userFullName) {
+          setName(userFullName);
+        }
+      }
+    });
+
+    // 2. Register real-time auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthSession(session);
+      if (session?.user) {
+        if (session.user.email) {
+          setEmail(session.user.email);
+        }
+        const userFullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
+        if (userFullName) {
+          setName(userFullName);
+        }
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Google Sign-In & Sign-Out handlers
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) {
+        console.error('Supabase Google OAuth error:', error);
+        if (onOpenAuth) onOpenAuth();
+      }
+    } catch (err) {
+      console.error('Google Sign-In failed:', err);
+      if (onOpenAuth) onOpenAuth();
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setAuthSession(null);
+    } catch (err) {
+      console.error('Sign out error:', err);
+    }
+  };
 
   // Step 2: Meal Selections (Included in ₹349/- base pass)
   const [welcomeDrink, setWelcomeDrink] = useState('Rural Bengal Counter (Full Complimentary Tasting)');
@@ -200,34 +271,65 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   // Sync with authenticated user profile
   React.useEffect(() => {
     if (currentUser) {
-      if (!name || name === 'Honored Royal Guest') {
-        setName(currentUser.name || '');
+      if (currentUser.name && (!name || name === 'Honored Royal Guest')) {
+        setName(currentUser.name);
       }
-      if (currentUser.emailOrPhone?.includes('@')) {
+      if (currentUser.emailOrPhone?.includes('@') && !email) {
         setEmail(currentUser.emailOrPhone);
-      } else if (currentUser.emailOrPhone) {
+      } else if (currentUser.emailOrPhone && !phone) {
         setPhone(currentUser.emailOrPhone.replace(/\D/g, '').slice(-10));
       }
     }
   }, [currentUser]);
 
-  const isUserLoggedIn = Boolean(currentUser);
+  const isUserAuthenticated = Boolean(authSession?.user || currentUser);
+  const userDisplayEmail = authSession?.user?.email || (currentUser?.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : currentUser?.name || 'Authenticated User');
+  const isUserLoggedIn = isUserAuthenticated;
 
-  // Real-time Booking Detail Verification
+  // Strict Real-time Attendee Validation:
+  // 1. Full Name: at least 3 characters and letters/spaces only
+  // 2. Phone Number: strictly 10 digits
+  // 3. Email: valid email format
+  // 4. Authenticated: session or user exists
   const cleanPhone = phone.replace(/\D/g, '');
-  const isNameFilled = name.trim().length >= 2;
-  const isPhoneFilled = cleanPhone.length >= 10;
-  const isEmailFilled = email.trim().length >= 5 && email.includes('@') && email.includes('.');
+  const isNameValid = name.trim().length >= 3 && NAME_REGEX.test(name.trim());
+  const isPhoneValid = cleanPhone.length === 10;
+  const isEmailValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
   const isSlotFilled = Boolean(slot);
   const isQuantityValid = quantity >= 1;
 
+  // Comprehensive Step 1 validation check
+  const isStep1Valid = isNameValid && isPhoneValid && isEmailValid && isUserAuthenticated && isSlotFilled && isQuantityValid;
+
+  // Dynamic inline error hints for touched fields
+  const nameError = formErrors.name || (touched.name
+    ? !name.trim()
+      ? 'Full name is required.'
+      : name.trim().length < 3
+      ? 'Full name must be at least 3 characters.'
+      : !NAME_REGEX.test(name.trim())
+      ? 'Name can only contain letters, spaces, hyphens, and apostrophes.'
+      : null
+    : null);
+
+  const phoneError = formErrors.phone || (touched.phone
+    ? !cleanPhone
+      ? 'Phone number is required.'
+      : cleanPhone.length !== 10
+      ? 'Enter a valid 10-digit mobile number (e.g. 9876543210).'
+      : null
+    : null);
+
+  const emailError = formErrors.email || (touched.email
+    ? !email.trim()
+      ? 'Email address is required.'
+      : !isEmailValid
+      ? 'Please enter a valid email address (e.g. name@example.com).'
+      : null
+    : null);
+
   // Essential attendee parameters check
-  const isBookingDetailsComplete =
-    isNameFilled &&
-    isPhoneFilled &&
-    isEmailFilled &&
-    isSlotFilled &&
-    isQuantityValid;
+  const isBookingDetailsComplete = isStep1Valid;
 
   // Strict 12-digit numeric regex validation for UPI reference / UTR
   const cleanUtr = upiUtr.replace(/\D/g, '');
@@ -245,6 +347,16 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   // Validate Step 1 Form with Zod schema and advance directly to Step 2 (UPI Payment)
   const handleValidateDetails = (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched({ name: true, phone: true, email: true });
+
+    if (!isUserAuthenticated) {
+      handleGoogleSignIn();
+      return;
+    }
+
+    if (!isNameValid || !isPhoneValid || !isEmailValid) {
+      return;
+    }
 
     const result = bookingAttendeeSchema.safeParse({
       name,
@@ -795,16 +907,18 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (name && phone && email && currentStep !== 'pass' && currentStep !== 'meal') {
+                if (isStep1Valid && currentStep !== 'pass' && currentStep !== 'meal') {
                   setCurrentStep('payment');
+                } else if (currentStep === 'details') {
+                  setTouched({ name: true, phone: true, email: true });
                 }
               }}
               className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 ${
                 currentStep === 'payment'
                   ? 'bg-emerald-500 text-stone-950 shadow-md font-black scale-[1.02]'
-                  : name && phone && email && currentStep !== 'pass'
+                  : isStep1Valid && currentStep !== 'pass'
                   ? 'text-stone-300 hover:text-emerald-300 cursor-pointer'
-                  : 'text-stone-500'
+                  : 'text-stone-600 cursor-not-allowed opacity-60'
               }`}
             >
               <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">2</span>
@@ -862,6 +976,67 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto bg-stone-900/90 border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
           >
+            {/* Supabase Auth Session Detection: Logged-in Pill OR Sign In with Google Prompt */}
+            {isUserAuthenticated ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 text-xs text-emerald-200 shadow-sm">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                    ✓
+                  </span>
+                  <span className="truncate">
+                    Logged in as: <strong className="text-white font-mono">{userDisplayEmail}</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  id="ticket-signout-btn"
+                  onClick={handleSignOut}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-[11px] font-semibold transition-colors border border-stone-700 shrink-0 cursor-pointer"
+                >
+                  <LogOut className="w-3 h-3 text-stone-400" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-stone-900 to-amber-950/30 border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Sign in with Google to Continue</span>
+                  </div>
+                  <p className="text-[11px] text-stone-300">
+                    Authentication is required to book tickets and auto-fill your attendee profile.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  id="ticket-google-signin-btn"
+                  onClick={handleGoogleSignIn}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-stone-100 text-stone-900 font-bold text-xs shadow transition-all shrink-0 cursor-pointer active:scale-95 hover:shadow-md"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                    />
+                  </svg>
+                  <span>Sign in with Google</span>
+                </button>
+              </div>
+            )}
+
             <div className="border-b border-stone-800 pb-4">
               <h3 className="text-xl sm:text-2xl font-bold text-emerald-200 flex items-center gap-2">
                 <User className="w-5 h-5 text-emerald-400" />
@@ -877,7 +1052,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center justify-between">
                   <span>Full Name *</span>
-                  <span className="text-[10px] text-amber-400 font-normal">Letters & spaces only (no special symbols)</span>
+                  <span className="text-[10px] text-amber-400 font-normal">Min. 3 characters (letters & spaces only)</span>
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
@@ -885,25 +1060,31 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     id="ticket-name-input"
                     type="text"
                     required
-                    minLength={2}
+                    minLength={3}
                     maxLength={60}
-                    pattern="^[A-Za-z\u0980-\u09FF\s'.-]+$"
-                    title="Name can only contain letters, spaces, hyphens, and apostrophes."
                     autoComplete="name"
                     value={name}
+                    onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
                     onChange={(e) => {
                       const clean = sanitizeName(e.target.value);
                       setName(clean);
+                      if (!touched.name) setTouched((prev) => ({ ...prev, name: true }));
                       if (formErrors.name) setFormErrors((prev) => ({ ...prev, name: undefined }));
                     }}
-                    placeholder="e.g. Smt. Priyadarshini Mukherjee"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-sm text-stone-100 focus:outline-none focus:border-amber-400"
+                    placeholder="e.g. Priyadarshini Mukherjee"
+                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border text-sm text-stone-100 focus:outline-none transition-colors ${
+                      nameError
+                        ? 'border-rose-500 focus:border-rose-400'
+                        : touched.name && isNameValid
+                        ? 'border-emerald-500/60 focus:border-emerald-400'
+                        : 'border-stone-700 focus:border-amber-400'
+                    }`}
                   />
                 </div>
-                {formErrors.name && (
-                  <p className="text-xs text-rose-400 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{formErrors.name}</span>
+                {nameError && (
+                  <p className="text-xs text-rose-400 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{nameError}</span>
                   </p>
                 )}
               </div>
@@ -926,22 +1107,29 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     inputMode="numeric"
                     pattern="[0-9]{10}"
                     maxLength={10}
-                    title="Please enter a valid 10-digit mobile number using numbers only."
                     autoComplete="tel"
                     value={phone}
+                    onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
                     onChange={(e) => {
                       const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
                       setPhone(digitsOnly);
+                      if (!touched.phone) setTouched((prev) => ({ ...prev, phone: true }));
                       if (formErrors.phone) setFormErrors((prev) => ({ ...prev, phone: undefined }));
                     }}
-                    placeholder="9830144521"
-                    className="flex-1 px-3.5 py-2.5 rounded-r-xl bg-stone-950 border border-stone-700 text-sm text-stone-100 focus:outline-none focus:border-amber-400 font-mono"
+                    placeholder="10-digit mobile number"
+                    className={`flex-1 px-3.5 py-2.5 rounded-r-xl bg-stone-950 border text-sm text-stone-100 focus:outline-none font-mono transition-colors ${
+                      phoneError
+                        ? 'border-rose-500 focus:border-rose-400'
+                        : touched.phone && isPhoneValid
+                        ? 'border-emerald-500/60 focus:border-emerald-400'
+                        : 'border-stone-700 focus:border-amber-400'
+                    }`}
                   />
                 </div>
-                {formErrors.phone && (
-                  <p className="text-xs text-rose-400 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{formErrors.phone}</span>
+                {phoneError && (
+                  <p className="text-xs text-rose-400 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{phoneError}</span>
                   </p>
                 )}
               </div>
@@ -959,23 +1147,29 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     type="email"
                     required
                     maxLength={100}
-                    pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
-                    title="Please enter a valid email address (e.g. guest@iam.ac.in)."
                     autoComplete="email"
                     value={email}
+                    onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                     onChange={(e) => {
                       const clean = e.target.value.trim().toLowerCase();
                       setEmail(clean);
+                      if (!touched.email) setTouched((prev) => ({ ...prev, email: true }));
                       if (formErrors.email) setFormErrors((prev) => ({ ...prev, email: undefined }));
                     }}
-                    placeholder="guest@iam.ac.in"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-sm text-stone-100 focus:outline-none focus:border-amber-400 font-mono"
+                    placeholder="e.g. yourname@example.com"
+                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border text-sm text-stone-100 focus:outline-none font-mono transition-colors ${
+                      emailError
+                        ? 'border-rose-500 focus:border-rose-400'
+                        : touched.email && isEmailValid
+                        ? 'border-emerald-500/60 focus:border-emerald-400'
+                        : 'border-stone-700 focus:border-amber-400'
+                    }`}
                   />
                 </div>
-                {formErrors.email && (
-                  <p className="text-xs text-rose-400 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{formErrors.email}</span>
+                {emailError && (
+                  <p className="text-xs text-rose-400 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{emailError}</span>
                   </p>
                 )}
               </div>
@@ -1049,15 +1243,33 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </div>
               </div>
 
-              {/* Step 1 Next Button: Proceeds directly to Step 2 UPI Payment */}
-              <button
-                id="ticket-step1-continue-btn"
-                type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-stone-950 font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-              >
-                <span>Proceed to UPI QR Payment (₹{grandTotal}/-)</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {/* Step 1 Next Button: Strictly disabled until Name >=3 chars, Phone is 10 digits, Email valid, and user authenticated */}
+              <div className="space-y-2 pt-2">
+                <button
+                  id="ticket-step1-continue-btn"
+                  type="submit"
+                  disabled={!isStep1Valid || cooldownRemaining > 0}
+                  className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 ${
+                    isStep1Valid && cooldownRemaining === 0
+                      ? 'bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-stone-950 cursor-pointer active:scale-98 shadow-emerald-900/30'
+                      : 'bg-stone-800 text-stone-500 border border-stone-700/60 cursor-not-allowed opacity-70'
+                  }`}
+                >
+                  <span>Proceed to UPI QR Payment (₹{grandTotal}/-)</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                {!isStep1Valid && (
+                  <div className="text-[11px] text-center text-amber-400/90 flex items-center justify-center gap-1.5 pt-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>
+                      {!isUserAuthenticated
+                        ? 'Please sign in with Google above to unlock payment.'
+                        : 'Complete Full Name (≥3 chars), 10-digit Phone, and valid Email to proceed.'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </form>
           </motion.div>
         )}
