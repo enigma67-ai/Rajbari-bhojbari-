@@ -837,12 +837,12 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
                       </div>
                     </div>
 
-                    {/* Payment & Sustainability Points */}
+                    {/* Payment & Pass Details */}
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-800 text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-400/40 text-emerald-300 font-bold text-[11px] flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-cyan-300" />
-                          <span>+120 Karma Points Verified</span>
+                        <span className="px-2.5 py-1 rounded-full bg-red-950 border border-amber-500/40 text-amber-300 font-bold text-[11px] flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-400" />
+                          <span>Verified Festival Eco-Pass</span>
                         </span>
                       </div>
 

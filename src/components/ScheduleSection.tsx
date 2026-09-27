@@ -67,29 +67,29 @@ export const ScheduleSection: React.FC = () => {
     <section id="schedule-section" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
       
       {/* Section Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-emerald-500/20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-amber-500/25">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-2">
-            <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/80 border border-amber-500/40 text-amber-300 text-xs font-semibold uppercase tracking-wider mb-2">
+            <Calendar className="w-3.5 h-3.5 text-amber-400" />
             <span>Interactive Event Timeline</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-emerald-100">
-            Festival Day <span className="text-gradient-cyan">Schedule & AI Labs</span>
+          <h2 className="text-3xl sm:text-4xl font-black text-white">
+            Festival Day <span className="text-amber-400">Schedule & AI Labs</span>
           </h2>
-          <p className="text-emerald-100/70 text-sm mt-1 max-w-2xl">
+          <p className="text-stone-300 text-sm mt-1 max-w-2xl">
             {FESTIVAL_INFO.date} • From 10:00 AM smart induction kickoff to the evening Grand Sustainability & Carbon-Neutral Scorecard release.
           </p>
         </div>
 
         {/* Tab switcher: All vs My Saved Itinerary */}
-        <div className="flex items-center gap-2 self-start md:self-auto bg-stone-900/90 p-1 rounded-xl border border-emerald-900/60">
+        <div className="flex items-center gap-2 self-start md:self-auto bg-stone-900/90 p-1 rounded-xl border border-amber-500/30">
           <button
             id="schedule-tab-all"
             onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'all'
-                ? 'bg-emerald-500 text-stone-950 font-bold shadow-sm'
-                : 'text-emerald-100/60 hover:text-emerald-200'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-black shadow-sm'
+                : 'text-stone-400 hover:text-amber-200'
             }`}
           >
             All Sessions ({FESTIVAL_SCHEDULE.length})
@@ -97,10 +97,10 @@ export const ScheduleSection: React.FC = () => {
           <button
             id="schedule-tab-saved"
             onClick={() => setActiveTab('saved')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'saved'
-                ? 'bg-emerald-500 text-stone-950 font-bold shadow-sm'
-                : 'text-emerald-100/60 hover:text-emerald-200'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-black shadow-sm'
+                : 'text-stone-400 hover:text-amber-200'
             }`}
           >
             <BookmarkCheck className="w-3.5 h-3.5" />
@@ -111,12 +111,12 @@ export const ScheduleSection: React.FC = () => {
 
       {/* Reminder notification toast */}
       {notificationEventId && (
-        <div className="my-4 p-3 rounded-xl bg-emerald-950 border border-emerald-500/40 text-emerald-200 text-xs flex items-center justify-between animate-fade-in shadow-lg">
+        <div className="my-4 p-3 rounded-xl bg-red-950 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between animate-fade-in shadow-lg">
           <div className="flex items-center gap-2">
-            <BellRing className="w-4 h-4 text-emerald-400 animate-bounce" />
+            <BellRing className="w-4 h-4 text-amber-400 animate-bounce" />
             <span>Reminder alert configured! You will receive a notification 15 minutes before the session starts.</span>
           </div>
-          <span className="text-[10px] text-emerald-400 uppercase font-bold">Simulated Notification Active</span>
+          <span className="text-[10px] text-amber-400 uppercase font-bold">Simulated Notification Active</span>
         </div>
       )}
 
@@ -175,8 +175,8 @@ export const ScheduleSection: React.FC = () => {
                 id={`event-card-${event.id}`}
                 className={`relative p-5 sm:p-6 rounded-2xl border transition-all duration-300 ${
                   event.isHighlight
-                    ? 'bg-gradient-to-r from-[#1c100a] via-[#160c08] to-[#140a06] border-amber-500/40 shadow-xl'
-                    : 'bg-[#150d09] border-stone-800/80 hover:border-amber-500/30'
+                    ? 'bg-gradient-to-r from-[#24080c] via-[#1a0507] to-[#140305] border-amber-500/40 shadow-xl'
+                    : 'bg-[#180406] border-amber-500/20 hover:border-amber-500/40'
                 }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -196,14 +196,14 @@ export const ScheduleSection: React.FC = () => {
                   {/* Center: Title, Subtitle, Host, Description */}
                   <div className="flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base sm:text-lg font-bold text-emerald-100">
+                      <h3 className="text-base sm:text-lg font-bold text-white">
                         {event.title}
                       </h3>
                       <span className="text-xs text-amber-400 font-sans font-semibold">
                         ({event.bengaliSubtitle})
                       </span>
                       {event.isHighlight && (
-                        <span className="px-2 py-0.5 rounded-full bg-red-950 text-amber-300 text-[10px] font-bold border border-red-500/40 uppercase">
+                        <span className="px-2 py-0.5 rounded-full bg-red-950 text-amber-300 text-[10px] font-bold border border-amber-500/40 uppercase">
                           Highlight
                         </span>
                       )}
@@ -220,7 +220,7 @@ export const ScheduleSection: React.FC = () => {
                       </div>
 
                       {event.sustainabilityFocus && (
-                        <div className="flex items-center gap-1 text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-600/20 text-[11px]">
+                        <div className="flex items-center gap-1 text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-500/30 text-[11px]">
                           <Leaf className="w-3 h-3 text-emerald-400" />
                           <span>Eco Focus: {event.sustainabilityFocus}</span>
                         </div>
@@ -233,9 +233,9 @@ export const ScheduleSection: React.FC = () => {
                     <button
                       id={`event-bookmark-btn-${event.id}`}
                       onClick={() => toggleSaveEvent(event.id)}
-                      className={`flex-1 lg:w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                      className={`flex-1 lg:w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                         isSaved
-                          ? 'bg-amber-600 text-stone-950 font-bold'
+                          ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-black shadow'
                           : 'bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-700'
                       }`}
                     >
@@ -255,7 +255,7 @@ export const ScheduleSection: React.FC = () => {
                     <button
                       id={`event-reminder-btn-${event.id}`}
                       onClick={() => handleSetReminder(event.id, event.title)}
-                      className="p-2 lg:w-full flex items-center justify-center gap-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-800 text-amber-300 text-xs transition-colors"
+                      className="p-2 lg:w-full flex items-center justify-center gap-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-800 text-amber-300 text-xs transition-colors cursor-pointer"
                       title="Set Notification Reminder"
                     >
                       <Bell className="w-3.5 h-3.5" />

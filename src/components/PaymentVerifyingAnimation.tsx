@@ -90,8 +90,8 @@ export const PaymentVerifyingAnimation: React.FC<PaymentVerifyingAnimationProps>
     <div className="w-full py-4 px-2 sm:px-4 space-y-6 text-stone-200">
       {/* Top Status Pill */}
       <div className="flex items-center justify-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-[11px] font-mono font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950/80 border border-amber-500/40 text-[11px] font-mono font-bold text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
           <span>BANK GATEWAY & DATABASE RECONCILIATION</span>
         </div>
       </div>
@@ -99,21 +99,21 @@ export const PaymentVerifyingAnimation: React.FC<PaymentVerifyingAnimationProps>
       {/* Central Animated Visual Feedback */}
       <div className="relative flex flex-col items-center justify-center py-2">
         {/* Ambient Pulsing Glow Rings */}
-        <div className="absolute w-44 h-44 rounded-full bg-emerald-500/10 blur-2xl animate-pulse pointer-events-none" />
-        <div className="absolute w-32 h-32 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
+        <div className="absolute w-44 h-44 rounded-full bg-amber-500/15 blur-2xl animate-pulse pointer-events-none" />
+        <div className="absolute w-32 h-32 rounded-full bg-red-700/20 blur-xl pointer-events-none" />
 
         {/* Concentric Rotating Scanner Ring */}
         <div className="relative w-28 h-28 flex items-center justify-center">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 6, ease: 'linear' }}
-            className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/40"
+            className="absolute inset-0 rounded-full border-2 border-dashed border-amber-500/50"
           />
 
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ repeat: Infinity, duration: 9, ease: 'linear' }}
-            className="absolute inset-2 rounded-full border-2 border-dotted border-amber-400/40"
+            className="absolute inset-2 rounded-full border-2 border-dotted border-red-500/50"
           />
 
           {/* Central Shield Icon Container */}
@@ -121,23 +121,23 @@ export const PaymentVerifyingAnimation: React.FC<PaymentVerifyingAnimationProps>
             initial={{ scale: 0.85 }}
             animate={{ scale: [0.95, 1.05, 0.95] }}
             transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
-            className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-950 via-[#07251a] to-stone-900 border-2 border-emerald-400/80 shadow-[0_0_25px_rgba(16,185,129,0.45)] flex items-center justify-center"
+            className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-red-950 via-[#26060a] to-[#140305] border-2 border-amber-400/80 shadow-[0_0_25px_rgba(245,158,11,0.35)] flex items-center justify-center"
           >
             {error ? (
               <AlertCircle className="w-10 h-10 text-rose-400" />
             ) : (
-              <ShieldCheck className="w-10 h-10 text-emerald-300 drop-shadow" />
+              <ShieldCheck className="w-10 h-10 text-amber-300 drop-shadow" />
             )}
             
             {/* Corner Decorative Dots */}
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-            <span className="absolute -bottom-1 -left-1 w-2 rounded-full bg-amber-400" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]" />
+            <span className="absolute -bottom-1 -left-1 w-2 rounded-full bg-red-500" />
           </motion.div>
         </div>
 
         {/* Dynamic Titles */}
         <div className="mt-4 text-center space-y-1">
-          <h3 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-amber-200 to-emerald-300 font-serif tracking-wide">
+          <h3 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 font-serif tracking-wide">
             Verifying Payment...
           </h3>
           <p className="text-xs text-stone-300 max-w-md mx-auto">
@@ -148,29 +148,29 @@ export const PaymentVerifyingAnimation: React.FC<PaymentVerifyingAnimationProps>
 
       {/* Submitted Details Highlight Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-lg mx-auto">
-        <div className="p-3 rounded-xl bg-stone-900/90 border border-stone-800 text-center">
+        <div className="p-3 rounded-xl bg-[#1f0609] border border-amber-500/30 text-center">
           <span className="text-[10px] text-stone-400 uppercase tracking-wider block">Total Amount</span>
-          <span className="text-base font-black font-mono text-emerald-300">₹{amount}/-</span>
+          <span className="text-base font-black font-mono text-amber-300">₹{amount}/-</span>
         </div>
 
-        <div className="p-3 rounded-xl bg-stone-900/90 border border-emerald-500/30 text-center">
-          <span className="text-[10px] text-emerald-400/90 uppercase tracking-wider block font-bold">12-Digit UTR</span>
+        <div className="p-3 rounded-xl bg-[#1f0609] border border-amber-500/40 text-center">
+          <span className="text-[10px] text-amber-300 uppercase tracking-wider block font-bold">12-Digit UTR</span>
           <span className="text-base font-black font-mono text-amber-300 tracking-wider">
             {utr || '629031940128'}
           </span>
         </div>
 
-        <div className="p-3 rounded-xl bg-stone-900/90 border border-stone-800 text-center">
+        <div className="p-3 rounded-xl bg-[#1f0609] border border-stone-800 text-center">
           <span className="text-[10px] text-stone-400 uppercase tracking-wider block">Merchant TID</span>
           <span className="text-base font-bold font-mono text-stone-200">{merchantTid}</span>
         </div>
       </div>
 
       {/* Animated Multi-Step Verification Checklist */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-stone-950/80 border border-emerald-500/20 max-w-lg mx-auto space-y-3.5 shadow-inner">
-        <div className="flex items-center justify-between text-xs text-stone-400 border-b border-stone-800 pb-2">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#160406] border border-amber-500/30 max-w-lg mx-auto space-y-3.5 shadow-inner">
+        <div className="flex items-center justify-between text-xs text-stone-400 border-b border-amber-900/60 pb-2">
           <span className="font-semibold text-stone-300">Live Verification Pipeline</span>
-          <span className="font-mono text-emerald-400 font-bold">{Math.round(progress)}% Completed</span>
+          <span className="font-mono text-amber-400 font-bold">{Math.round(progress)}% Completed</span>
         </div>
 
         {/* Dynamic Progress Bar */}
@@ -179,7 +179,7 @@ export const PaymentVerifyingAnimation: React.FC<PaymentVerifyingAnimationProps>
             initial={{ width: '15%' }}
             animate={{ width: `${progress}%` }}
             transition={{ ease: 'easeInOut', duration: 0.5 }}
-            className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-400 relative"
+            className="h-full bg-gradient-to-r from-red-600 via-amber-500 to-yellow-400 relative"
           >
             <div className="absolute inset-0 bg-white/20 animate-pulse" />
           </motion.div>
@@ -202,16 +202,16 @@ export const PaymentVerifyingAnimation: React.FC<PaymentVerifyingAnimationProps>
                 }}
                 className={`p-2.5 rounded-xl border transition-all flex items-start gap-3 ${
                   isCurrent
-                    ? 'bg-emerald-950/50 border-emerald-400/60 shadow-[0_0_12px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/30'
+                    ? 'bg-red-950/60 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)] ring-1 ring-amber-500/30'
                     : isCompleted
-                    ? 'bg-stone-900/60 border-emerald-500/20'
-                    : 'bg-stone-900/30 border-stone-800/60'
+                    ? 'bg-[#1e0609]/80 border-amber-500/30'
+                    : 'bg-stone-950/40 border-stone-800/60'
                 }`}
               >
                 <div className="mt-0.5 flex-shrink-0">
                   {isCompleted ? (
-                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <div className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
                     </div>
                   ) : isCurrent ? (
                     <div className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center">
@@ -226,11 +226,11 @@ export const PaymentVerifyingAnimation: React.FC<PaymentVerifyingAnimationProps>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className={`text-xs font-bold leading-tight ${isCurrent ? 'text-amber-200' : isCompleted ? 'text-emerald-200' : 'text-stone-400'}`}>
+                    <span className={`text-xs font-bold leading-tight ${isCurrent ? 'text-amber-200' : isCompleted ? 'text-amber-300' : 'text-stone-400'}`}>
                       {stage.title}
                     </span>
                     {isCompleted && (
-                      <span className="text-[10px] font-mono font-bold text-emerald-400">Verified</span>
+                      <span className="text-[10px] font-mono font-bold text-amber-400">Verified</span>
                     )}
                     {isCurrent && (
                       <span className="text-[10px] font-mono font-bold text-amber-300 animate-pulse">In Progress...</span>

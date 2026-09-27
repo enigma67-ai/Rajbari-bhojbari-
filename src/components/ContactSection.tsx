@@ -148,18 +148,45 @@ export const ContactSection: React.FC = () => {
               <div className="flex items-start gap-3 text-stone-300">
                 <Phone className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-amber-200">Helpline & Concierge</div>
-                  <div className="mt-0.5 font-mono text-amber-100">{FESTIVAL_INFO.phone}</div>
-                  <div className="text-[11px] text-stone-400">Student Hospitality Desk: +91 33 2357 0001</div>
+                  <div className="font-bold text-amber-200">Help line & Concierge</div>
+                  <a href="tel:+918334055747" className="mt-0.5 font-mono text-amber-100 hover:underline block">
+                    +91 83340 55747
+                  </a>
+                  <div className="text-[11px] text-stone-400">Direct Attendee & Guest Assistance Desk</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-3 text-stone-300">
                 <Mail className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-amber-200">Official Communication</div>
-                  <div className="mt-0.5 font-mono text-amber-100">{FESTIVAL_INFO.contactEmail}</div>
+                  <div className="font-bold text-amber-200">Office Communication Email</div>
+                  <a href="mailto:ks7901424@gmail.com" className="mt-0.5 font-mono text-amber-100 hover:underline block">
+                    ks7901424@gmail.com
+                  </a>
                 </div>
+              </div>
+
+              {/* Prominent WhatsApp Connect Card */}
+              <div className="pt-2">
+                <a
+                  href="https://wa.me/917365928593"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 hover:from-emerald-600 hover:to-teal-600 text-white border border-emerald-400/50 shadow-lg shadow-emerald-950/50 transition-all hover:scale-[1.02] cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/30 flex items-center justify-center text-white text-base">
+                      💬
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs">WhatsApp Connect</div>
+                      <div className="text-[11px] text-emerald-200 font-mono">+91 73659 28593</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] bg-white text-emerald-900 font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    Chat Live
+                  </span>
+                </a>
               </div>
             </div>
 

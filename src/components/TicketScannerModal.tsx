@@ -393,24 +393,24 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-2xl bg-gradient-to-b from-[#092218] via-[#04130c] to-[#020906] border border-emerald-500/40 rounded-3xl shadow-2xl overflow-hidden my-auto text-stone-200"
+          className="relative w-full max-w-2xl bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border border-amber-500/40 rounded-3xl shadow-2xl overflow-hidden my-auto text-stone-200"
         >
           {/* Header Banner */}
-          <div className="relative px-5 py-4 sm:px-6 sm:py-5 border-b border-emerald-500/20 bg-emerald-950/60 flex items-center justify-between">
+          <div className="relative px-5 py-4 sm:px-6 sm:py-5 border-b border-amber-500/25 bg-red-950/70 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 shadow-inner">
-                <QrCode className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl bg-red-900/60 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-inner">
+                <QrCode className="w-5 h-5 text-amber-300" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-display font-bold text-lg sm:text-xl text-white tracking-wide">
                     Fast Pass Gate Scanner
                   </h3>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/30 uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded-full bg-red-950 text-amber-300 text-[10px] font-bold border border-amber-400/30 uppercase tracking-wider font-mono">
                     @zxing Live Engine
                   </span>
                 </div>
-                <p className="text-xs text-emerald-300/80">
+                <p className="text-xs text-amber-200/80">
                   Instant QR check-in & verification against Firestore database
                 </p>
               </div>
@@ -429,7 +429,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
           <div className="p-4 sm:p-6 space-y-5">
             {/* Mode Selector Tabs */}
             {!validationResult && (
-              <div className="grid grid-cols-3 gap-2 p-1 bg-black/40 rounded-2xl border border-emerald-500/20 text-xs font-semibold">
+              <div className="grid grid-cols-3 gap-2 p-1 bg-black/50 rounded-2xl border border-amber-500/25 text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => {
@@ -438,8 +438,8 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                   }}
                   className={`py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     activeTab === 'camera'
-                      ? 'bg-emerald-500 text-stone-950 font-bold shadow'
-                      : 'text-stone-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-bold shadow'
+                      : 'text-stone-400 hover:text-amber-200'
                   }`}
                 >
                   <Camera className="w-4 h-4" />
@@ -453,8 +453,8 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                   }}
                   className={`py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     activeTab === 'upload'
-                      ? 'bg-emerald-500 text-stone-950 font-bold shadow'
-                      : 'text-stone-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-bold shadow'
+                      : 'text-stone-400 hover:text-amber-200'
                   }`}
                 >
                   <Upload className="w-4 h-4" />
@@ -468,8 +468,8 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                   }}
                   className={`py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     activeTab === 'manual'
-                      ? 'bg-emerald-500 text-stone-950 font-bold shadow'
-                      : 'text-stone-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-bold shadow'
+                      : 'text-stone-400 hover:text-amber-200'
                   }`}
                 >
                   <Search className="w-4 h-4" />
@@ -627,7 +627,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                       value={manualCode}
                       onChange={(e) => setManualCode(e.target.value)}
                       placeholder="Paste QR payload or RB-PASS-2026-..."
-                      className="w-full pl-10 pr-4 py-2.5 bg-black/50 border border-emerald-500/30 rounded-xl text-sm text-white placeholder-stone-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                      className="w-full pl-10 pr-4 py-2.5 bg-black/60 border border-amber-500/35 rounded-xl text-sm text-white placeholder-stone-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
                     />
                   </div>
                 </div>
@@ -636,9 +636,9 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                   type="button"
                   disabled={!manualCode.trim() || isVerifying}
                   onClick={() => handleValidatePayload(manualCode)}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Search className="w-4 h-4" />
+                  <Search className="w-4 h-4 text-stone-950 stroke-[2.5]" />
                   <span>Verify in Firestore Database</span>
                 </button>
 
@@ -652,9 +652,9 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleValidatePayload(latestPass.id)}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-red-950/80 hover:bg-red-900 border border-amber-500/40 text-amber-200 text-xs font-medium flex items-center gap-1.5 cursor-pointer"
                       >
-                        <TicketQrIcon className="w-3.5 h-3.5 text-emerald-400" />
+                        <TicketQrIcon className="w-3.5 h-3.5 text-amber-400" />
                         <span>Verify Your Current Pass ({latestPass.id})</span>
                       </button>
                     )}
@@ -744,19 +744,19 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
 
                 {/* Detailed Ticket Card (if valid pass found in Firestore) */}
                 {validationResult.isValid && validationResult.ticket && (
-                  <div className="bg-black/50 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 space-y-4">
+                  <div className="bg-black/60 border border-amber-500/35 rounded-2xl p-4 sm:p-5 space-y-4">
                     {/* Top Row: Pass ID & Gate Location */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-stone-800">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-amber-900/40">
                       <div>
                         <span className="text-[10px] text-stone-400 uppercase font-mono block">Ticket Identifier</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-emerald-400 text-sm sm:text-base">
+                          <span className="font-mono font-bold text-amber-300 text-sm sm:text-base">
                             {validationResult.ticket.id}
                           </span>
                           <button
                             type="button"
                             onClick={() => copyToClipboard(validationResult.ticket.id)}
-                            className="p-1 rounded hover:bg-white/10 text-stone-400 hover:text-stone-200 cursor-pointer"
+                            className="p-1 rounded hover:bg-white/10 text-stone-400 hover:text-white cursor-pointer"
                             title="Copy ID"
                           >
                             {copiedId ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -767,7 +767,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                       <div className="text-right">
                         <span className="text-[10px] text-stone-400 uppercase font-mono block">Entry Gate</span>
                         <span className="text-xs text-stone-300 font-semibold flex items-center justify-end gap-1">
-                          <MapPin className="w-3 h-3 text-emerald-400" />
+                          <MapPin className="w-3 h-3 text-amber-400" />
                           {validationResult.ticket.gateLocation || 'Main Green Gate, IAM Kolkata Campus'}
                         </span>
                       </div>
@@ -831,12 +831,12 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Payment & Sustainability Points */}
+                    {/* Payment & Pass Details */}
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-800 text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-400/40 text-emerald-300 font-bold text-[11px] flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-cyan-300" />
-                          <span>+120 Karma Points Verified</span>
+                        <span className="px-2.5 py-1 rounded-full bg-red-950 border border-amber-500/40 text-amber-300 font-bold text-[11px] flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-400" />
+                          <span>Verified Festival Eco-Pass</span>
                         </span>
                       </div>
 
@@ -858,16 +858,16 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                           type="button"
                           disabled={isAdmitting}
                           onClick={handleMarkAdmitted}
-                          className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer active:scale-98"
+                          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm tracking-wide shadow-[0_0_25px_rgba(245,158,11,0.35)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer active:scale-98"
                         >
                           {isAdmitting ? (
                             <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
                               <span>Updating Database...</span>
                             </>
                           ) : (
                             <>
-                              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                              <CheckCircle2 className="w-4 h-4 text-stone-950 stroke-[2.5]" />
                               <span>Admit Guest & Mark Pass as Used</span>
                             </>
                           )}
@@ -889,15 +889,15 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                   <button
                     type="button"
                     onClick={handleResetScanner}
-                    className="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow cursor-pointer"
+                    className="flex-1 py-2.5 rounded-xl bg-red-950 hover:bg-red-900 border border-amber-500/40 text-amber-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow cursor-pointer"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-4 h-4 text-amber-400" />
                     <span>Scan Another Ticket</span>
                   </button>
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-5 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
                   >
                     Done
                   </button>

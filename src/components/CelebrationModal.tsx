@@ -114,7 +114,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 24, stiffness: 300 }}
-            className="relative w-full max-w-2xl bg-gradient-to-b from-[#1c0f0a] via-[#140b07] to-[#0d0705] border-2 border-amber-500/50 rounded-3xl shadow-2xl p-5 sm:p-7 overflow-hidden z-10 my-8 text-stone-100"
+            className="relative w-full max-w-2xl bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border-2 border-amber-500/40 rounded-3xl shadow-2xl p-5 sm:p-7 overflow-hidden z-10 my-8 text-stone-100"
           >
             {/* Ambient Festive Shimmer */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-amber-500/15 blur-3xl pointer-events-none" />
@@ -124,7 +124,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
             <button
               id="celebration-close-btn"
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-full bg-stone-900/80 hover:bg-stone-800 text-stone-400 hover:text-stone-200 border border-stone-800 transition-colors z-20"
+              className="absolute top-4 right-4 p-2 rounded-full bg-stone-900/80 hover:bg-stone-800 text-stone-400 hover:text-stone-200 border border-stone-800 transition-colors z-20 cursor-pointer"
               title="Close Modal"
             >
               <X className="w-5 h-5" />
@@ -138,17 +138,22 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
                 transition={{ type: 'spring', delay: 0.1, damping: 15 }}
                 className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-gradient-to-br from-amber-500 via-red-600 to-amber-700 p-0.5 shadow-xl flex items-center justify-center ring-4 ring-amber-400/30"
               >
-                <div className="w-full h-full rounded-full bg-[#1c0f0a] flex items-center justify-center">
-                  <Crown className="w-8 h-8 sm:w-10 sm:h-10 text-amber-300 animate-pulse" />
+                <div className="w-full h-full rounded-full bg-[#1c0609] flex items-center justify-center">
+                  <motion.div
+                    animate={{ scale: [1, 1.12, 1] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                  >
+                    <Crown className="w-8 h-8 sm:w-10 sm:h-10 text-amber-300" />
+                  </motion.div>
                 </div>
               </motion.div>
 
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Eco Celebration Confirmed</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Festival Pass Confirmed</span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-emerald-100 tracking-wide">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wide">
                 {data.type === 'ticket' ? 'Official Eco Pass Issued!' : 'Zero-Waste Dining Confirmed!'}
               </h2>
 
@@ -173,7 +178,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
             </div>
 
             {/* Digital Pass Card */}
-            <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-[#120a06] border-2 border-amber-500/40 space-y-4 shadow-inner relative overflow-hidden">
+            <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-[#140305] border-2 border-amber-500/40 space-y-4 shadow-inner relative overflow-hidden">
               {/* Pass Top Bar */}
               <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">
                 <div>
@@ -185,7 +190,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
                     <button
                       id="celebration-copy-code-btn"
                       onClick={handleCopyCode}
-                      className="p-1 rounded bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-amber-300 text-xs transition-colors"
+                      className="p-1 rounded bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-amber-300 text-xs transition-colors cursor-pointer"
                       title="Copy Pass ID"
                     >
                       {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -197,8 +202,13 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
                   <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">
                     Payment Status
                   </span>
-                  <div className="text-base sm:text-lg font-bold text-emerald-300 flex items-center justify-end gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <div className="text-base sm:text-lg font-bold text-amber-300 flex items-center justify-end gap-1.5">
+                    <motion.div
+                      animate={{ scale: [1, 1.25, 1] }}
+                      transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    </motion.div>
                     <span>Paid ₹{data.amount}/-</span>
                   </div>
                   <span className="text-[10px] text-stone-400 font-mono uppercase">
@@ -229,9 +239,9 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
 
               {/* Ticket Custom Meal Inclusions */}
               {data.type === 'ticket' && (
-                <div className="p-3 rounded-xl bg-stone-950 border border-stone-800/90 text-xs space-y-1.5">
-                  <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Utensils className="w-3.5 h-3.5 text-cyan-400" />
+                <div className="p-3 rounded-xl bg-stone-950/80 border border-amber-500/20 text-xs space-y-1.5">
+                  <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Utensils className="w-3.5 h-3.5 text-amber-400" />
                     <span>Included Eco Thali & Gastronomy Courses</span>
                   </div>
                   <div className="text-stone-300 space-y-1">
@@ -241,7 +251,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
                     </div>
                     <div>• <strong>Main Course:</strong> {data.mainsDish}</div>
                     {data.includeDessert && (
-                      <div className="text-emerald-300 font-semibold">
+                      <div className="text-amber-300 font-semibold">
                         • <strong>Upcycled Dessert Lab (+₹99/-):</strong> {data.dessertDish}
                       </div>
                     )}
@@ -251,9 +261,9 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
 
               {/* Meal / Mohol Selection if Meal Type */}
               {data.type === 'meal' && data.items && data.items.length > 0 && (
-                <div className="p-3 rounded-xl bg-stone-950 border border-stone-800/90 text-xs space-y-1.5">
-                  <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Utensils className="w-3.5 h-3.5 text-cyan-400" />
+                <div className="p-3 rounded-xl bg-stone-950/80 border border-amber-500/20 text-xs space-y-1.5">
+                  <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Utensils className="w-3.5 h-3.5 text-amber-400" />
                     <span>Reserved Eco Dishes ({data.items.length} items)</span>
                   </div>
                   <div className="max-h-28 overflow-y-auto space-y-1 text-stone-300 pr-1">
@@ -268,7 +278,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
               )}
 
               {/* Venue & Date Meta */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-800 text-[11px] text-stone-400">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-500/20 text-[11px] text-stone-400">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-amber-400" />
                   <span>Friday, 9th October 2026</span>
@@ -284,13 +294,13 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
               </div>
             </div>
 
-            {/* Interactive Action Bar */}
+            {/* Interactive Action Bar with floating gold glow effects */}
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"
                 id="celebration-reconfetti-btn"
                 onClick={handleReblastConfetti}
-                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold transition-all hover:scale-105 active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-red-950/70 hover:bg-red-900/70 text-amber-300 border border-amber-500/40 text-xs font-semibold transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <PartyPopper className="w-4 h-4 text-amber-400" />
                 <span>Shower Confetti 🎊</span>
@@ -301,7 +311,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
                   type="button"
                   id="celebration-calendar-btn"
                   onClick={handleAddToCalendar}
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 text-xs font-medium transition-colors cursor-pointer"
                 >
                   <Calendar className="w-3.5 h-3.5 text-amber-400" />
                   <span>Add to Calendar</span>
@@ -311,7 +321,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
                   type="button"
                   id="celebration-print-btn"
                   onClick={handlePrint}
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 text-xs font-medium transition-colors cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5 text-stone-300" />
                   <span>Print Pass</span>
@@ -320,10 +330,10 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
                 <motion.button
                   type="button"
                   id="celebration-done-btn"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={onClose}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 text-xs font-bold shadow-lg shadow-amber-900/30 transition-all"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 text-xs font-black shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.55)] border border-amber-300/60 transition-all cursor-pointer"
                 >
                   <span>Done & View Festival</span>
                 </motion.button>

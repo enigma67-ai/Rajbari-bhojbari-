@@ -468,6 +468,7 @@ export async function markTicketAsAdmitted(ticketId: string, staffName = 'Gate S
     const now = new Date().toISOString();
     
     await setDoc(ticketDocRef, {
+      id: ticketId,
       scanned: true,
       scannedAt: now,
       entryStatus: 'Admitted & Verified',

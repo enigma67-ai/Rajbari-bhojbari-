@@ -36,27 +36,39 @@
     <!-- Official Payment Gateway Drop-in Scripts -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-    <!-- Suppress Cloud Proxy HMR WebSocket Modal Overlays -->
+    <!-- Suppress Cloud Proxy HMR WebSocket Modal Overlays & Unhandled Rejection Loops -->
     <script>
       window.addEventListener('unhandledrejection', function(event) {
+        var reason = event.reason;
+        var msg = (reason && (reason.message || reason.stack || String(reason))) || '';
         if (
-          event.reason &&
-          (
-            (typeof event.reason === 'string' && event.reason.includes('failed to connect to websocket')) ||
-            (event.reason.message && (
-              event.reason.message.includes('websocket') ||
-              event.reason.message.includes('WebSocket') ||
-              event.reason.message.includes('failed to connect')
-            ))
-          )
+          msg.includes('WebSocket') ||
+          msg.includes('websocket') ||
+          msg.includes('failed to connect') ||
+          msg.includes('vite:ws') ||
+          msg.includes('HMR')
         ) {
           event.preventDefault();
-          console.warn('[vite:hmr] WebSocket connection closed by cloud proxy; modal overlay suppressed.');
+          if (event.stopImmediatePropagation) {
+            event.stopImmediatePropagation();
+          }
+        }
+      });
+      window.addEventListener('error', function(event) {
+        var msg = (event && (event.message || event.filename || '')) || '';
+        if (
+          typeof msg === 'string' &&
+          (msg.includes('WebSocket') || msg.includes('websocket') || msg.includes('failed to connect'))
+        ) {
+          event.preventDefault();
+          if (event.stopImmediatePropagation) {
+            event.stopImmediatePropagation();
+          }
         }
       });
     </script>
   </head>
-  <body class="bg-[#06120d] text-emerald-50 selection:bg-emerald-400 selection:text-stone-950 antialiased font-sans">
+  <body class="bg-[#120305] text-amber-50 selection:bg-amber-500 selection:text-stone-950 antialiased font-sans">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

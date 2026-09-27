@@ -211,14 +211,20 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = passwordInput.trim();
-    if (DEFAULT_PASSWORDS.some(p => p.toLowerCase() === clean.toLowerCase()) || clean.length >= 4) {
+    const envAdminPassword = (import.meta.env.VITE_ADMIN_PASSWORD || '').trim();
+    const isMatch =
+      (envAdminPassword && clean.toLowerCase() === envAdminPassword.toLowerCase()) ||
+      DEFAULT_PASSWORDS.some((p) => p.toLowerCase() === clean.toLowerCase()) ||
+      clean.length >= 4;
+
+    if (isMatch) {
       setIsAuthenticated(true);
       try {
         sessionStorage.setItem('rb_gate_admin_auth', 'true');
       } catch (_) {}
       setAuthError(null);
     } else {
-      setAuthError('Incorrect Security PIN. Authorized codes: IAM2026, BHOJ2026, or GATE2026');
+      setAuthError('Incorrect Security PIN. Please enter authorized staff credentials (e.g. IAM2026)');
     }
   };
 
@@ -355,18 +361,18 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
   // --------------------------------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#030d08] text-emerald-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#150305] text-stone-100 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="w-full max-w-md bg-gradient-to-b from-[#092218] to-[#04110b] border border-emerald-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
+          className="w-full max-w-md bg-gradient-to-b from-[#24080c] to-[#140305] border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
         >
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-400 mx-auto shadow-inner">
+            <div className="w-14 h-14 rounded-2xl bg-red-950/80 border border-amber-400/50 flex items-center justify-center text-amber-400 mx-auto shadow-inner">
               <Lock className="w-7 h-7" />
             </div>
             <div className="flex items-center justify-center gap-1.5 pt-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-red-950 text-amber-300 border border-amber-400/40">
                 Gate Staff Portal
               </span>
             </div>
@@ -395,7 +401,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                     if (authError) setAuthError(null);
                   }}
                   placeholder="Enter staff PIN (e.g. IAM2026)"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/60 border border-emerald-500/40 text-sm text-white font-mono placeholder-stone-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/60 border border-amber-500/40 text-sm text-white font-mono placeholder-stone-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
                 />
               </div>
             </div>
@@ -409,7 +415,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-950/50 transition-all cursor-pointer active:scale-98"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-sm shadow-lg shadow-amber-950/50 border border-amber-300/60 transition-all cursor-pointer active:scale-98"
             >
               Unlock Gate Terminal
             </button>
@@ -419,7 +425,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             <button
               type="button"
               onClick={onNavigateToHome || (() => window.location.href = '/')}
-              className="text-stone-400 hover:text-emerald-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="text-stone-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Public Fest Site</span>
@@ -436,7 +442,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
   // MAIN ADMIN / GATE DASHBOARD
   // --------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#030d08] text-emerald-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#150305] text-stone-100 flex flex-col font-sans">
       
       {/* Floating Status Notification */}
       <AnimatePresence>
@@ -456,7 +462,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
       </AnimatePresence>
 
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-30 bg-[#051810]/95 backdrop-blur-xl border-b border-emerald-500/20 shadow-xl px-4 sm:px-6 py-3.5">
+      <header className="sticky top-0 z-30 bg-[#1a0507]/95 backdrop-blur-xl border-b border-amber-500/25 shadow-xl px-4 sm:px-6 py-3.5">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           
           <div className="flex items-center gap-3">
@@ -474,7 +480,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                 <h1 className="font-display font-black text-base sm:text-lg text-white tracking-wide">
                   Gate Staff Admin Portal
                 </h1>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/30 font-mono">
+                <span className="px-2 py-0.5 rounded-full bg-red-950 text-amber-300 text-[10px] font-bold border border-amber-400/30 font-mono">
                   /admin
                 </span>
               </div>
@@ -489,9 +495,9 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             <button
               type="button"
               onClick={() => setIsScannerOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-950/40 border border-emerald-400/50 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 text-xs font-bold shadow-md shadow-amber-950/40 border border-amber-300/50 transition-all cursor-pointer hover:scale-105 active:scale-95"
             >
-              <QrCode className="w-4 h-4" />
+              <QrCode className="w-4 h-4 text-stone-950" />
               <span>Live QR Scanner</span>
             </button>
 
@@ -534,20 +540,20 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
         
         {/* KPI Metrics Banner */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-4 rounded-2xl bg-[#082015] border border-emerald-500/30 space-y-1">
+          <div className="p-4 rounded-2xl bg-[#1a0507] border border-amber-500/35 space-y-1 shadow-lg">
             <div className="text-[11px] text-stone-400 uppercase font-semibold flex items-center justify-between">
               <span>Total Bookings</span>
-              <Users className="w-4 h-4 text-emerald-400" />
+              <Users className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-2xl font-black font-mono text-white">
               {stats.totalCount}
             </div>
-            <div className="text-[10px] text-emerald-300/80">
+            <div className="text-[10px] text-amber-300/80">
               {stats.totalPasses} total attendee passes
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#082015] border border-emerald-500/30 space-y-1">
+          <div className="p-4 rounded-2xl bg-[#1a0507] border border-amber-500/35 space-y-1 shadow-lg">
             <div className="text-[11px] text-emerald-300 uppercase font-semibold flex items-center justify-between">
               <span>Admitted at Gate</span>
               <CheckCheck className="w-4 h-4 text-emerald-400" />
@@ -560,7 +566,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#082015] border border-amber-500/30 space-y-1">
+          <div className="p-4 rounded-2xl bg-[#1a0507] border border-amber-500/35 space-y-1 shadow-lg">
             <div className="text-[11px] text-amber-300 uppercase font-semibold flex items-center justify-between">
               <span>Pending Entry</span>
               <Clock className="w-4 h-4 text-amber-400" />
@@ -573,22 +579,22 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#082015] border border-emerald-500/30 space-y-1">
+          <div className="p-4 rounded-2xl bg-[#1a0507] border border-amber-500/35 space-y-1 shadow-lg">
             <div className="text-[11px] text-stone-400 uppercase font-semibold flex items-center justify-between">
               <span>Total Collections</span>
-              <CreditCard className="w-4 h-4 text-cyan-300" />
+              <CreditCard className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-2xl font-black font-mono text-cyan-300">
+            <div className="text-2xl font-black font-mono text-amber-300">
               ₹{stats.totalRevenue}/-
             </div>
-            <div className="text-[10px] text-stone-400 font-mono">
+            <div className="text-[10px] text-amber-200/60 font-mono">
               UPI SmartHub Vyapar
             </div>
           </div>
         </div>
 
         {/* Search Bar & Filter Controls */}
-        <div className="bg-[#071a12] border border-emerald-500/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
+        <div className="bg-[#1a0507] border border-amber-500/35 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
           
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search Input */}
@@ -599,7 +605,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by Booking ID (RB-PASS-...), 12-digit UTR, Phone number, or Guest Name..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/60 border border-emerald-500/30 text-xs sm:text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-emerald-400 font-mono transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/60 border border-amber-500/35 text-xs sm:text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 font-mono transition-colors"
               />
               {searchQuery && (
                 <button
@@ -613,13 +619,13 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             </div>
 
             {/* View Mode Toggle: Cards vs Table */}
-            <div className="flex items-center gap-1 p-1 bg-black/50 border border-stone-800 rounded-xl shrink-0 self-start sm:self-auto">
+            <div className="flex items-center gap-1 p-1 bg-black/50 border border-amber-900/40 rounded-xl shrink-0 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setViewMode('cards')}
                 className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                   viewMode === 'cards'
-                    ? 'bg-emerald-600 text-white shadow-sm'
+                    ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
                     : 'text-stone-400 hover:text-white'
                 }`}
                 title="Cards View"
@@ -632,7 +638,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                 onClick={() => setViewMode('table')}
                 className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                   viewMode === 'table'
-                    ? 'bg-emerald-600 text-white shadow-sm'
+                    ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
                     : 'text-stone-400 hover:text-white'
                 }`}
                 title="Table View"
@@ -644,15 +650,15 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
           </div>
 
           {/* Filter Pills & Result Counter */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-stone-800/80 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-900/30 text-xs">
             <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setActiveFilter('all')}
                 className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${
                   activeFilter === 'all'
-                    ? 'bg-emerald-500 text-stone-950 shadow'
-                    : 'bg-stone-900 text-stone-400 hover:text-stone-200 border border-stone-800'
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 shadow'
+                    : 'bg-red-950/60 text-stone-300 hover:text-amber-200 border border-amber-500/30'
                 }`}
               >
                 All Records ({stats.totalCount})
@@ -663,7 +669,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                 className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${
                   activeFilter === 'pending'
                     ? 'bg-amber-500 text-stone-950 shadow'
-                    : 'bg-stone-900 text-stone-400 hover:text-stone-200 border border-stone-800'
+                    : 'bg-red-950/60 text-stone-300 hover:text-amber-200 border border-amber-500/30'
                 }`}
               >
                 Pending Entry ({stats.pendingCount})
@@ -673,15 +679,15 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                 onClick={() => setActiveFilter('verified')}
                 className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${
                   activeFilter === 'verified'
-                    ? 'bg-emerald-400 text-stone-950 shadow'
-                    : 'bg-stone-900 text-stone-400 hover:text-stone-200 border border-stone-800'
+                    ? 'bg-emerald-500 text-stone-950 shadow'
+                    : 'bg-red-950/60 text-stone-300 hover:text-emerald-200 border border-amber-500/30'
                 }`}
               >
                 Verified / Admitted ({stats.verifiedCount})
               </button>
             </div>
 
-            <span className="text-[11px] text-stone-400 font-mono">
+            <span className="text-[11px] text-amber-200/70 font-mono">
               Showing {filteredBookings.length} of {bookings.length} passes
             </span>
           </div>
@@ -701,15 +707,15 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                   key={booking.booking_id}
                   className={`rounded-3xl border transition-all overflow-hidden ${
                     booking.verified_at_gate
-                      ? 'bg-[#051c12] border-emerald-500/50 shadow-lg shadow-emerald-950/30'
-                      : 'bg-[#091e17] border-stone-800 hover:border-emerald-500/30 shadow-md'
+                      ? 'bg-gradient-to-b from-[#25080c] to-[#170406] border-emerald-500/50 shadow-lg shadow-black/50'
+                      : 'bg-gradient-to-b from-[#200609] to-[#150305] border-amber-500/30 hover:border-amber-500/60 shadow-md'
                   }`}
                 >
                   {/* Card Header: Pass ID, Status & Verification Toggle */}
-                  <div className="p-4 sm:p-5 border-b border-stone-800/80 flex items-start justify-between gap-3">
+                  <div className="p-4 sm:p-5 border-b border-amber-500/20 flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-base text-emerald-300">
+                        <span className="font-mono font-bold text-base text-amber-300">
                           {booking.booking_id}
                         </span>
                         <button
@@ -727,10 +733,10 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                       </div>
 
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-bold font-mono">
+                        <span className="px-2 py-0.5 rounded-full bg-red-950 border border-amber-500/40 text-amber-300 font-bold font-mono">
                           ₹{booking.total_amount}/-
                         </span>
-                        <span className="text-stone-400">
+                        <span className="text-stone-300">
                           {booking.pass_quantity || 1} {booking.pass_quantity === 1 ? 'Pass' : 'Passes'}
                         </span>
                       </div>
@@ -742,8 +748,8 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                       onClick={() => handleToggleVerification(booking)}
                       className={`px-3.5 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-md ${
                         booking.verified_at_gate
-                          ? 'bg-emerald-500 text-stone-950 hover:bg-emerald-400'
-                          : 'bg-stone-800 hover:bg-emerald-900/60 border border-stone-700 hover:border-emerald-400 text-stone-300 hover:text-emerald-200'
+                          ? 'bg-emerald-500 text-stone-950 hover:bg-emerald-400 shadow-emerald-500/30'
+                          : 'bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-yellow-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
                       }`}
                     >
                       {booking.verified_at_gate ? (
@@ -753,7 +759,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                         </>
                       ) : (
                         <>
-                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                          <ShieldCheck className="w-4 h-4 text-stone-950" />
                           <span>Admit Guest</span>
                         </>
                       )}
@@ -765,20 +771,20 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                     
                     {/* Guest Name, Phone & Email */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <div className="p-2.5 rounded-xl bg-black/40 border border-stone-800/80 space-y-0.5">
-                        <span className="text-[10px] text-stone-400 uppercase font-semibold block">Guest Name</span>
+                      <div className="p-2.5 rounded-xl bg-black/40 border border-amber-900/30 space-y-0.5">
+                        <span className="text-[10px] text-amber-400/80 uppercase font-semibold block">Guest Name</span>
                         <span className="font-bold text-white text-sm flex items-center gap-1.5">
-                          <User className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <User className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                           <span className="truncate">{booking.customer_name}</span>
                         </span>
                       </div>
 
-                      <div className="p-2.5 rounded-xl bg-black/40 border border-stone-800/80 space-y-0.5">
-                        <span className="text-[10px] text-stone-400 uppercase font-semibold block">Contact Phone</span>
+                      <div className="p-2.5 rounded-xl bg-black/40 border border-amber-900/30 space-y-0.5">
+                        <span className="text-[10px] text-amber-400/80 uppercase font-semibold block">Contact Phone</span>
                         {booking.customer_phone ? (
                           <a
                             href={`tel:${booking.customer_phone}`}
-                            className="font-mono text-emerald-300 hover:underline flex items-center gap-1.5"
+                            className="font-mono text-amber-300 hover:underline flex items-center gap-1.5"
                           >
                             <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                             <span>+91 {booking.customer_phone}</span>
@@ -791,16 +797,16 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
 
                     {/* Email and UTR number */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <div className="p-2.5 rounded-xl bg-black/40 border border-stone-800/80 space-y-0.5">
-                        <span className="text-[10px] text-stone-400 uppercase font-semibold block">Email Address</span>
+                      <div className="p-2.5 rounded-xl bg-black/40 border border-amber-900/30 space-y-0.5">
+                        <span className="text-[10px] text-amber-400/80 uppercase font-semibold block">Email Address</span>
                         <span className="text-stone-300 font-mono truncate flex items-center gap-1.5">
                           <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                           <span className="truncate">{booking.customer_email}</span>
                         </span>
                       </div>
 
-                      <div className="p-2.5 rounded-xl bg-black/40 border border-stone-800/80 space-y-0.5">
-                        <span className="text-[10px] text-stone-400 uppercase font-semibold block">12-Digit UPI UTR</span>
+                      <div className="p-2.5 rounded-xl bg-black/40 border border-amber-900/30 space-y-0.5">
+                        <span className="text-[10px] text-amber-400/80 uppercase font-semibold block">12-Digit UPI UTR</span>
                         <div className="flex items-center justify-between gap-1">
                           <span className="font-mono font-bold text-amber-300 truncate">
                             {booking.upi_utr || booking.transaction_id || 'N/A'}
@@ -824,10 +830,10 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                     </div>
 
                     {/* Dining Session */}
-                    <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-stone-300 flex items-center justify-between gap-2">
+                    <div className="p-2.5 rounded-xl bg-red-950/50 border border-amber-500/25 text-stone-300 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="font-semibold text-emerald-200">{booking.dining_slot || 'Grand Aristocratic Dinner'}</span>
+                        <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span className="font-semibold text-amber-200">{booking.dining_slot || 'Grand Aristocratic Dinner'}</span>
                       </div>
                       <span className="text-[10px] font-mono text-stone-400 shrink-0">
                         {booking.event_date || 'Oct 9, 2026'}
@@ -839,13 +845,13 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                       <button
                         type="button"
                         onClick={() => toggleExpand(booking.booking_id)}
-                        className="w-full py-2 px-3 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-800 text-xs font-semibold text-stone-300 hover:text-emerald-200 flex items-center justify-between transition-colors cursor-pointer"
+                        className="w-full py-2 px-3 rounded-xl bg-[#2a080d] hover:bg-[#340a10] border border-amber-500/30 text-xs font-semibold text-amber-200 hover:text-white flex items-center justify-between transition-colors cursor-pointer"
                       >
                         <span className="flex items-center gap-2">
-                          <Utensils className="w-3.5 h-3.5 text-emerald-400" />
+                          <Utensils className="w-3.5 h-3.5 text-amber-400" />
                           <span>View Ordered Food Items & Mohol Categories ({itemsCount > 0 ? itemsCount : 'Course Details'})</span>
                         </span>
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {isExpanded ? <ChevronUp className="w-4 h-4 text-amber-400" /> : <ChevronDown className="w-4 h-4 text-amber-400" />}
                       </button>
 
                       {/* Expanded Food Items Details */}
@@ -854,11 +860,11 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="mt-2 p-3.5 rounded-2xl bg-black/60 border border-emerald-500/20 space-y-2.5"
+                          className="mt-2 p-3.5 rounded-2xl bg-black/70 border border-amber-500/30 space-y-2.5"
                         >
-                          <div className="text-[11px] font-bold text-emerald-300 flex items-center justify-between border-b border-stone-800 pb-1.5">
+                          <div className="text-[11px] font-bold text-amber-300 flex items-center justify-between border-b border-amber-900/40 pb-1.5">
                             <span>Reserved Royal Items & Categories</span>
-                            <span className="text-[10px] text-stone-400 font-mono">Zero-Waste Standard</span>
+                            <span className="text-[10px] text-emerald-400 font-mono">Zero-Waste Standard</span>
                           </div>
 
                           {/* If items JSON array exists */}
@@ -867,21 +873,21 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                               {booking.items.map((item, idx) => (
                                 <div
                                   key={idx}
-                                  className="flex items-start justify-between text-xs p-1.5 rounded-lg bg-stone-900/40 border border-stone-800/60"
+                                  className="flex items-start justify-between text-xs p-1.5 rounded-lg bg-stone-900/60 border border-amber-900/20"
                                 >
                                   <div>
                                     <span className="font-semibold text-stone-200 block">{item.name}</span>
                                     <div className="flex items-center gap-2 text-[10px] text-stone-400 mt-0.5">
                                       {item.mohol && (
-                                        <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/40 font-mono">
+                                        <span className="px-1.5 py-0.2 rounded bg-red-950 text-amber-300 border border-amber-500/30 font-mono">
                                           {item.mohol}
                                         </span>
                                       )}
                                       <span>Qty: {item.qty || item.quantity || 1}</span>
-                                      {item.status && <span className="text-stone-500">• {item.status}</span>}
+                                      {item.status && <span className="text-stone-400">• {item.status}</span>}
                                     </div>
                                   </div>
-                                  <span className="font-mono text-emerald-300 font-bold text-xs shrink-0">
+                                  <span className="font-mono text-amber-300 font-bold text-xs shrink-0">
                                     {item.price ? `₹${item.price}` : '₹0'}
                                   </span>
                                 </div>
@@ -921,9 +927,9 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
         {/* BOOKINGS LIST (TABLE VIEW) */}
         {/* ------------------------------------------------------------------ */}
         {viewMode === 'table' && (
-          <div className="bg-[#071a12] border border-emerald-500/30 rounded-2xl overflow-x-auto shadow-xl">
+          <div className="bg-[#1a0507] border border-amber-500/35 rounded-2xl overflow-x-auto shadow-xl">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#05150e] text-stone-300 uppercase tracking-wider font-semibold border-b border-stone-800">
+              <thead className="bg-[#150305] text-amber-200 uppercase tracking-wider font-semibold border-b border-amber-500/25">
                 <tr>
                   <th className="py-3.5 px-4 font-mono">Pass Code</th>
                   <th className="py-3.5 px-4">Guest Details</th>
@@ -934,15 +940,15 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                   <th className="py-3.5 px-4 text-center">Gate Check-in</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-800/70">
+              <tbody className="divide-y divide-amber-900/30">
                 {filteredBookings.map((b) => (
                   <tr
                     key={b.booking_id}
-                    className={`hover:bg-emerald-950/30 transition-colors ${
-                      b.verified_at_gate ? 'bg-emerald-950/20' : ''
+                    className={`hover:bg-red-950/40 transition-colors ${
+                      b.verified_at_gate ? 'bg-red-950/20' : ''
                     }`}
                   >
-                    <td className="py-3 px-4 font-mono font-bold text-emerald-300 whitespace-nowrap">
+                    <td className="py-3 px-4 font-mono font-bold text-amber-300 whitespace-nowrap">
                       {b.booking_id}
                     </td>
 
@@ -957,11 +963,11 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                     </td>
 
                     <td className="py-3 px-4">
-                      <div className="font-medium text-emerald-200">{b.dining_slot || 'Dinner'}</div>
+                      <div className="font-medium text-amber-200">{b.dining_slot || 'Dinner'}</div>
                       <div className="text-[11px] text-stone-400">{b.pass_quantity || 1} pass(es)</div>
                     </td>
 
-                    <td className="py-3 px-4 font-mono font-bold text-white whitespace-nowrap">
+                    <td className="py-3 px-4 font-mono font-bold text-amber-300 whitespace-nowrap">
                       ₹{b.total_amount}/-
                     </td>
 
@@ -969,9 +975,9 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                       <button
                         type="button"
                         onClick={() => toggleExpand(b.booking_id)}
-                        className="px-2.5 py-1 rounded-lg bg-stone-900 border border-stone-700 text-[11px] text-emerald-300 hover:text-white flex items-center gap-1 cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-stone-900/80 border border-amber-500/30 text-[11px] text-amber-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
                       >
-                        <Eye className="w-3 h-3" />
+                        <Eye className="w-3 h-3 text-amber-400" />
                         <span>{b.items?.length || 3} items</span>
                       </button>
                     </td>
@@ -980,10 +986,10 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                       <button
                         type="button"
                         onClick={() => handleToggleVerification(b)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
                           b.verified_at_gate
-                            ? 'bg-emerald-500 text-stone-950'
-                            : 'bg-stone-800 text-stone-300 hover:bg-emerald-900 hover:text-emerald-200 border border-stone-700'
+                            ? 'bg-emerald-500 text-stone-950 hover:bg-emerald-400 shadow-emerald-500/20'
+                            : 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 hover:from-amber-400 hover:to-yellow-400 font-bold'
                         }`}
                       >
                         {b.verified_at_gate ? '✓ Admitted' : 'Admit'}
@@ -998,8 +1004,8 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
 
         {/* Empty State */}
         {filteredBookings.length === 0 && !isLoading && (
-          <div className="text-center py-16 px-4 bg-[#071a12] border border-emerald-500/20 rounded-3xl space-y-3">
-            <Search className="w-12 h-12 text-stone-500 mx-auto" />
+          <div className="text-center py-16 px-4 bg-[#1a0507] border border-amber-500/25 rounded-3xl space-y-3">
+            <Search className="w-12 h-12 text-amber-500/40 mx-auto" />
             <h3 className="text-base font-bold text-white">No Matching Bookings Found</h3>
             <p className="text-xs text-stone-400 max-w-sm mx-auto">
               No passes match your current search query "{searchQuery}". Try searching with a different UTR, phone, or name.
@@ -1007,7 +1013,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             <button
               type="button"
               onClick={() => { setSearchQuery(''); setActiveFilter('all'); }}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-xs transition-colors cursor-pointer shadow"
             >
               Reset Search Filter
             </button>

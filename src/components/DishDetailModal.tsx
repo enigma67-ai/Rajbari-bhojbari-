@@ -40,13 +40,13 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
             className="fixed inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
           />
 
-          <motion.div 
+            <motion.div 
             id="dish-detail-modal-container"
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 24 }}
             transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[#170e0a] border border-amber-500/40 rounded-2xl shadow-2xl text-stone-200 z-10"
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[#1a0507] border border-amber-500/40 rounded-2xl shadow-2xl text-stone-200 z-10"
           >
             {/* Close Button */}
             <motion.button
@@ -66,7 +66,7 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                 alt={dish.name}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#170e0a] via-transparent to-black/40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1a0507] via-transparent to-black/40" />
               
               {/* Badge overlays */}
               <div className="absolute top-4 left-4 flex flex-wrap gap-2">
@@ -74,7 +74,7 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                   {dish.moholTitle}
                 </span>
                 {dish.isChefSpecial && (
-                  <span className="px-2.5 py-1 rounded-full bg-red-900/90 border border-red-500/50 text-amber-200 text-xs font-bold flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-full bg-red-900/90 border border-amber-500/50 text-amber-200 text-xs font-bold flex items-center gap-1">
                     <Sparkles className="w-3 h-3 text-amber-300" />
                     Royal Specialty
                   </span>
@@ -85,7 +85,7 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                 <h2 className="text-2xl sm:text-3xl font-black text-white drop-shadow-md">
                   {dish.name}
                 </h2>
-                <p className="font-sans text-emerald-400 font-semibold text-sm">
+                <p className="font-sans text-amber-400 font-semibold text-sm">
                   {dish.bengaliName}
                 </p>
               </div>
@@ -95,18 +95,18 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
             <div className="p-6 space-y-6">
               
               {/* Price, Dietary, Spice Meta */}
-              <div className="flex flex-wrap items-center justify-between gap-4 py-3 px-4 rounded-xl bg-stone-900/80 border border-emerald-500/20">
+              <div className="flex flex-wrap items-center justify-between gap-4 py-3 px-4 rounded-xl bg-stone-900/80 border border-amber-500/25">
                 <div>
                   <span className="text-xs text-stone-400 uppercase tracking-wider block">Festival Price</span>
-                  <span className="text-2xl font-bold text-emerald-300">₹{dish.price}</span>
+                  <span className="text-2xl font-bold text-amber-300">₹{dish.price}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
                     dish.dietary === 'pure-veg' 
-                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40' 
+                      ? 'bg-red-950 text-amber-300 border border-amber-500/40' 
                       : dish.dietary === 'vegan'
-                      ? 'bg-teal-950 text-teal-300 border border-teal-500/40'
+                      ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
                       : 'bg-rose-950 text-rose-300 border border-rose-500/40'
                   }`}>
                     {dish.dietary.replace('-', ' ')}
@@ -127,7 +127,7 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
               </div>
 
               {/* Century-Old Lore */}
-              <div className="p-4 rounded-xl bg-gradient-to-br from-red-950/40 to-stone-900/80 border border-amber-500/30 space-y-2">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-red-950/60 to-stone-900/80 border border-amber-500/30 space-y-2">
                 <div className="flex items-center gap-2 text-amber-300 font-semibold text-sm">
                   <History className="w-4 h-4 text-amber-400" />
                   <span>Century-Old Royal Heritage Lore</span>
@@ -138,13 +138,13 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
               </div>
 
               {/* Sustainability & Zero Waste Story */}
-              <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-600/30 space-y-2">
+              <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/30 space-y-2">
                 <div className="flex items-center justify-between text-emerald-400 font-semibold text-sm">
                   <div className="flex items-center gap-2">
                     <Leaf className="w-4 h-4 text-emerald-400" />
                     <span>Royal Flavours. Zero Waste.</span>
                   </div>
-                  <span className="text-xs bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-200">
+                  <span className="text-xs bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-200 font-mono">
                     {dish.wasteScore}% Sustainability Quotient
                   </span>
                 </div>
@@ -178,10 +178,10 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                     onClose();
                     onAskBhojBot(dish);
                   }}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition-colors"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-950/50 hover:bg-blue-900/50 border border-blue-500/40 text-blue-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
                 >
-                  <Bot className="w-4 h-4 text-cyan-400" />
-                  <span>Ask Hospi Bot About This Recipe</span>
+                  <Bot className="w-4 h-4 text-blue-400" />
+                  <span>Ask Bhoj-Bot About This Recipe</span>
                 </motion.button>
 
                 <motion.button
@@ -192,7 +192,7 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                     onAddToCart(dish);
                     onClose();
                   }}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-stone-950 font-bold text-sm shadow-md transition-all"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-sm shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add to Eco Plate (₹{dish.price})</span>

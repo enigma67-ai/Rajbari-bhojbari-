@@ -20,8 +20,10 @@ import emailjs from '@emailjs/browser';
 
 export const EVENT_VENUE = 'Main Green Gate, Institute of Advanced Management (IAM), Sector V, Salt Lake, Kolkata, West Bengal 700091';
 export const EVENT_DEFAULT_DATE_TIME = 'Friday, 9th October 2026 | Smart Zero-Waste Gastronomy (10:00 AM - 9:30 PM)';
-export const OFFICIAL_EMAIL = 'fest@iam.ac.in';
-export const OFFICIAL_PHONE = '+91 98301 44521';
+export const OFFICIAL_EMAIL = 'ks7901424@gmail.com';
+export const OFFICIAL_PHONE = '+91 83340 55747';
+export const WHATSAPP_NUMBER = '+91 73659 28593';
+export const WHATSAPP_URL = 'https://wa.me/917365928593';
 
 export interface BookingConfirmationPayload {
   bookingId: string;

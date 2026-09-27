@@ -46,7 +46,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
     {
       id: 'welcome',
       sender: 'bhojbot',
-      text: "Hello and welcome! I am HOSPI (Bhoj-Bot AI), your intelligent culinary concierge for Rajbari Bhojbari 2026: The Zero-Waste AI Food Fest at IAM Kolkata Campus. Aligned with World Tourism Day's digital agenda, I can guide you through our authentic Bengali heritage recipes across the Rural Bengal Counter, Starters, Main Course Combos, and Misti Mukh Platter, calculate your sustainability karma points, provide directions to our IAM Kolkata campus, and track your Eco-Pass bookings anytime!",
+      text: "Hello and welcome! I am Bhoj-Bot, your intelligent culinary concierge for Rajbari Bhojbari 2026: The Zero-Waste AI Food Fest at IAM Kolkata Campus. Aligned with World Tourism Day's digital agenda, I can guide you through our authentic Bengali heritage recipes across the Rural Bengal Counter, Starters, Main Course Combos, and Misti Mukh Platter, provide directions to our IAM Kolkata campus, and track your Eco-Pass bookings anytime!",
       timestamp: '10:00 AM',
       source: 'gemini-3.5-flash',
     },
@@ -84,7 +84,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
     "How do I reach IAM Kolkata venue? (Google Maps directions)",
     "What is the story of Muchmuchea Shapla & Pat Patar Bora?",
     "Recommend an authentic Bengali zero-waste feast",
-    "How are sustainability karma points earned & redeemed?",
+    "What are the zero-waste cooking techniques used at the fest?",
   ];
 
   // Auto-scroll on new message
@@ -235,29 +235,29 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-2xl h-[88vh] flex flex-col bg-[#061811] border border-emerald-500/40 rounded-3xl shadow-2xl overflow-hidden z-10 ring-1 ring-emerald-500/20 backdrop-blur-2xl"
+            className="relative w-full max-w-2xl h-[88vh] flex flex-col bg-[#180406] border border-amber-500/35 rounded-3xl shadow-2xl overflow-hidden z-10 ring-1 ring-amber-500/20 backdrop-blur-2xl"
           >
             {/* Header with IAM Chef Mascot Logo */}
-            <div className="px-5 py-3.5 bg-gradient-to-r from-[#03150d] via-[#082619] to-[#03150d] border-b border-emerald-500/30 flex items-center justify-between">
+            <div className="px-5 py-3.5 bg-gradient-to-r from-[#120305] via-[#24080c] to-[#120305] border-b border-amber-500/30 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <IAMChefLogo className="w-10 h-10" glow={true} />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-display text-lg font-black text-white">HOSPI</h3>
-                    <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-500/30 uppercase">
-                      AI Eco-Chef
+                    <h3 className="font-display text-lg font-black text-blue-400">Bhoj-Bot</h3>
+                    <span className="bg-blue-950/50 text-blue-400 text-[10px] font-black px-2 py-0.5 rounded-full border border-blue-500/40 uppercase">
+                      AI Concierge
                     </span>
                     {userBookings.length > 0 && (
-                      <span className="bg-cyan-950 text-cyan-300 border border-cyan-500/40 text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 font-mono">
-                        <BookmarkCheck className="w-3 h-3 text-cyan-400" />
+                      <span className="bg-amber-950 text-amber-300 border border-amber-500/40 text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 font-mono">
+                        <BookmarkCheck className="w-3 h-3 text-amber-400" />
                         <span>Eco-Pass ({userBookings.length})</span>
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-emerald-300/80 font-sans flex items-center gap-1.5">
+                  <p className="text-[11px] text-amber-200/80 font-sans flex items-center gap-1.5">
                     <span>IAM Zero-Waste Food Fest</span>
                     <span>•</span>
-                    <span className="text-cyan-300 font-mono">Gemini & Google Maps Grounded</span>
+                    <span className="text-blue-300 font-mono">Gemini & Google Maps Grounded</span>
                   </p>
                 </div>
               </div>
@@ -268,7 +268,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   whileTap={{ scale: 0.95 }}
                   onClick={clearChat}
                   title="Reset conversation thread"
-                  className="p-2 rounded-full text-stone-400 hover:text-emerald-300 hover:bg-emerald-950/60 transition-colors"
+                  className="p-2 rounded-full text-stone-400 hover:text-amber-300 hover:bg-red-950/60 transition-colors cursor-pointer"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </motion.button>
@@ -277,7 +277,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onClose}
-                  className="p-2 rounded-full text-stone-400 hover:text-white hover:bg-emerald-950/60 transition-colors"
+                  className="p-2 rounded-full text-stone-400 hover:text-white hover:bg-red-950/60 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </motion.button>
@@ -285,17 +285,17 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             </div>
 
             {/* Model & Capability Mode Selector */}
-            <div className="px-4 py-2 bg-[#040e0a] border-b border-emerald-950/60 flex items-center justify-between text-xs overflow-x-auto gap-2">
+            <div className="px-4 py-2 bg-[#120305] border-b border-amber-900/50 flex items-center justify-between text-xs overflow-x-auto gap-2">
               <div className="flex items-center gap-1.5 text-stone-400 font-medium whitespace-nowrap text-[11px]">
                 <span>Intelligence Mode:</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setChatMode('general')}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
                     chatMode === 'general'
-                      ? 'bg-emerald-500 text-stone-950 font-bold shadow'
-                      : 'bg-stone-900 text-stone-400 hover:text-emerald-200 border border-stone-800'
+                      ? 'bg-amber-500 text-stone-950 font-bold shadow'
+                      : 'bg-stone-900 text-stone-400 hover:text-amber-200 border border-stone-800'
                   }`}
                 >
                   <Globe className="w-3 h-3" />
@@ -303,21 +303,21 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                 </button>
                 <button
                   onClick={() => setChatMode('complex')}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
                     chatMode === 'complex'
-                      ? 'bg-emerald-500 text-stone-950 font-bold shadow'
-                      : 'bg-stone-900 text-stone-400 hover:text-emerald-200 border border-stone-800'
+                      ? 'bg-amber-500 text-stone-950 font-bold shadow'
+                      : 'bg-stone-900 text-stone-400 hover:text-amber-200 border border-stone-800'
                   }`}
                 >
-                  <Leaf className="w-3 h-3" />
+                  <Leaf className="w-3 h-3 text-emerald-400" />
                   <span>3.1 Pro (Zero-Waste Recipes)</span>
                 </button>
                 <button
                   onClick={() => setChatMode('fast')}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
                     chatMode === 'fast'
-                      ? 'bg-emerald-500 text-stone-950 font-bold shadow'
-                      : 'bg-stone-900 text-stone-400 hover:text-emerald-200 border border-stone-800'
+                      ? 'bg-amber-500 text-stone-950 font-bold shadow'
+                      : 'bg-stone-900 text-stone-400 hover:text-amber-200 border border-stone-800'
                   }`}
                 >
                   <Zap className="w-3 h-3" />
@@ -328,24 +328,24 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
 
             {/* Remembered Booking Quick Bar */}
             {userBookings.length > 0 && (
-              <div className="px-4 py-2 bg-gradient-to-r from-emerald-950/60 via-[#0a2318] to-cyan-950/40 border-b border-emerald-500/20 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 text-emerald-200 font-sans">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+              <div className="px-4 py-2 bg-gradient-to-r from-red-950/60 via-[#1e0609] to-amber-950/40 border-b border-amber-500/20 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-amber-200 font-sans">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                   <span className="truncate">
                     Latest Eco-Pass: <strong className="font-mono">{userBookings[0].bookingCode}</strong> • {userBookings[0].dineSlot} ({userBookings[0].items?.length || 1} course)
                   </span>
                 </div>
                 <button
                   onClick={() => handleSendMessage("Review my active Eco-Pass booking and recommend zero-waste pairing dishes")}
-                  className="text-[11px] text-cyan-400 hover:text-cyan-300 underline font-semibold flex-shrink-0 ml-2 cursor-pointer"
+                  className="text-[11px] text-amber-400 hover:text-amber-300 underline font-semibold flex-shrink-0 ml-2 cursor-pointer"
                 >
-                  Ask Hospi AI About It →
+                  Ask Bhoj-Bot About It →
                 </button>
               </div>
             )}
 
             {/* Messages Body */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#072418]/60 via-[#061811] to-[#040e0a]">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#24080c]/60 via-[#180406] to-[#120305]">
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
@@ -362,8 +362,8 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   <div
                     className={`max-w-[88%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-md ${
                       msg.sender === 'user'
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-stone-950 font-medium rounded-tr-none'
-                        : 'bg-[#092218] border border-emerald-500/25 text-stone-200 rounded-tl-none space-y-2'
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-medium rounded-tr-none shadow-amber-950/40'
+                        : 'bg-[#24080c] border border-amber-500/25 text-stone-200 rounded-tl-none space-y-2'
                     }`}
                   >
                     {/* Bot Grounding & Memory Badges */}
@@ -376,14 +376,14 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                           </span>
                         )}
                         {msg.groundingType === 'search' && (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 flex items-center gap-1 font-semibold">
-                            <Globe className="w-3 h-3 text-emerald-400" />
+                          <span className="px-2 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-500/40 flex items-center gap-1 font-semibold">
+                            <Globe className="w-3 h-3 text-amber-400" />
                             <span>Google Search Grounded</span>
                           </span>
                         )}
                         {msg.isBookingRecall && (
-                          <span className="px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 flex items-center gap-1 font-semibold">
-                            <BookmarkCheck className="w-3 h-3 text-cyan-400" />
+                          <span className="px-2 py-0.5 rounded-full bg-red-950/80 text-amber-300 border border-amber-500/40 flex items-center gap-1 font-semibold">
+                            <BookmarkCheck className="w-3 h-3 text-amber-400" />
                             <span>Retrieved from Eco-Pass Memory</span>
                           </span>
                         )}
@@ -394,7 +394,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
 
                     <div className="flex items-center justify-between text-[10px] text-stone-400 pt-1">
                       {msg.sender === 'bhojbot' && msg.source && (
-                        <span className="text-emerald-400/80 font-mono text-[9px]">
+                        <span className="text-amber-400/80 font-mono text-[9px]">
                           model: {msg.source}
                         </span>
                       )}
@@ -415,12 +415,12 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   <div className="flex-shrink-0 mt-0.5">
                     <IAMChefLogo className="w-8 h-8" glow={true} />
                   </div>
-                  <div className="bg-[#092218] border border-emerald-500/25 text-stone-300 rounded-2xl rounded-tl-none p-3.5 flex items-center gap-2 text-xs">
-                    <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
+                  <div className="bg-[#24080c] border border-amber-500/25 text-stone-300 rounded-2xl rounded-tl-none p-3.5 flex items-center gap-2 text-xs">
+                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
                     <span>
                       {chatMode === 'complex' 
                         ? 'Gemini 3.1 Pro is designing zero-waste culinary blueprints...' 
-                        : 'Hospi AI is analyzing smart recipes & live Google groundings...'}
+                        : 'Bhoj-Bot is analyzing smart recipes & live Google groundings...'}
                     </span>
                   </div>
                 </motion.div>
@@ -430,8 +430,8 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             </div>
 
             {/* Preset Prompt Pills */}
-            <div className="px-4 py-2 bg-[#040e0a] border-t border-emerald-950/60 overflow-x-auto scrollbar-none flex items-center gap-2">
-              <span className="text-[10px] text-emerald-400/80 uppercase font-bold flex items-center gap-1 whitespace-nowrap">
+            <div className="px-4 py-2 bg-[#120305] border-t border-amber-900/50 overflow-x-auto scrollbar-none flex items-center gap-2">
+              <span className="text-[10px] text-amber-400 uppercase font-bold flex items-center gap-1 whitespace-nowrap">
                 <Sparkles className="w-3 h-3" /> Quick Prompts:
               </span>
               {presetPrompts.map((prompt, i) => (
@@ -441,7 +441,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleSendMessage(prompt)}
-                  className="px-2.5 py-1 rounded-full bg-stone-900 border border-emerald-500/20 text-[11px] text-stone-300 hover:text-emerald-200 hover:border-emerald-400 whitespace-nowrap transition-colors"
+                  className="px-2.5 py-1 rounded-full bg-stone-900 border border-amber-500/20 text-[11px] text-stone-300 hover:text-amber-200 hover:border-amber-400 whitespace-nowrap transition-colors cursor-pointer"
                 >
                   {prompt}
                 </motion.button>
@@ -449,7 +449,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             </div>
 
             {/* Input Bar */}
-            <div className="p-3 sm:p-4 bg-[#05140d] border-t border-emerald-500/30">
+            <div className="p-3 sm:p-4 bg-[#140305] border-t border-amber-500/30">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -465,7 +465,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Ask about zero-waste recipes, Eco-Passes, Salt Lake directions, or pairings..."
-                  className="flex-1 px-4 py-3 rounded-xl bg-stone-900/90 border border-stone-700 text-stone-200 placeholder-stone-500 text-xs sm:text-sm focus:outline-none focus:border-emerald-400"
+                  className="flex-1 px-4 py-3 rounded-xl bg-stone-900/90 border border-stone-700 text-stone-200 placeholder-stone-500 text-xs sm:text-sm focus:outline-none focus:border-amber-400"
                 />
                 <motion.button
                   id="bhojbot-chat-send-btn"
@@ -473,7 +473,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   disabled={!inputText.trim() || isLoading}
-                  className="p-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-50 text-stone-950 transition-colors shadow-md flex items-center justify-center cursor-pointer font-bold"
+                  className="p-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-yellow-300 disabled:opacity-50 text-stone-950 transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center justify-center cursor-pointer font-bold"
                 >
                   <Send className="w-4 h-4" />
                 </motion.button>

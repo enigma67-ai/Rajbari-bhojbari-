@@ -7,8 +7,10 @@ export const FESTIVAL_INFO = {
   date: 'Friday, 9th October 2026',
   time: '10:00 AM - 09:30 PM IST',
   venue: 'IAM Kolkata Campus, Salt Lake Sector V, Kolkata',
-  phone: '+91 33 2357 0000',
-  contactEmail: 'foodfest2026@iam.ac.in',
+  phone: '+91 83340 55747',
+  contactEmail: 'ks7901424@gmail.com',
+  whatsappNumber: '+91 73659 28593',
+  whatsappUrl: 'https://wa.me/917365928593',
   alignsWith: 'World Tourism Day 2026: “Digital Agenda and Artificial Intelligence to redesign tourism”',
   centralTheme: 'AI-Driven Zero-Waste Sustainable Food Innovation',
   closingSlogan: 'Authentic Heritage Recipes. Zero Waste. Sustainable Hospitality.',
@@ -21,7 +23,7 @@ export const FESTIVAL_INFO = {
     'Smart Hydroponic Living Walls',
     'Interactive AI Concierge Terminals',
     'Zero-Waste Biodegradable Dining Stations',
-    'Live Carbon & Sustainability Karma Scorecards'
+    'Live Carbon & Zero-Waste Impact Metrics'
   ],
 };
 
@@ -654,7 +656,7 @@ export const FESTIVAL_SCHEDULE: ScheduleEvent[] = [
     location: 'Main Eco Stage',
     category: 'Ceremony',
     speakerOrChef: 'Festival Committee & IAM Leadership',
-    description: 'Announcement of live zero-waste metrics, honoring student culinary teams, and distribution of the 120 Sustainability Karma Points certificates.',
+    description: 'Announcement of live zero-waste metrics, honoring student culinary teams, and distribution of Zero-Waste Gastronomy Honors certificates.',
     sustainabilityFocus: 'Comprehensive digital sustainability scorecard released live to all attendees.',
     isHighlight: true,
   },

@@ -50,29 +50,7 @@ export default function App() {
   const [userBookings, setUserBookings] = useState<SavedBooking[]>(() => {
     try {
       const local = localStorage.getItem('rb_saved_bookings');
-      return local ? JSON.parse(local) : [
-        {
-          id: 'seed_rb_1',
-          userId: 'guest_demo',
-          customerName: 'Smt. Sharmistha Debnath',
-          customerEmail: 'sharmistha@iam.ac.in',
-          customerPhone: '+91 98301 44521',
-          items: [
-            { id: 'bhoj_1', name: 'Dhakai Kachi Morog Pulao', mohol: 'BHOJ MOHOL', price: 360, quantity: 2 },
-            { id: 'mohini_1', name: 'Murshidabadi Chhana Mukhi', mohol: 'MOHINI MOHOL', price: 160, quantity: 2 }
-          ],
-          subtotal: 1040,
-          serviceCharge: 21,
-          totalAmount: 1061,
-          paymentMethod: 'upi',
-          paymentStatus: 'confirmed',
-          dineSlot: 'Lunch Banquet: 12:30 PM - 02:30 PM',
-          seatCount: 2,
-          specialRequests: 'Near stage for Baul folk music recital',
-          bookingCode: 'RB-2026-88192',
-          createdAt: '2026-10-09T12:30:00Z'
-        }
-      ];
+      return local ? JSON.parse(local) : [];
     } catch {
       return [];
     }
@@ -423,7 +401,7 @@ export default function App() {
   const cartTotalCount = cart.reduce((acc, i) => acc + i.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[#06120d] text-emerald-50 flex flex-col font-sans selection:bg-emerald-500 selection:text-stone-950">
+    <div className="min-h-screen bg-[#120305] text-amber-50 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950">
       
       {/* Navigation Header */}
       <Navbar
@@ -487,39 +465,43 @@ export default function App() {
 
       {/* Floating Action Buttons */}
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
-        {/* Floating Cart Pill if items are present */}
-        {cartTotalCount > 0 && (
-          <button
-            id="floating-cart-btn"
-            onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs shadow-2xl transition-transform hover:scale-105"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>Eco Plate ({cartTotalCount})</span>
-          </button>
-        )}
+        {/* Floating Primary CTA: 'Booking Pass' Button in Royal Red & Gold */}
+        <button
+          id="floating-booking-pass-btn"
+          onClick={() => handleNavigate('ticket-booking')}
+          className="group flex items-center gap-2.5 px-4.5 py-3 rounded-full bg-gradient-to-r from-[#991b1b] via-[#7f1d1d] to-[#b45309] hover:from-[#b91c1c] hover:to-[#d97706] text-amber-100 font-extrabold text-xs sm:text-sm border border-amber-400/60 shadow-[0_0_25px_rgba(245,158,11,0.45)] hover:shadow-[0_0_35px_rgba(245,158,11,0.65)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          title="Book Your Festival Booking Pass (₹349/-)"
+        >
+          <div className="w-6 h-6 rounded-full bg-amber-400/20 border border-amber-300/40 flex items-center justify-center text-amber-300 group-hover:rotate-12 transition-transform">
+            <Ticket className="w-3.5 h-3.5" />
+          </div>
+          <span className="font-display tracking-wide font-black">Booking Pass</span>
+          <span className="bg-amber-400 text-stone-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+            ₹349
+          </span>
+        </button>
 
-        {/* Floating AI Concierge Mascot Button */}
+        {/* Floating AI Concierge Mascot Button - Bhoj-Bot (Royal Blue) */}
         <button
           id="floating-bhojbot-btn"
           onClick={() => {
             setBhojBotInitialQuery('');
             setIsBhojBotOpen(true);
           }}
-          className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#0d2218]/90 backdrop-blur-md border border-emerald-500/40 text-emerald-200 shadow-[0_0_25px_rgba(16,185,129,0.25)] hover:border-emerald-400 hover:scale-105 transition-all"
+          className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#1c0507]/95 backdrop-blur-md border border-amber-500/40 text-stone-200 shadow-[0_0_25px_rgba(245,158,11,0.25)] hover:border-amber-400 hover:scale-105 transition-all cursor-pointer"
         >
-          <div className="relative w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-300">
-            <Bot className="w-4 h-4" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400" />
+          <div className="relative w-8 h-8 rounded-full bg-blue-950/70 border border-blue-500/50 flex items-center justify-center text-blue-400">
+            <Bot className="w-4 h-4 text-blue-400" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-blue-400" />
           </div>
 
           <div className="text-left hidden sm:block">
-            <div className="text-[11px] font-bold text-emerald-100 flex items-center gap-1">
-              <span>HOSPI BOT</span>
-              <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
+            <div className="text-[11px] font-bold text-blue-400 flex items-center gap-1">
+              <span>Bhoj-Bot</span>
+              <Sparkles className="w-2.5 h-2.5 text-blue-400" />
             </div>
-            <div className="text-[9px] text-emerald-400/80">AI Eco Concierge</div>
+            <div className="text-[9px] text-stone-400">AI Concierge</div>
           </div>
         </button>
       </div>
@@ -538,6 +520,7 @@ export default function App() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onSuccess={handleUserLogin}
+        onNavigateToAdmin={navigateToAdmin}
       />
 
       <CartDrawer

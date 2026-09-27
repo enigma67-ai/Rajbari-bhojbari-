@@ -154,25 +154,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="w-screen max-w-lg bg-gradient-to-b from-[#092218] via-[#051710] to-[#020a06] border-l border-emerald-500/30 p-5 sm:p-6 flex flex-col justify-between shadow-2xl text-emerald-100 z-10"
+              className="w-screen max-w-lg bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border-l border-amber-500/35 p-5 sm:p-6 flex flex-col justify-between shadow-2xl text-stone-200 z-10"
             >
               {/* Drawer Header */}
               <div>
-                <div className="flex items-center justify-between pb-4 border-b border-emerald-500/20">
+                <div className="flex items-center justify-between pb-4 border-b border-amber-500/25">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shadow-inner">
-                      <ShoppingBag className="w-5 h-5 text-emerald-300" />
+                    <div className="w-10 h-10 rounded-xl bg-red-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-inner">
+                      <ShoppingBag className="w-5 h-5 text-amber-300" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <h2 className="text-xl font-display font-extrabold text-white tracking-wide">
                           Your Eco-Plate
                         </h2>
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold uppercase">
+                        <span className="px-2 py-0.5 rounded-full bg-red-950 text-amber-300 border border-amber-500/40 text-[10px] font-bold uppercase">
                           Cart
                         </span>
                       </div>
-                      <p className="text-xs text-emerald-300/80 mt-0.5">
+                      <p className="text-xs text-amber-200/80 mt-0.5">
                         {totalItemsCount} {totalItemsCount === 1 ? 'course' : 'courses'} selected across traditional Mohols
                       </p>
                     </div>
@@ -189,7 +189,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
 
                 {/* Sustainability banner */}
-                <div className="mt-3 p-2.5 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-[11px] text-emerald-200 flex items-center gap-2">
+                <div className="mt-3 p-2.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-[11px] text-emerald-200 flex items-center gap-2">
                   <Leaf className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                   <span>
                     <strong>Zero-Waste Gastronomy:</strong> 100% whole-ingredient culinary preparations supporting IAM student kitchens.
@@ -198,11 +198,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
 
               {/* Cart Items List Grouped by Mohol */}
-              <div className="flex-1 overflow-y-auto my-4 space-y-5 pr-1.5 scrollbar-thin scrollbar-thumb-emerald-900 scrollbar-track-transparent">
+              <div className="flex-1 overflow-y-auto my-4 space-y-5 pr-1.5 scrollbar-thin scrollbar-thumb-amber-900 scrollbar-track-transparent">
                 {cart.length === 0 ? (
                   <div className="text-center py-20 space-y-4">
-                    <div className="w-16 h-16 mx-auto rounded-full bg-emerald-950/60 border border-emerald-500/20 flex items-center justify-center text-emerald-500/40">
-                      <Leaf className="w-8 h-8" />
+                    <div className="w-16 h-16 mx-auto rounded-full bg-red-950/60 border border-amber-500/30 flex items-center justify-center text-amber-400/50">
+                      <ShoppingBag className="w-8 h-8" />
                     </div>
                     <div className="space-y-1">
                       <p className="text-white font-bold text-base">Your Eco-Plate is currently empty.</p>
@@ -212,7 +212,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
                     <button
                       onClick={onClose}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-stone-950 text-xs font-bold transition-all shadow cursor-pointer"
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-yellow-400 text-stone-950 text-xs font-bold transition-all shadow cursor-pointer"
                     >
                       Browse Bengal Menu
                     </button>
@@ -254,13 +254,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                   initial={{ opacity: 0, y: 8 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   exit={{ opacity: 0, scale: 0.9 }}
-                                  className="p-3 rounded-2xl bg-[#092015] border border-emerald-900/60 hover:border-emerald-700/60 flex items-center justify-between gap-3 text-xs shadow-sm transition-all"
+                                  className="p-3 rounded-2xl bg-[#1f0609] border border-amber-500/25 hover:border-amber-500/50 flex items-center justify-between gap-3 text-xs shadow-sm transition-all"
                                 >
                                   {/* Dish Image Thumbnail */}
                                   <img
                                     src={item.dish.imageUrl}
                                     alt={item.dish.name}
-                                    className="w-12 h-12 object-cover rounded-xl border border-emerald-800/80 flex-shrink-0"
+                                    className="w-12 h-12 object-cover rounded-xl border border-amber-500/30 flex-shrink-0"
                                   />
 
                                   {/* Dish Info */}
@@ -268,19 +268,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                     <div className="font-bold text-white truncate text-xs sm:text-sm">
                                       {item.dish.name}
                                     </div>
-                                    <div className="text-[10px] text-emerald-400 font-medium truncate">
+                                    <div className="text-[10px] text-amber-300 font-medium truncate">
                                       {item.dish.bengaliName}
                                     </div>
 
                                     {/* Price Badge */}
                                     <div className="mt-1 flex items-center gap-2">
                                       {isFree ? (
-                                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-400/50">
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-400/40">
                                           <Leaf className="w-3 h-3 text-emerald-400" />
                                           ₹0 • Complimentary Tasting
                                         </span>
                                       ) : (
-                                        <div className="text-emerald-300 font-bold text-xs flex items-center gap-1">
+                                        <div className="text-amber-300 font-bold text-xs flex items-center gap-1">
                                           <span>₹{item.dish.price * item.quantity}</span>
                                           {item.quantity > 1 && (
                                             <span className="text-[10px] text-stone-400 font-normal">
@@ -293,12 +293,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                   </div>
 
                                   {/* Inline [ - ] [ quantity ] [ + ] Buttons */}
-                                  <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-emerald-800/80 shadow-inner flex-shrink-0">
+                                  <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-amber-500/30 shadow-inner flex-shrink-0">
                                     <button
                                       id={`cart-decrease-${item.dish.id}`}
                                       type="button"
                                       onClick={() => onUpdateQuantity(item.dish.id, -1)}
-                                      className="w-7 h-7 rounded-lg bg-emerald-950 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center transition-colors active:scale-90 cursor-pointer"
+                                      className="w-7 h-7 rounded-lg bg-red-950 hover:bg-red-900 text-amber-200 hover:text-white flex items-center justify-center transition-colors active:scale-90 cursor-pointer"
                                       aria-label="Decrease quantity"
                                     >
                                       <Minus className="w-3 h-3 stroke-[2.5]" />
@@ -312,7 +312,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                       id={`cart-increase-${item.dish.id}`}
                                       type="button"
                                       onClick={() => onUpdateQuantity(item.dish.id, 1)}
-                                      className="w-7 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-stone-950 flex items-center justify-center font-bold transition-colors active:scale-90 cursor-pointer"
+                                      className="w-7 h-7 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-yellow-400 text-stone-950 flex items-center justify-center font-bold transition-colors active:scale-90 cursor-pointer"
                                       aria-label="Increase quantity"
                                     >
                                       <Plus className="w-3 h-3 stroke-[2.5]" />
@@ -343,9 +343,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
               {/* Live Calculation Breakdown & Checkout Button */}
               {cart.length > 0 && (
-                <div className="pt-3 border-t border-emerald-500/20 space-y-3">
+                <div className="pt-3 border-t border-amber-500/20 space-y-3">
                   {/* Calculation Breakdown Table */}
-                  <div className="p-3 rounded-2xl bg-black/40 border border-emerald-900/60 space-y-1.5 text-xs text-stone-300">
+                  <div className="p-3 rounded-2xl bg-black/40 border border-amber-500/25 space-y-1.5 text-xs text-stone-300">
                     <div className="flex items-center justify-between">
                       <span className="text-stone-400">Items Subtotal:</span>
                       <span className="font-semibold text-white">₹{subtotal}/-</span>
@@ -353,10 +353,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-stone-400 flex items-center gap-1">
-                        <Ticket className="w-3 h-3 text-emerald-400" />
+                        <Ticket className="w-3 h-3 text-amber-400" />
                         <span>Festival Pass Access:</span>
                       </span>
-                      <span className="text-emerald-300 font-medium">
+                      <span className="text-amber-300 font-medium">
                         1 Starter + 1 Combo + Rural Counter
                       </span>
                     </div>
@@ -371,12 +371,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <span className="font-mono text-stone-300">₹{sustainabilityCess}/-</span>
                     </div>
 
-                    <div className="pt-1.5 border-t border-emerald-950 flex items-center justify-between">
+                    <div className="pt-1.5 border-t border-amber-900/60 flex items-center justify-between">
                       <div>
                         <span className="font-bold text-white text-sm block">Grand Total:</span>
-                        <span className="text-[10px] text-emerald-400">All inclusive in ₹ INR</span>
+                        <span className="text-[10px] text-amber-400">All inclusive in ₹ INR</span>
                       </div>
-                      <span className="text-2xl font-black font-display text-emerald-300">
+                      <span className="text-2xl font-black font-display text-amber-300">
                         ₹{grandTotal}/-
                       </span>
                     </div>
@@ -390,7 +390,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       onClose();
                       onProceedToCheckout();
                     }}
-                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 hover:from-emerald-400 hover:to-teal-400 text-stone-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-98 cursor-pointer"
+                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm tracking-wide shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.55)] border border-amber-300/60 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-98 cursor-pointer"
                   >
                     <span>Proceed to Checkout / Book Pass (₹{grandTotal}/-)</span>
                     <ArrowRight className="w-4 h-4 stroke-[2.5]" />

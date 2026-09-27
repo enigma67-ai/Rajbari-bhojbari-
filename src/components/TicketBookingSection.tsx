@@ -1067,62 +1067,58 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         )}
       </AnimatePresence>
       {/* Subtle background ambient glows */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 right-0 w-80 h-80 bg-teal-950/30 rounded-full blur-3xl pointer-events-none" />
+      {/* Glowing Royal Gold & Crimson Orbs */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 right-0 w-80 h-80 bg-red-950/30 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative max-w-5xl mx-auto space-y-8">
         
         {/* Section Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-semibold tracking-wider uppercase">
-            <Ticket className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/80 border border-amber-500/40 text-amber-300 text-xs font-semibold tracking-wider uppercase shadow-sm">
+            <Ticket className="w-3.5 h-3.5 text-amber-400" />
             <span>Official Eco-Pass Portal</span>
           </div>
 
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
-            Book Festival Eco-Pass <span className="text-eco-gradient">₹349/-</span>
+            Book Festival Eco-Pass <span className="text-amber-400 font-extrabold">₹349/-</span>
           </h2>
           
           <p className="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
             Your Eco-Pass includes full access to the Rural Bengal Counter, 1 Authentic Starter, and 1 Main Course Combo of your choice. Misti Mukh dessert platters are available for an additional ₹99/-.
           </p>
 
-          {/* 120 Sustainability Karma Points Badge & Live Scanner Trigger */}
+          {/* Ticket QR Scanner Button */}
           <div className="flex flex-wrap items-center justify-center gap-2.5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-900/60 border border-emerald-400/50 text-emerald-300 text-xs font-bold shadow-md">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-              <span>120 Sustainability Karma Points Badge Included</span>
-            </div>
-
             <button
               type="button"
               id="ticket-scanner-overlay-btn"
               onClick={() => setIsScannerOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg border border-emerald-400/60 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 text-xs font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] border border-amber-300/60 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <QrCode className="w-3.5 h-3.5 text-emerald-200" />
+              <QrCode className="w-3.5 h-3.5 text-stone-950" />
               <span>Verify / Scan Ticket QR (Firestore DB)</span>
             </button>
           </div>
 
           {/* Strict Entry Policy Warning Banner */}
-          <div className="max-w-2xl mx-auto mt-3 p-3 sm:p-4 rounded-2xl bg-[#092218] border border-emerald-500/40 text-emerald-100 text-xs sm:text-sm flex items-center gap-3 shadow-lg text-left">
-            <div className="w-9 h-9 rounded-xl bg-emerald-900/60 border border-emerald-400/40 flex-shrink-0 flex items-center justify-center text-emerald-300">
-              <ShieldAlert className="w-5 h-5 animate-pulse text-emerald-400" />
+          <div className="max-w-2xl mx-auto mt-3 p-3 sm:p-4 rounded-2xl bg-[#1f0609] border border-amber-500/40 text-amber-100 text-xs sm:text-sm flex items-center gap-3 shadow-lg text-left">
+            <div className="w-9 h-9 rounded-xl bg-red-900/60 border border-amber-500/40 flex-shrink-0 flex items-center justify-center text-amber-400">
+              <ShieldAlert className="w-5 h-5 animate-pulse text-amber-400" />
             </div>
             <div>
               <span className="font-bold text-white uppercase tracking-wide block">
                 Campus Security Policy: Verified Eco-Pass Required
               </span>
-              <span className="text-emerald-200/90 text-xs">
-                Without a booked digital Eco-Pass, no entry is permitted past the IAM Innovation Gate. All passes feature unique scannable QR verification and award +120 Sustainability Karma Points.
+              <span className="text-amber-200/90 text-xs">
+                Without a booked digital Eco-Pass, no entry is permitted past the IAM Innovation Gate. All passes feature unique scannable QR verification for guaranteed entry.
               </span>
             </div>
           </div>
         </div>
 
         {/* Multi-Step Indicator Bar with smooth transitions */}
-        <div className="max-w-3xl mx-auto bg-[#061811] border border-emerald-500/20 rounded-2xl p-2 sm:p-3 shadow-md transition-all duration-300">
+        <div className="max-w-3xl mx-auto bg-[#180406] border border-amber-500/30 rounded-2xl p-2 sm:p-3 shadow-md transition-all duration-300">
           <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[11px] sm:text-xs">
             {/* Step 1 Pill */}
             <button
@@ -1130,8 +1126,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               onClick={() => currentStep !== 'pass' && currentStep !== 'meal' && setCurrentStep('details')}
               className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                 currentStep === 'details'
-                  ? 'bg-emerald-500 text-stone-950 shadow-md font-black scale-[1.02]'
-                  : 'text-stone-400 hover:text-stone-200'
+                  ? 'bg-amber-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] font-black scale-[1.02]'
+                  : 'text-stone-400 hover:text-amber-200'
               }`}
             >
               <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">1</span>
@@ -1150,9 +1146,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               }}
               className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 ${
                 currentStep === 'payment'
-                  ? 'bg-emerald-500 text-stone-950 shadow-md font-black scale-[1.02]'
+                  ? 'bg-amber-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] font-black scale-[1.02]'
                   : isStep1Valid && currentStep !== 'pass'
-                  ? 'text-stone-300 hover:text-emerald-300 cursor-pointer'
+                  ? 'text-stone-300 hover:text-amber-300 cursor-pointer'
                   : 'text-stone-600 cursor-not-allowed opacity-60'
               }`}
             >
@@ -1171,9 +1167,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               disabled={!generatedPass}
               className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 ${
                 currentStep === 'pass'
-                  ? 'bg-emerald-500 text-stone-950 shadow-md font-black scale-[1.02]'
+                  ? 'bg-amber-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] font-black scale-[1.02]'
                   : generatedPass
-                  ? 'text-emerald-400 hover:text-emerald-200 cursor-pointer'
+                  ? 'text-amber-400 hover:text-amber-200 cursor-pointer'
                   : 'text-stone-600 cursor-not-allowed opacity-60'
               }`}
             >
@@ -1192,7 +1188,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               disabled={!generatedPass}
               className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 ${
                 currentStep === 'meal'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-black scale-[1.02]'
+                  ? 'bg-amber-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] font-black scale-[1.02]'
                   : generatedPass
                   ? 'text-amber-400 hover:text-amber-200 cursor-pointer'
                   : 'text-stone-600 cursor-not-allowed opacity-60'
@@ -2112,25 +2108,25 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             </div>
 
             {/* Live Pricing Summary Breakdown (Real-time in ₹ INR) */}
-            <div className="p-4 rounded-2xl bg-[#061811] border border-emerald-500/40 space-y-3 text-xs">
-              <div className="flex items-center justify-between border-b border-emerald-900/60 pb-2">
-                <span className="font-bold text-sm text-emerald-200">Real-Time Order Calculation</span>
-                <span className="text-[10px] text-emerald-400 font-mono">120 Sustainability Karma Points</span>
+            <div className="p-4 rounded-2xl bg-[#1a0507] border border-amber-500/35 space-y-3 text-xs">
+              <div className="flex items-center justify-between border-b border-amber-900/60 pb-2">
+                <span className="font-bold text-sm text-amber-200">Real-Time Order Calculation</span>
+                <span className="text-[10px] text-amber-400 font-mono">Verified Pricing</span>
               </div>
 
               <div className="space-y-1.5 text-stone-300">
                 <div className="flex justify-between">
                   <span>Festival Eco-Pass Base (x{quantity}):</span>
-                  <span className="font-mono text-emerald-300 font-bold">₹{basePricePerTicket * quantity}</span>
+                  <span className="font-mono text-amber-300 font-bold">₹{basePricePerTicket * quantity}</span>
                 </div>
                 {extraCombos.length > 0 && (
-                  <div className="flex justify-between text-cyan-300">
+                  <div className="flex justify-between text-amber-200">
                     <span>Additional Main Course Combos ({extraCombos.length} × ₹349):</span>
                     <span className="font-mono font-bold">+₹{extraCombosTotal}</span>
                   </div>
                 )}
                 {extraStarters.length > 0 && (
-                  <div className="flex justify-between text-cyan-300">
+                  <div className="flex justify-between text-amber-200">
                     <span>A La Carte Starters ({extraStarters.length} × ₹349):</span>
                     <span className="font-mono font-bold">+₹{extraStartersTotal}</span>
                   </div>
@@ -2145,7 +2141,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     <span className="font-mono font-bold">+₹{dessertTotal}</span>
                   </div>
                 )}
-                <div className="pt-2 border-t border-emerald-950 flex justify-between font-semibold text-stone-200">
+                <div className="pt-2 border-t border-amber-900/50 flex justify-between font-semibold text-stone-200">
                   <span>Subtotal:</span>
                   <span className="font-mono">₹{subtotal} INR</span>
                 </div>
@@ -2159,10 +2155,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-emerald-500/30 flex items-center justify-between">
+              <div className="pt-2 border-t border-amber-500/30 flex items-center justify-between">
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-stone-400">Final Grand Total Payable</div>
-                  <div className="text-[11px] text-emerald-400">All inclusive of taxes & access</div>
+                  <div className="text-[11px] text-amber-400/90">All inclusive of taxes & access</div>
                 </div>
                 <div className="font-mono text-2xl font-black text-amber-300">
                   ₹{grandTotal} INR
@@ -2190,7 +2186,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 id="ticket-save-meal-btn"
                 onClick={handleSaveMealChoices}
                 disabled={isSavingMealChoice}
-                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-stone-950 font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-sm transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] border border-amber-300/60 flex items-center justify-center gap-2 cursor-pointer active:scale-98"
               >
                 {isSavingMealChoice ? (
                   <>
@@ -2213,13 +2209,13 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-3xl mx-auto bg-stone-900/90 border border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
+            className="max-w-3xl mx-auto bg-[#1a0507] border border-amber-500/35 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
           >
             {/* Header */}
-            <div className="border-b border-stone-800 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="border-b border-amber-900/60 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-emerald-200 flex items-center gap-2">
-                  <QrCode className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-xl sm:text-2xl font-bold text-amber-200 flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-amber-400" />
                   <span>Step 2: UPI QR Payment & Auth</span>
                 </h3>
                 <p className="text-xs text-stone-400 mt-1">
@@ -2229,28 +2225,28 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
               <div className="text-left sm:text-right">
                 <span className="text-[10px] text-stone-400 uppercase tracking-wider block">Quantity</span>
-                <span className="font-mono text-sm font-bold text-emerald-300">
+                <span className="font-mono text-sm font-bold text-amber-300">
                   {quantity} {quantity === 1 ? 'Pass' : 'Passes'}
                 </span>
               </div>
             </div>
 
             {/* Dynamically calculated Total Amount in large font */}
-            <div className="p-4 rounded-2xl bg-[#072116] border border-emerald-500/40 text-center space-y-1 shadow-inner">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest block">
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-[#24060a] via-[#1a0507] to-[#140305] border border-amber-500/40 text-center space-y-1 shadow-inner">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block">
                 Total Payable Amount
               </span>
-              <div className="text-3xl sm:text-4xl md:text-5xl font-black font-mono text-emerald-100 tracking-tight">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-black font-mono text-amber-300 tracking-tight">
                 Total Payable: ₹{grandTotal}/-
               </div>
-              <p className="text-xs text-emerald-300/80">
+              <p className="text-xs text-amber-200/80">
                 All inclusive of taxes & access for {quantity} event pass(es)
               </p>
             </div>
 
-            {/* Centered Styled Scanner Box with Soft Pulsing Emerald Glow */}
+            {/* Centered Styled Scanner Box with Soft Pulsing Gold Glow */}
             <div className="py-2 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="relative p-4 sm:p-5 rounded-3xl bg-white border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.25)] animate-pulse transition-all duration-300 max-w-xs sm:max-w-sm mx-auto flex flex-col items-center">
+              <div className="relative p-4 sm:p-5 rounded-3xl bg-white border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.25)] animate-pulse transition-all duration-300 max-w-xs sm:max-w-sm mx-auto flex flex-col items-center">
                 {/* HDFC SmartHub Vyapar Header inside box */}
                 <div className="w-full flex items-center justify-between border-b border-stone-200 pb-2 mb-3">
                   <div className="text-left">
@@ -2291,16 +2287,16 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   type="button"
                   id="copy-merchant-tid-btn"
                   onClick={handleCopyMerchantTid}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-300 hover:text-emerald-100 text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-950/80 hover:bg-red-900 border border-amber-500/40 text-amber-300 hover:text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
                 >
                   {copiedTid ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <Check className="w-3.5 h-3.5 text-amber-400" />
                       <span>Copied TID: 62903194!</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 text-emerald-400" />
+                      <Copy className="w-3.5 h-3.5 text-amber-400" />
                       <span>Copy Merchant TID: 62903194</span>
                     </>
                   )}
@@ -2312,10 +2308,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             </div>
 
             {/* Required 12-Digit UPI Reference / UTR Number Field */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-stone-950 border border-stone-800 space-y-2 text-left">
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#140305] border border-amber-500/30 space-y-2 text-left">
               <label htmlFor="ticket-upi-utr-input" className="text-xs font-bold text-stone-200 uppercase tracking-wider flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
                   <span>Enter 12-digit UPI Reference / UTR Number <span className="text-rose-400">*</span></span>
                 </span>
                 {isUtrValid && (
@@ -2343,8 +2339,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     utrError
                       ? 'border-rose-500 focus:border-rose-400 ring-1 ring-rose-500/50'
                       : isUtrValid
-                      ? 'border-emerald-500 focus:border-emerald-400 ring-1 ring-emerald-500/50'
-                      : 'border-stone-700 focus:border-emerald-400'
+                      ? 'border-amber-400 focus:border-amber-300 ring-1 ring-amber-400/50'
+                      : 'border-stone-700 focus:border-amber-400'
                   }`}
                 />
                 <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-stone-500 pointer-events-none">
@@ -2366,13 +2362,13 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
             {/* Prompt Standard One-Click Eco-Pass Login (Google or OTP) inline if not logged in */}
             {!isUserLoggedIn ? (
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-[#0a261a] to-emerald-950/80 border border-emerald-500/40 text-left space-y-3 shadow-xl">
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-red-950/80 via-[#220609] to-amber-950/60 border border-amber-500/40 text-left space-y-3 shadow-xl">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-900/70 border border-emerald-400/50 flex items-center justify-center text-emerald-300 flex-shrink-0">
-                    <Lock className="w-5 h-5 text-emerald-400" />
+                  <div className="w-10 h-10 rounded-xl bg-red-900/70 border border-amber-400/50 flex items-center justify-center text-amber-300 flex-shrink-0">
+                    <Lock className="w-5 h-5 text-amber-400" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-emerald-200">
+                    <h4 className="text-sm font-bold text-amber-200">
                       Standard One-Click Eco-Pass Sign-In Required
                     </h4>
                     <p className="text-xs text-stone-300 leading-relaxed">
@@ -2414,7 +2410,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     onClick={() => {
                       if (onOpenAuth) onOpenAuth();
                     }}
-                    className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-stone-950 font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
+                    className="px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
                   >
                     <User className="w-4 h-4" />
                     <span>Sign In with WhatsApp OTP / Email</span>
@@ -2422,14 +2418,14 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-left flex items-center justify-between text-xs">
+              <div className="p-3.5 rounded-2xl bg-red-950/80 border border-amber-500/40 text-left flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-emerald-200">
+                  <span className="text-amber-200">
                     Eco-Pass Account Verified: <strong className="text-white">{currentUser?.name}</strong> ({currentUser?.emailOrPhone})
                   </span>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-900 border border-emerald-400 text-emerald-300 font-bold text-[10px] uppercase">
+                <span className="px-2 py-0.5 rounded-full bg-amber-950 border border-amber-400 text-amber-300 font-bold text-[10px] uppercase">
                   Active User
                 </span>
               </div>
@@ -2486,7 +2482,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     : !isUserLoggedIn
                     ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 shadow-lg cursor-pointer active:scale-98'
                     : isUtrValid
-                    ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 hover:from-emerald-400 hover:to-teal-400 text-stone-950 shadow-emerald-500/20 cursor-pointer active:scale-98'
+                    ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.55)] border border-amber-300/60 cursor-pointer active:scale-98'
                     : 'bg-stone-800 border border-stone-700 text-stone-500 cursor-not-allowed opacity-60'
                 }`}
               >
@@ -2539,7 +2535,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 initial={{ opacity: 0, scale: 0.94, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 15 }}
-                className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-[#160c08] border border-emerald-500/40 rounded-3xl shadow-2xl p-6 sm:p-8 text-stone-200"
+                className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-[#1a0507] border border-amber-500/40 rounded-3xl shadow-2xl p-6 sm:p-8 text-stone-200"
               >
                 <PaymentVerifyingAnimation
                   amount={grandTotal}
@@ -2560,10 +2556,14 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           >
             {/* Top Success Banner */}
             <div className="text-center space-y-2">
-              <div className="w-14 h-14 mx-auto rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-emerald-300 shadow-xl">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-emerald-100">
+              <motion.div 
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+                className="w-14 h-14 mx-auto rounded-full bg-red-950/80 border-2 border-amber-400 flex items-center justify-center text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+              >
+                <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+              </motion.div>
+              <h3 className="text-2xl sm:text-3xl font-black text-white">
                 Official Eco-Pass Confirmed!
               </h3>
               <p className="text-xs sm:text-sm text-stone-300">
@@ -2576,18 +2576,18 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-emerald-950/90 border border-emerald-400/50 shadow-2xl flex items-center justify-between gap-3 text-left"
+                className="p-4 rounded-2xl bg-gradient-to-r from-red-950/90 via-[#220609] to-amber-950/80 border border-amber-400/50 shadow-2xl flex items-center justify-between gap-3 text-left"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-300 flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 flex-shrink-0">
                     <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs sm:text-sm text-emerald-200">
+                      <span className="font-bold text-xs sm:text-sm text-amber-200">
                         EmailJS Automated Confirmation Delivered
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-900 border border-emerald-400/60 text-emerald-200 font-bold">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-red-900 border border-amber-400/60 text-amber-200 font-bold">
                         200 OK
                       </span>
                     </div>
@@ -2607,10 +2607,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             )}
 
             {/* AUTOMATED CONFIRMATION EMAIL & MESSAGE STATUS */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-stone-900/90 border border-amber-600/40 text-left space-y-3 shadow-xl">
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#1a0507] border border-amber-500/35 text-left space-y-3 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-300 flex-shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-red-900/60 border border-amber-400/50 flex items-center justify-center text-amber-300 flex-shrink-0">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
@@ -2635,7 +2635,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   type="button"
                   id="view-sent-email-template-btn"
                   onClick={() => setIsEmailModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer shadow-md active:scale-95"
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-xs transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer shadow-md active:scale-95"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span>View Invitation Letter & QR</span>
@@ -2644,13 +2644,13 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
               {/* SUCCESS MESSAGE ON EMAILJS 200 OK STATUS */}
               {confirmationDispatchInfo?.status === 200 && (
-                <div className="p-3.5 rounded-xl bg-emerald-950/70 border border-emerald-500/50 text-xs text-emerald-200 flex items-start gap-2.5 shadow-md">
+                <div className="p-3.5 rounded-xl bg-red-950/70 border border-amber-500/40 text-xs text-amber-200 flex items-start gap-2.5 shadow-md">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold text-emerald-300 block mb-0.5">
+                    <span className="font-bold text-amber-300 block mb-0.5">
                       ✓ EmailJS Status: 200 OK — Automated Confirmation Sent
                     </span>
-                    <p className="text-emerald-100 text-[11px] leading-relaxed">
+                    <p className="text-amber-100 text-[11px] leading-relaxed">
                       {confirmationDispatchInfo.message}
                     </p>
                   </div>
@@ -2671,59 +2671,59 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               )}
             </div>
 
-            {/* THE PRINTABLE PASS CARD (Green Success Card) */}
+            {/* THE PRINTABLE PASS CARD (Royal Red & Gold Success Card) */}
             <div 
               id="printable-event-pass" 
-              className="relative bg-gradient-to-b from-[#052317] via-[#041d13] to-[#02130c] border-2 border-emerald-500/70 rounded-3xl p-6 sm:p-8 text-stone-100 shadow-[0_0_35px_rgba(16,185,129,0.25)] overflow-hidden print:bg-white print:text-black print:border-black"
+              className="relative bg-gradient-to-b from-[#24060a] via-[#1a0507] to-[#120305] border-2 border-amber-500/60 rounded-3xl p-6 sm:p-8 text-stone-100 shadow-[0_0_35px_rgba(245,158,11,0.25)] overflow-hidden print:bg-white print:text-black print:border-black"
             >
               {/* Watermark Crest */}
-              <div className="absolute right-4 bottom-4 opacity-5 text-emerald-300 pointer-events-none">
+              <div className="absolute right-4 bottom-4 opacity-5 text-amber-300 pointer-events-none">
                 <Crown className="w-64 h-64" />
               </div>
 
               {/* Pass Header */}
-              <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-dashed border-emerald-500/40 pb-5 gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-dashed border-amber-500/40 pb-5 gap-4">
                 <div className="flex items-center gap-3 text-left">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-600 border border-emerald-300 flex items-center justify-center text-stone-950 font-sans font-black text-xl shadow-md">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 border border-amber-300 flex items-center justify-center text-stone-950 font-sans font-black text-xl shadow-md">
                     IAM
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">
                       IAM ANNUAL FOOD FEST 2026
                     </span>
-                    <h4 className="font-sans text-xl sm:text-2xl font-black text-emerald-100">
+                    <h4 className="font-sans text-xl sm:text-2xl font-black text-white">
                       RAJBARI BHOJBARI 2026
                     </h4>
-                    <span className="text-xs text-emerald-300/80">
+                    <span className="text-xs text-amber-300/80">
                       The Zero-Waste AI Food Fest • Official Eco-Pass
                     </span>
                   </div>
                 </div>
 
                 <div className="text-center sm:text-right">
-                  <div className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 text-xs font-bold uppercase tracking-wider inline-block">
+                  <div className="px-3 py-1 rounded-full bg-red-950/80 border border-amber-400 text-amber-300 text-xs font-bold uppercase tracking-wider inline-block">
                     {generatedPass.paymentStatus === 'pay_at_counter' ? 'VOUCHER: PAY AT GATE' : 'ENTRY VALIDATED: PAID'}
                   </div>
-                  <div className="font-mono text-sm font-black text-emerald-200 mt-1">
+                  <div className="font-mono text-sm font-black text-amber-200 mt-1">
                     PASS #{generatedPass.id}
                   </div>
                 </div>
               </div>
 
               {/* Pass Body Content */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 py-6 border-b-2 border-dashed border-emerald-500/40">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 py-6 border-b-2 border-dashed border-amber-500/40">
                 {/* Left Col: Attendee & Meal Specs */}
                 <div className="md:col-span-8 space-y-4 text-left">
                   {/* Attendee Details Grid */}
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <span className="text-[10px] uppercase text-stone-400 block font-semibold">ATTENDEE NAME</span>
-                      <span className="font-bold text-emerald-100 text-sm">{generatedPass.customerName}</span>
+                      <span className="font-bold text-white text-sm">{generatedPass.customerName}</span>
                     </div>
 
                     <div>
                       <span className="text-[10px] uppercase text-stone-400 block font-semibold">PASS QUANTITY</span>
-                      <span className="font-bold text-emerald-100 text-sm">{generatedPass.ticketQuantity} Person(s)</span>
+                      <span className="font-bold text-white text-sm">{generatedPass.ticketQuantity} Person(s)</span>
                     </div>
 
                     <div>
@@ -2738,8 +2738,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   </div>
 
                   {/* Meal Badges Box */}
-                  <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-emerald-900/60 space-y-2 text-xs">
-                    <div className="text-[11px] uppercase tracking-wider font-bold text-emerald-400 flex items-center gap-1.5">
+                  <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-amber-500/20 space-y-2 text-xs">
+                    <div className="text-[11px] uppercase tracking-wider font-bold text-amber-400 flex items-center gap-1.5">
                       <Utensils className="w-3.5 h-3.5" />
                       <span>Included Eco-Pass Feast (₹{basePricePerTicket})</span>
                     </div>
@@ -2753,7 +2753,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                         • <strong>Main Course Combo:</strong> {generatedPass.mainsDish}
                       </div>
                       {generatedPass.includeDessert && (
-                        <div className="text-emerald-300 font-semibold">
+                        <div className="text-amber-300 font-semibold">
                           • <strong>Dessert Add-On (+₹99/-):</strong> Misti Mukh Platter (Piyazer Payes, Porochitroharini, PotolER Monohora, Tal Er Malpua)
                         </div>
                       )}
@@ -2795,9 +2795,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsScannerOpen(true)}
-                    className="mt-2 px-2.5 py-1 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-400/50 text-emerald-300 text-[10px] font-bold flex items-center gap-1 transition-all"
+                    className="mt-2 px-2.5 py-1 rounded-lg bg-red-950/80 hover:bg-red-900 border border-amber-400/50 text-amber-300 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer"
                   >
-                    <QrCode className="w-3 h-3 text-emerald-400" />
+                    <QrCode className="w-3 h-3 text-amber-400" />
                     <span>Test in Gate Scanner</span>
                   </button>
                 </div>
@@ -2806,27 +2806,27 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               {/* Pass Footer Bar */}
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-stone-400">
                 <div className="flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 text-emerald-400" />
+                  <ShieldAlert className="w-4 h-4 text-amber-400" />
                   <span>Entry Policy: Strict QR validation. Wristband issued at entry.</span>
                 </div>
-                <div className="font-mono text-emerald-200 font-bold">
+                <div className="font-mono text-amber-200 font-bold">
                   Total Paid: ₹{generatedPass.totalAmount}/- ({generatedPass.paymentMethod.toUpperCase()})
                 </div>
               </div>
             </div>
 
             {/* STEP 4: Optional Meal Selection Prompt below Confirmed Pass */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950/90 via-[#09271c] to-emerald-950/90 border border-emerald-500/50 shadow-xl text-left space-y-4">
+            <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-red-950/90 via-[#24060a] to-[#1a0507] border border-amber-500/40 shadow-xl text-left space-y-4">
               <div className="flex items-start gap-3.5">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-300 flex-shrink-0">
-                  <Utensils className="w-5 h-5 text-emerald-400" />
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 flex-shrink-0">
+                  <Utensils className="w-5 h-5 text-amber-400" />
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="text-base font-bold text-emerald-200">
+                    <h4 className="text-base font-bold text-amber-200">
                       Step 4: Mohol Feast Selection (Optional)
                     </h4>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-900 border border-emerald-400/60 text-emerald-300 text-[10px] font-bold uppercase">
+                    <span className="px-2.5 py-0.5 rounded-full bg-red-900 border border-amber-400/60 text-amber-300 text-[10px] font-bold uppercase">
                       Included with Pass
                     </span>
                   </div>
@@ -2837,7 +2837,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               </div>
 
               {isCounterDecide && (
-                <div className="p-3.5 rounded-xl bg-emerald-900/60 border border-emerald-400/50 text-xs text-emerald-100 flex items-center gap-2.5 shadow-md">
+                <div className="p-3.5 rounded-xl bg-red-900/60 border border-amber-400/50 text-xs text-amber-100 flex items-center gap-2.5 shadow-md">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                   <span>
                     ✓ Selection recorded: You've chosen to decide in person at the festival counter. Present your digital QR pass at Counter #1 to pick your meal combos.
@@ -2846,7 +2846,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               )}
 
               {mealChoiceSavedMessage && (
-                <div className="p-3.5 rounded-xl bg-emerald-900/60 border border-emerald-400/50 text-xs text-emerald-100 flex items-center gap-2.5 shadow-md">
+                <div className="p-3.5 rounded-xl bg-red-900/60 border border-amber-400/50 text-xs text-amber-100 flex items-center gap-2.5 shadow-md">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                   <span>{mealChoiceSavedMessage}</span>
                 </div>
@@ -2860,7 +2860,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     setCurrentStep('meal');
                     document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 hover:from-emerald-400 hover:to-teal-400 text-stone-950 font-bold text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95"
+                  className="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(245,158,11,0.25)] border border-amber-300/60 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95"
                 >
                   <Utensils className="w-4 h-4 text-stone-950" />
                   <span>Customize Meal Choices Now</span>
@@ -2873,9 +2873,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     setIsCounterDecide(true);
                     setMealChoiceSavedMessage(null);
                   }}
-                  className="px-5 py-3.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 hover:border-emerald-500/50 text-stone-200 font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                  className="px-5 py-3.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 hover:border-amber-500/50 text-stone-200 font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                 >
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-amber-400" />
                   <span>Done / I'll Decide at the Event</span>
                 </button>
               </div>
@@ -2887,9 +2887,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 type="button"
                 id="ticket-scanner-pass-btn"
                 onClick={() => setIsScannerOpen(true)}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 border border-emerald-400/60 text-white font-bold text-xs sm:text-sm transition-all shadow-lg hover:scale-105 active:scale-95"
+                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 border border-amber-300/60 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:scale-105 active:scale-95 cursor-pointer"
               >
-                <QrCode className="w-4 h-4 text-emerald-200" />
+                <QrCode className="w-4 h-4 text-stone-950" />
                 <span>Verify with Gate QR Scanner</span>
               </button>
 
@@ -2900,7 +2900,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   triggerFestiveCelebration();
                   playCelebrationChime();
                 }}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold text-xs sm:text-sm transition-all hover:scale-105 active:scale-95"
+                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-950/70 hover:bg-red-900/70 border border-amber-500/40 text-amber-300 font-semibold text-xs sm:text-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <PartyPopper className="w-4 h-4 text-amber-400" />
                 <span>Shower Confetti 🎊</span>
@@ -2910,7 +2910,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 type="button"
                 id="ticket-view-celebration-btn"
                 onClick={() => setIsCelebrationModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-red-900/80 to-amber-900/80 hover:from-red-800 hover:to-amber-800 border border-amber-400/40 text-amber-200 font-semibold text-xs sm:text-sm transition-all"
+                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-red-900/80 to-amber-900/80 hover:from-red-800 hover:to-amber-800 border border-amber-400/40 text-amber-200 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
               >
                 <Crown className="w-4 h-4 text-amber-300" />
                 <span>Celebration Screen</span>
@@ -2920,7 +2920,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 type="button"
                 id="print-pass-btn"
                 onClick={handlePrintPass}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Print Pass / Save PDF</span>

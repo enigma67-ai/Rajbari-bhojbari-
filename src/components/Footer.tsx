@@ -10,25 +10,25 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot }) => {
   return (
-    <footer className="bg-[#030a06] border-t border-emerald-500/20 text-emerald-100/70 text-xs py-12 px-4 sm:px-6 lg:px-8 mt-16 font-sans">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-emerald-950/70">
+    <footer className="bg-[#120305] border-t border-amber-500/25 text-stone-300 text-xs py-12 px-4 sm:px-6 lg:px-8 mt-16 font-sans">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-amber-900/60">
         
         {/* Brand Info */}
         <div className="space-y-3 md:col-span-1">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-900/40 border border-emerald-500/30 flex items-center justify-center p-0.5 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+            <div className="w-10 h-10 rounded-xl bg-red-950/80 border border-amber-500/40 flex items-center justify-center p-0.5 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
               <IAMChefLogo size={36} />
             </div>
             <div>
-              <span className="font-bold text-emerald-100 text-sm tracking-wide block">
+              <span className="font-bold text-white text-sm tracking-wide block">
                 {FESTIVAL_INFO.title}
               </span>
-              <span className="text-[10px] text-cyan-400 font-medium">
+              <span className="text-[10px] text-amber-400 font-medium">
                 {FESTIVAL_INFO.subtitle}
               </span>
             </div>
           </div>
-          <p className="text-[11px] text-emerald-200/70 leading-relaxed">
+          <p className="text-[11px] text-stone-300 leading-relaxed">
             {FESTIVAL_INFO.tagline}. Aligned with UN SDG 12 (Responsible Consumption) & Smart Culinary AI Systems.
           </p>
           <div className="flex items-center gap-2 pt-1 text-emerald-400 text-[11px] font-medium">
@@ -39,28 +39,28 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot }) => 
 
         {/* Four Authentic Counters */}
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Recycle className="w-3.5 h-3.5 text-cyan-400" />
+          <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Recycle className="w-3.5 h-3.5 text-emerald-400" />
             <span>Festival Counters</span>
           </h4>
-          <ul className="space-y-1.5 text-emerald-100/70 text-xs">
+          <ul className="space-y-1.5 text-stone-300 text-xs">
             <li>
-              <button onClick={() => onNavClick('menu-section')} className="hover:text-emerald-300 transition-colors text-left">
+              <button onClick={() => onNavClick('menu-section')} className="hover:text-amber-300 transition-colors text-left cursor-pointer">
                 Authentic Starters (₹349 each)
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('menu-section')} className="hover:text-emerald-300 transition-colors text-left">
+              <button onClick={() => onNavClick('menu-section')} className="hover:text-amber-300 transition-colors text-left cursor-pointer">
                 Rural Bengal Counter (₹0 Complimentary)
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('menu-section')} className="hover:text-emerald-300 transition-colors text-left">
+              <button onClick={() => onNavClick('menu-section')} className="hover:text-amber-300 transition-colors text-left cursor-pointer">
                 Main Course Combos (₹349 each)
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('menu-section')} className="hover:text-emerald-300 transition-colors text-left">
+              <button onClick={() => onNavClick('menu-section')} className="hover:text-amber-300 transition-colors text-left cursor-pointer">
                 Misti Mukh Platter (+₹99 Add-on)
               </button>
             </li>
@@ -69,72 +69,97 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot }) => 
 
         {/* Quick Links */}
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+          <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
             <Cpu className="w-3.5 h-3.5 text-emerald-400" />
             <span>Smart Features</span>
           </h4>
-          <ul className="space-y-1.5 text-emerald-100/70 text-xs">
+          <ul className="space-y-1.5 text-stone-300 text-xs">
             <li>
-              <button onClick={() => onNavClick('ticket-booking')} className="hover:text-emerald-300 transition-colors">
-                Book Eco-Pass & Meal Vouchers
+              <button onClick={() => onNavClick('ticket-booking')} className="hover:text-amber-300 transition-colors cursor-pointer">
+                Booking Pass & Meal Vouchers
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('schedule-section')} className="hover:text-emerald-300 transition-colors">
+              <button onClick={() => onNavClick('schedule-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
                 AI Schedule & Live Workshops
               </button>
             </li>
             <li>
-              <button onClick={onOpenBhojBot} className="hover:text-cyan-300 transition-colors flex items-center gap-1.5">
-                <Bot className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Hospi Bot AI Eco Concierge</span>
+              <button onClick={onOpenBhojBot} className="hover:text-blue-300 transition-colors flex items-center gap-1.5 cursor-pointer">
+                <Bot className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-blue-400 font-semibold">Bhoj-Bot AI Culinary Concierge</span>
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('feedback-section')} className="hover:text-emerald-300 transition-colors">
+              <button onClick={() => onNavClick('feedback-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
                 Eco Guestbook & Feedback
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('contact-section')} className="hover:text-emerald-300 transition-colors">
+              <button onClick={() => onNavClick('contact-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
                 Campus Location & Eco-Transit
               </button>
             </li>
           </ul>
         </div>
 
-        {/* Academic Host */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-            Host Institution
+        {/* Academic Host & Helpline */}
+        <div className="space-y-2.5">
+          <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">
+            Host & Concierge
           </h4>
-          <p className="text-emerald-100 font-semibold text-xs">
+          <p className="text-amber-200 font-semibold text-xs">
             Institute of Advanced Management (IAM)
           </p>
-          <p className="text-[11px] text-emerald-200/70 leading-relaxed">
+          <p className="text-[11px] text-stone-300 leading-relaxed">
             Salt Lake Sector V, Kolkata, West Bengal. Spearheading sustainable hospitality, smart zero-waste cooking, and AI gastronomy research.
           </p>
-          <div className="pt-2 text-[11px] text-cyan-400">
-            Helpline: {FESTIVAL_INFO.phone}
+          
+          <div className="space-y-1 pt-1 text-[11px]">
+            <div className="text-stone-300">
+              <span className="text-amber-400 font-semibold">Help line & Concierge:</span>{' '}
+              <a href="tel:+918334055747" className="text-amber-200 font-mono hover:underline">
+                +91 83340 55747
+              </a>
+            </div>
+            <div className="text-stone-300">
+              <span className="text-amber-400 font-semibold">Office Communication:</span>{' '}
+              <a href="mailto:ks7901424@gmail.com" className="text-amber-200 font-mono hover:underline">
+                ks7901424@gmail.com
+              </a>
+            </div>
+          </div>
+
+          {/* WhatsApp Connect Prominent Button */}
+          <div className="pt-2">
+            <a
+              href="https://wa.me/917365928593"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold border border-emerald-400/40 shadow-md shadow-emerald-950/40 hover:scale-105 transition-all cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+              <span>WhatsApp Connect (+91 73659 28593)</span>
+            </a>
           </div>
         </div>
 
       </div>
 
-      <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-emerald-400/60">
+      <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-stone-400">
         <div className="flex items-center gap-3 flex-wrap">
           <span>© 2026 IAM AI ZERO-WASTE FOOD FEST • Institute of Advanced Management (IAM).</span>
           <button
             type="button"
             onClick={() => onNavClick('admin')}
-            className="text-stone-400 hover:text-emerald-300 transition-colors font-mono underline cursor-pointer"
+            className="text-amber-400 hover:text-amber-300 transition-colors font-mono underline cursor-pointer"
           >
             Gate Staff Terminal (/admin)
           </button>
         </div>
-        <div className="flex items-center gap-1 text-emerald-300/80">
+        <div className="flex items-center gap-1 text-amber-300">
           <span>Pioneered with</span>
-          <Heart className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
+          <Heart className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
           <span>by IAM Hospitality Students & Gemini AI</span>
         </div>
       </div>
