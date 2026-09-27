@@ -1004,6 +1004,9 @@ app.get(["/health", "/_health"], (_req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Public static files (e.g. Google Search Console verification files, assets)
+app.use(express.static(path.join(process.cwd(), "public")));
+
 // API 404 Guard: Ensure unhandled /api routes NEVER fall through to HTML Vite SPA index
 app.all("/api/*", (req, res) => {
   res.status(404).json({ error: `API route not found: ${req.method} ${req.path}` });

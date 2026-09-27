@@ -7,6 +7,7 @@ import { FeedbackSection } from './components/FeedbackSection';
 import { ContactSection } from './components/ContactSection';
 import { TicketBookingSection } from './components/TicketBookingSection';
 import { Footer } from './components/Footer';
+import { AdminGatePage } from './components/AdminGatePage';
 
 // Modals
 import { AuthModal } from './components/AuthModal';
@@ -360,8 +361,59 @@ export default function App() {
     setIsBhojBotOpen(true);
   };
 
+  // Route Listener for /admin
+  const [currentRoute, setCurrentRoute] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname.toLowerCase();
+      const h = window.location.hash.toLowerCase();
+      if (p === '/admin' || p.startsWith('/admin') || h === '#admin') return '/admin';
+    }
+    return '/';
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const p = window.location.pathname.toLowerCase();
+      const h = window.location.hash.toLowerCase();
+      if (p === '/admin' || p.startsWith('/admin') || h === '#admin') {
+        setCurrentRoute('/admin');
+      } else {
+        setCurrentRoute('/');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
+
+  const navigateToAdmin = () => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/admin');
+    }
+    setCurrentRoute('/admin');
+  };
+
+  const navigateToHome = () => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/');
+    }
+    setCurrentRoute('/');
+  };
+
+  // If on /admin route, render dedicated Gate Staff Admin page
+  if (currentRoute === '/admin') {
+    return <AdminGatePage onNavigateToHome={navigateToHome} />;
+  }
+
   // Smooth scroll handler
   const handleNavigate = (sectionId: string) => {
+    if (sectionId === 'admin' || sectionId === '/admin') {
+      navigateToAdmin();
+      return;
+    }
     const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });

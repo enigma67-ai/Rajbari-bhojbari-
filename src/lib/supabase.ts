@@ -483,3 +483,124 @@ export async function recordVisitorAnalyticsToSupabase(
     console.debug('Visitor analytics dispatch notice:', err);
   }
 }
+
+// ==============================================================================
+// 4. ADMIN & GATE STAFF BOOKINGS MANAGEMENT
+// ==============================================================================
+
+/**
+ * Fetches all booking records from Supabase `bookings` table sorted newest first.
+ */
+export async function fetchAllBookingsFromSupabase(): Promise<any[]> {
+  const client = getSupabaseClient();
+  let remoteBookings: any[] = [];
+  
+  if (client) {
+    try {
+      const { data, error } = await client
+        .from('bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        remoteBookings = data;
+      } else if (error) {
+        console.warn('Supabase fetch all bookings query error:', error.message);
+      }
+    } catch (e) {
+      console.warn('Error fetching all bookings from Supabase:', e);
+    }
+  }
+
+  // Merge with any cached/simulated bookings from local storage
+  try {
+    const local = JSON.parse(localStorage.getItem('rb_supabase_purchase_history') || '[]');
+    const existingIds = new Set(remoteBookings.map((b) => b.booking_id || b.bookingId));
+    
+    for (const item of local) {
+      const bId = item.booking_id || item.bookingId;
+      if (bId && !existingIds.has(bId)) {
+        remoteBookings.push({
+          id: item.id || bId,
+          booking_id: bId,
+          user_id: item.user_id || item.userId || 'guest',
+          customer_name: item.customer_name || item.customerName || 'Honored Guest',
+          customer_email: item.customer_email || item.customerEmail || '',
+          customer_phone: item.customer_phone || item.customerPhone || '',
+          total_amount: Number(item.total_amount || item.totalAmount || 0),
+          payment_method: item.payment_method || item.paymentMethod || 'UPI_QR',
+          payment_status: item.payment_status || item.paymentStatus || 'paid',
+          dining_slot: item.dining_slot || item.diningSlot || 'Grand Aristocratic Dinner (7:30 PM - 10:30 PM)',
+          event_date: item.event_date || item.eventDate || 'Friday, 9th October 2026',
+          pass_quantity: Number(item.pass_quantity || item.passQuantity || 1),
+          items: item.items || [],
+          welcome_drink: item.welcome_drink || item.welcomeDrink || '',
+          starter_dish: item.starter_dish || item.starterDish || '',
+          mains_dish: item.mains_dish || item.mainsDish || '',
+          dessert_dish: item.dessert_dish || item.dessertDish || '',
+          include_dessert: Boolean(item.include_dessert ?? item.includeDessert),
+          qr_code_url: item.qr_code_url || item.qrCodeUrl || '',
+          transaction_id: item.transaction_id || item.transactionId || '',
+          upi_utr: item.upi_utr || item.upiUtr || '',
+          verified_at_gate: Boolean(item.verified_at_gate),
+          verified_at_gate_time: item.verified_at_gate_time || null,
+          created_at: item.created_at || new Date().toISOString(),
+        });
+        existingIds.add(bId);
+      }
+    }
+  } catch (_) {}
+
+  // Sort by created_at DESC
+  remoteBookings.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+
+  return remoteBookings;
+}
+
+/**
+ * Updates `verified_at_gate` status for a booking in Supabase & local cache.
+ */
+export async function updateBookingGateVerification(
+  bookingId: string,
+  verified: boolean
+): Promise<{ success: boolean; error?: string }> {
+  const client = getSupabaseClient();
+  const timestamp = new Date().toISOString();
+
+  if (client) {
+    try {
+      const { error } = await client
+        .from('bookings')
+        .update({
+          verified_at_gate: verified,
+          verified_at_gate_time: verified ? timestamp : null,
+          updated_at: timestamp,
+        })
+        .eq('booking_id', bookingId);
+
+      if (error) {
+        console.warn('Supabase update verification warning:', error.message);
+      }
+    } catch (e: any) {
+      console.warn('Failed to update Supabase booking gate verification:', e);
+    }
+  }
+
+  // Update local storage backup
+  try {
+    const local = JSON.parse(localStorage.getItem('rb_supabase_purchase_history') || '[]');
+    const updated = local.map((item: any) => {
+      if ((item.booking_id || item.bookingId) === bookingId) {
+        return {
+          ...item,
+          verified_at_gate: verified,
+          verified_at_gate_time: verified ? timestamp : null,
+        };
+      }
+      return item;
+    });
+    localStorage.setItem('rb_supabase_purchase_history', JSON.stringify(updated));
+  } catch (_) {}
+
+  return { success: true };
+}

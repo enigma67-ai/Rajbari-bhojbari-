@@ -141,8 +141,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     email: false,
   });
 
-  // Dual Login (Google + Email OTP) State
-  const [authTab, setAuthTab] = useState<'google' | 'email'>('google');
+  // Passwordless Email OTP State
   const [otpEmail, setOtpEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -392,8 +391,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     'Til Bhapa',
   ]);
 
-  // Step 2D: Dessert Add-on (₹99/-)
-  const [includeDessert, setIncludeDessert] = useState(true);
+  // Step 2D: Dessert Add-on (₹99/-) - Optional (default: false)
+  const [includeDessert, setIncludeDessert] = useState(false);
   const [dessertDish, setDessertDish] = useState('Misti Mukh Platter (Piyazer Payes, Porochitroharini, PotolER Monohora, Tal Er Malpua)');
 
   // Step 2: Payment Selection (Exclusively UPI QR via HDFC SmartHub Vyapar)
@@ -418,16 +417,19 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   // Additional Combos: +₹349 per additional combo
   // A La Carte Starters: +₹349 per starter
   // Tasting Counter (Tok, Jhol, Ambol): ₹0 always
-  // Dessert Add-on (Misti Mukh Platter): +₹99
+  // Dessert Add-on (Royal Bengali Dessert Combo): +₹99 per pass (Optional)
+  // Dynamic Pricing Calculation:
+  // - If dessert is selected: Total = (Base Pass ₹349 * quantity) + (₹99 * quantity)
+  // - If dessert is not selected: Total = (Base Pass ₹349 * quantity)
   const basePricePerTicket = 349;
   const extraCombosTotal = extraCombos.length * 349;
   const extraStartersTotal = extraStarters.length * 349;
   const dessertTotal = includeDessert ? 99 * quantity : 0;
 
-  const subtotal = (basePricePerTicket * quantity) + extraCombosTotal + extraStartersTotal + dessertTotal;
-  const taxes = Math.round(subtotal * 0.05); // 5% GST
-  const sustainabilityCess = Math.round(subtotal * 0.02); // 2% eco initiative fee
-  const grandTotal = subtotal + taxes + sustainabilityCess;
+  const grandTotal = (basePricePerTicket * quantity) + dessertTotal + extraCombosTotal + extraStartersTotal;
+  const subtotal = grandTotal;
+  const taxes = 0;
+  const sustainabilityCess = 0;
 
   // Sync with authenticated user profile
   React.useEffect(() => {
@@ -511,7 +513,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     setTouched({ name: true, phone: true, email: true });
 
     if (!isUserAuthenticated) {
-      handleGoogleSignIn();
+      setOtpStatusMsg({ type: 'error', text: 'Please complete Email OTP verification above to proceed.' });
+      document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
@@ -1232,176 +1235,113 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               </div>
             ) : (
               <div className="rounded-2xl bg-[#071810] border border-amber-500/40 p-4 sm:p-5 shadow-lg space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-800/80 pb-3">
-                  <div className="space-y-0.5">
-                    <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Guest Authentication Required</span>
-                    </div>
-                    <p className="text-[11px] text-stone-400">
-                      Sign in to verify your festival pass booking and auto-fill your attendee profile.
-                    </p>
+                <div className="border-b border-stone-800/80 pb-3">
+                  <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Guest Authentication Required</span>
                   </div>
-
-                  {/* Tab Selector: Google vs Email OTP */}
-                  <div className="flex items-center p-1 rounded-xl bg-stone-900 border border-stone-800 text-xs shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthTab('google');
-                        setOtpStatusMsg(null);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        authTab === 'google'
-                          ? 'bg-emerald-600 text-white shadow-sm'
-                          : 'text-stone-400 hover:text-stone-200'
-                      }`}
-                    >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
-                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                      </svg>
-                      <span>Google OAuth</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthTab('email');
-                        setOtpStatusMsg(null);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        authTab === 'email'
-                          ? 'bg-emerald-600 text-white shadow-sm'
-                          : 'text-stone-400 hover:text-stone-200'
-                      }`}
-                    >
-                      <Mail className="w-3.5 h-3.5 text-stone-300" />
-                      <span>Email OTP</span>
-                    </button>
-                  </div>
+                  <p className="text-[11px] text-stone-400 mt-1">
+                    Enter your email address to receive a secure 6-digit OTP verification code. Sign in is required to verify your pass booking and auto-fill your attendee profile.
+                  </p>
                 </div>
 
-                {/* Option A: Sign In with Google */}
-                {authTab === 'google' && (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                    <p className="text-xs text-stone-300 leading-relaxed">
-                      Instant one-click authentication with your Google Account. Secure PKCE authorization.
-                    </p>
-                    <button
-                      type="button"
-                      id="ticket-google-signin-btn"
-                      onClick={handleGoogleSignIn}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-stone-100 text-stone-900 font-bold text-xs shadow-md transition-all shrink-0 cursor-pointer active:scale-95 hover:shadow-lg"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
-                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                      </svg>
-                      <span>Sign in with Google</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Option B: Sign In with Email OTP */}
-                {authTab === 'email' && (
-                  <div className="space-y-3 pt-1">
-                    {!isOtpSent ? (
-                      <form onSubmit={handleSendEmailOtp} className="flex flex-col sm:flex-row gap-2">
-                        <div className="relative flex-1">
-                          <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                          <input
-                            type="email"
-                            required
-                            value={otpEmail}
-                            onChange={(e) => {
-                              setOtpEmail(e.target.value);
-                              if (otpStatusMsg) setOtpStatusMsg(null);
-                            }}
-                            placeholder="Enter your email for OTP"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400"
-                          />
-                        </div>
+                {/* Direct Email OTP Authentication Flow */}
+                <div className="space-y-3 pt-1">
+                  {!isOtpSent ? (
+                    <form onSubmit={handleSendEmailOtp} className="flex flex-col sm:flex-row gap-2">
+                      <div className="relative flex-1">
+                        <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                        <input
+                          id="ticket-auth-email-input"
+                          type="email"
+                          required
+                          value={otpEmail}
+                          onChange={(e) => {
+                            setOtpEmail(e.target.value);
+                            if (otpStatusMsg) setOtpStatusMsg(null);
+                          }}
+                          placeholder="Enter your email address (e.g. name@example.com)"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        id="ticket-send-otp-btn"
+                        disabled={isSendingOtp}
+                        className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                      >
+                        {isSendingOtp ? (
+                          <span>Sending OTP...</span>
+                        ) : (
+                          <>
+                            <span>Send OTP Code</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleVerifyEmailOtp} className="space-y-3">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          id="ticket-otp-code-input"
+                          type="text"
+                          required
+                          maxLength={6}
+                          inputMode="numeric"
+                          value={otpCode}
+                          onChange={(e) => {
+                            setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                            if (otpStatusMsg) setOtpStatusMsg(null);
+                          }}
+                          placeholder="Enter 6-digit OTP code"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-stone-950 border border-emerald-500/60 font-mono tracking-widest text-center text-sm text-amber-300 placeholder-stone-600 focus:outline-none focus:border-emerald-400"
+                        />
                         <button
                           type="submit"
-                          disabled={isSendingOtp}
-                          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                          id="ticket-verify-otp-btn"
+                          disabled={isVerifyingOtp || otpCode.length < 6}
+                          className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                         >
-                          {isSendingOtp ? (
-                            <span>Sending OTP...</span>
-                          ) : (
-                            <>
-                              <span>Send OTP Code</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </>
-                          )}
+                          {isVerifyingOtp ? <span>Verifying...</span> : <span>Verify OTP</span>}
                         </button>
-                      </form>
-                    ) : (
-                      <form onSubmit={handleVerifyEmailOtp} className="space-y-3">
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <input
-                            type="text"
-                            required
-                            maxLength={6}
-                            inputMode="numeric"
-                            value={otpCode}
-                            onChange={(e) => {
-                              setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                              if (otpStatusMsg) setOtpStatusMsg(null);
-                            }}
-                            placeholder="Enter 6-digit OTP code"
-                            className="flex-1 px-4 py-2.5 rounded-xl bg-stone-950 border border-emerald-500/60 font-mono tracking-widest text-center text-sm text-amber-300 placeholder-stone-600 focus:outline-none focus:border-emerald-400"
-                          />
-                          <button
-                            type="submit"
-                            disabled={isVerifyingOtp || otpCode.length < 6}
-                            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                          >
-                            {isVerifyingOtp ? <span>Verifying...</span> : <span>Verify OTP</span>}
-                          </button>
-                        </div>
-
-                        <div className="flex items-center justify-between text-[11px] text-stone-400 px-1">
-                          <span>Sent to <strong className="text-stone-300 font-mono">{otpEmail}</strong></span>
-                          {otpCountdown > 0 ? (
-                            <span className="text-stone-500">Resend code in {otpCountdown}s</span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleSendEmailOtp()}
-                              className="text-amber-400 hover:text-amber-300 underline cursor-pointer"
-                            >
-                              Resend OTP
-                            </button>
-                          )}
-                        </div>
-                      </form>
-                    )}
-
-                    {/* Alert Banner for OTP Status */}
-                    {otpStatusMsg && (
-                      <div
-                        className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
-                          otpStatusMsg.type === 'success'
-                            ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200'
-                            : 'bg-rose-950/80 border border-rose-500/40 text-rose-200'
-                        }`}
-                      >
-                        {otpStatusMsg.type === 'success' ? (
-                          <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0">✓</span>
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        )}
-                        <span>{otpStatusMsg.text}</span>
                       </div>
-                    )}
-                  </div>
-                )}
+
+                      <div className="flex items-center justify-between text-[11px] text-stone-400 px-1">
+                        <span>Sent to <strong className="text-stone-300 font-mono">{otpEmail}</strong></span>
+                        {otpCountdown > 0 ? (
+                          <span className="text-stone-500 font-mono">Resend code in {otpCountdown}s</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSendEmailOtp()}
+                            className="text-amber-400 hover:text-amber-300 underline cursor-pointer font-semibold"
+                          >
+                            Resend OTP
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Alert Banner for OTP Status */}
+                  {otpStatusMsg && (
+                    <div
+                      className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                        otpStatusMsg.type === 'success'
+                          ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200'
+                          : 'bg-rose-950/80 border border-rose-500/40 text-rose-200'
+                      }`}
+                    >
+                      {otpStatusMsg.type === 'success' ? (
+                        <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0">✓</span>
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      )}
+                      <span>{otpStatusMsg.text}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1594,19 +1534,112 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </div>
               </div>
 
-              {/* Price Breakdown Banner */}
-              <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between text-xs sm:text-sm">
-                <div>
-                  <div className="text-emerald-300 font-semibold">
-                    Base Pass: ₹{basePricePerTicket} × {quantity}
+              {/* Optional Royal Bengali Dessert Combo Card / Toggle (+₹99 per pass) */}
+              <div 
+                onClick={() => setIncludeDessert(!includeDessert)}
+                className={`p-4 rounded-2xl border transition-all cursor-pointer select-none ${
+                  includeDessert
+                    ? 'bg-amber-950/40 border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.15)] ring-1 ring-amber-400/40'
+                    : 'bg-stone-950/80 border-stone-800 hover:border-stone-700'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors shrink-0 ${
+                      includeDessert 
+                        ? 'bg-amber-500/20 border-amber-400/60 text-amber-300' 
+                        : 'bg-stone-900 border-stone-700 text-stone-500'
+                    }`}>
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm text-stone-100">
+                          Royal Bengali Dessert Combo
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-400/30 whitespace-nowrap">
+                          Optional Add-on
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-400 mt-0.5 leading-snug">
+                        Heirloom 4-sweet tasting platter: Piyazer Payes, Porochitroharini, Potoler Monohora, and Tal Er Malpua.
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-[11px] text-stone-300">
-                    Includes Rural Bengal Counter + 1 Starter + 1 Main Course Combo
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right">
+                      <span className="font-mono text-xs sm:text-sm font-bold text-amber-300 block whitespace-nowrap">
+                        +₹99 per pass
+                      </span>
+                      {quantity > 1 && includeDessert && (
+                        <span className="text-[10px] text-stone-400 font-mono block">
+                          (+₹{99 * quantity} total)
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      id="ticket-dessert-toggle-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIncludeDessert(!includeDessert);
+                      }}
+                      className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                        includeDessert
+                          ? 'bg-amber-500 text-stone-950 shadow-md hover:bg-amber-400'
+                          : 'bg-stone-800 text-stone-300 hover:text-white border border-stone-700'
+                      }`}
+                    >
+                      {includeDessert ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <span>Remove</span>
+                        </>
+                      ) : (
+                        <span>+ Add</span>
+                      )}
+                    </button>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="font-mono text-lg sm:text-xl font-black text-emerald-100">
+              </div>
+
+              {/* Dynamic Price Breakdown Banner */}
+              <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 space-y-1.5 text-xs sm:text-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-emerald-300 font-semibold">
+                      Base Pass: ₹{basePricePerTicket} × {quantity}
+                    </span>
+                    <span className="text-[11px] text-stone-300 block">
+                      Includes Rural Bengal Counter + 1 Starter + 1 Main Course Combo
+                    </span>
+                  </div>
+                  <span className="font-mono text-base font-bold text-emerald-100">
                     ₹{basePricePerTicket * quantity}
+                  </span>
+                </div>
+
+                {includeDessert && (
+                  <div className="flex items-center justify-between pt-1 border-t border-emerald-900/60 text-amber-300">
+                    <div>
+                      <span className="font-semibold">
+                        Royal Bengali Dessert Combo: ₹99 × {quantity}
+                      </span>
+                      <span className="text-[11px] text-stone-300 block">
+                        Misti Mukh 4-Sweet Tasting Platter
+                      </span>
+                    </div>
+                    <span className="font-mono text-base font-bold text-amber-300">
+                      +₹{99 * quantity}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-1.5 border-t border-emerald-500/30 font-bold">
+                  <span className="text-stone-200">Total Payable:</span>
+                  <span className="font-mono text-lg sm:text-xl text-emerald-200">
+                    ₹{grandTotal}/-
                   </span>
                 </div>
               </div>
@@ -1632,7 +1665,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>
                       {!isUserAuthenticated
-                        ? 'Please sign in with Google above to unlock payment.'
+                        ? 'Please verify your email via OTP above to unlock payment.'
                         : 'Complete Full Name (≥3 chars), 10-digit Phone, and valid Email to proceed.'}
                     </span>
                   </div>

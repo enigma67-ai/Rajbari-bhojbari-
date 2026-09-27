@@ -122,8 +122,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot }) => 
       </div>
 
       <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-emerald-400/60">
-        <div>
-          © 2026 IAM AI ZERO-WASTE FOOD FEST • Institute of Advanced Management (IAM). All rights reserved.
+        <div className="flex items-center gap-3 flex-wrap">
+          <span>© 2026 IAM AI ZERO-WASTE FOOD FEST • Institute of Advanced Management (IAM).</span>
+          <button
+            type="button"
+            onClick={() => onNavClick('admin')}
+            className="text-stone-400 hover:text-emerald-300 transition-colors font-mono underline cursor-pointer"
+          >
+            Gate Staff Terminal (/admin)
+          </button>
         </div>
         <div className="flex items-center gap-1 text-emerald-300/80">
           <span>Pioneered with</span>
