@@ -92,8 +92,8 @@ export const DPDPPrivacyModal: React.FC<DPDPPrivacyModalProps> = ({ isOpen, onCl
               </div>
               <p className="text-stone-200">
                 Under the DPDP Act, 2023, you have the right to access, correct, or erase your personal data. To withdraw consent or request data deletion after the event, please contact our Grievance Officer at{' '}
-                <a href="mailto:ks7901424@gmail.com" className="text-amber-300 underline hover:text-amber-200 font-mono font-semibold">
-                  ks7901424@gmail.com
+                <a href="mailto:md.khurshid.shaikh24k@iam.ac.in" className="text-amber-300 underline hover:text-amber-200 font-mono font-semibold">
+                  md.khurshid.shaikh24k@iam.ac.in
                 </a>.
               </p>
             </div>

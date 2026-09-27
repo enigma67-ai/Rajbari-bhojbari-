@@ -8,7 +8,7 @@ export const FESTIVAL_INFO = {
   time: '10:00 AM - 09:30 PM IST',
   venue: 'IAM Kolkata Campus, Salt Lake Sector V, Kolkata',
   phone: '+91 83340 55747',
-  contactEmail: 'ks7901424@gmail.com',
+  contactEmail: 'md.khurshid.shaikh24k@iam.ac.in',
   whatsappNumber: '+91 73659 28593',
   whatsappUrl: 'https://wa.me/917365928593',
   alignsWith: 'World Tourism Day 2026: “Digital Agenda and Artificial Intelligence to redesign tourism”',

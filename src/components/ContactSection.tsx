@@ -160,8 +160,8 @@ export const ContactSection: React.FC = () => {
                 <Mail className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <div className="font-bold text-amber-200">Office Communication Email</div>
-                  <a href="mailto:ks7901424@gmail.com" className="mt-0.5 font-mono text-amber-100 hover:underline block">
-                    ks7901424@gmail.com
+                  <a href="mailto:md.khurshid.shaikh24k@iam.ac.in" className="mt-0.5 font-mono text-amber-100 hover:underline block">
+                    md.khurshid.shaikh24k@iam.ac.in
                   </a>
                 </div>
               </div>
