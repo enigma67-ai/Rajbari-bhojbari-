@@ -17,6 +17,7 @@ import { DishDetailModal } from './components/DishDetailModal';
 import { BhojBotModal } from './components/BhojBotModal';
 import { AIPlateSuggesterModal } from './components/AIPlateSuggesterModal';
 import { CelebrationModal, CelebrationData } from './components/CelebrationModal';
+import { DPDPPrivacyModal } from './components/DPDPPrivacyModal';
 
 // Types & Data
 import { MenuItem, CartItem, UserProfile, EventTicketPass } from './types';
@@ -90,6 +91,7 @@ export default function App() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isBhojBotOpen, setIsBhojBotOpen] = useState(false);
   const [isPlateSuggesterOpen, setIsPlateSuggesterOpen] = useState(false);
+  const [isDPDPModalOpen, setIsDPDPModalOpen] = useState(false);
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [bhojBotInitialQuery, setBhojBotInitialQuery] = useState<string>('');
   const [celebrationData, setCelebrationData] = useState<CelebrationData | null>(null);
@@ -438,6 +440,7 @@ export default function App() {
           onPassBooked={(pass) => setUserTickets((prev) => [pass, ...prev])}
           onOpenAuth={() => setIsAuthOpen(true)}
           onCelebration={(data) => setCelebrationData(data)}
+          onOpenDPDPPolicy={() => setIsDPDPModalOpen(true)}
         />
 
         {/* Menu Section */}
@@ -513,9 +516,15 @@ export default function App() {
           setBhojBotInitialQuery('');
           setIsBhojBotOpen(true);
         }}
+        onOpenDPDPPolicy={() => setIsDPDPModalOpen(true)}
       />
 
       {/* Modals & Drawers */}
+      <DPDPPrivacyModal
+        isOpen={isDPDPModalOpen}
+        onClose={() => setIsDPDPModalOpen(false)}
+      />
+
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}

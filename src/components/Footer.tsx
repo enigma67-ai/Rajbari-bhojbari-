@@ -6,9 +6,10 @@ import { IAMChefLogo } from './IAMChefLogo';
 interface FooterProps {
   onNavClick: (id: string) => void;
   onOpenBhojBot: () => void;
+  onOpenDPDPPolicy?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot }) => {
+export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot, onOpenDPDPPolicy }) => {
   return (
     <footer className="bg-[#120305] border-t border-amber-500/25 text-stone-300 text-xs py-12 px-4 sm:px-6 lg:px-8 mt-16 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-amber-900/60">
@@ -100,6 +101,18 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot }) => 
                 Campus Location & Eco-Transit
               </button>
             </li>
+            {onOpenDPDPPolicy && (
+              <li>
+                <button
+                  type="button"
+                  onClick={onOpenDPDPPolicy}
+                  className="text-amber-400 hover:text-amber-300 font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span>Privacy Policy (DPDP Act)</span>
+                </button>
+              </li>
+            )}
           </ul>
         </div>
 
@@ -149,6 +162,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot }) => 
       <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-stone-400">
         <div className="flex items-center gap-3 flex-wrap">
           <span>© 2026 IAM AI ZERO-WASTE FOOD FEST • Institute of Advanced Management (IAM).</span>
+          {onOpenDPDPPolicy && (
+            <button
+              type="button"
+              onClick={onOpenDPDPPolicy}
+              className="text-amber-400 hover:text-amber-300 transition-colors underline cursor-pointer"
+            >
+              Privacy Policy (DPDP Act)
+            </button>
+          )}
           <button
             type="button"
             onClick={() => onNavClick('admin')}

@@ -72,6 +72,7 @@ interface TicketBookingSectionProps {
   onPassBooked?: (pass: EventTicketPass) => void;
   onOpenAuth?: () => void;
   onCelebration?: (data: CelebrationData) => void;
+  onOpenDPDPPolicy?: () => void;
 }
 
 export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
@@ -79,6 +80,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   onPassBooked,
   onOpenAuth,
   onCelebration,
+  onOpenDPDPPolicy,
 }) => {
   // Step tracker: 1: Form -> 2: Meal -> 3: Payment -> 4: Pass
   const [currentStep, setCurrentStep] = useState<'details' | 'meal' | 'payment' | 'pass'>('details');
@@ -128,6 +130,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [slot, setSlot] = useState('Grand Aristocratic Dinner (7:30 PM - 10:30 PM)');
   const [eventDate, setEventDate] = useState('Friday, 9th October 2026');
+  const [dpdpConsent, setDpdpConsent] = useState(false);
 
   // Supabase Auth Session & Auto-fill State
   const [authSession, setAuthSession] = useState<Session | null>(null);
@@ -454,6 +457,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   // 2. Phone Number: strictly 10 digits
   // 3. Email: valid email format
   // 4. Authenticated: session or user exists
+  // 5. DPDP Act Consent: strictly required
   const cleanPhone = phone.replace(/\D/g, '');
   const isNameValid = name.trim().length >= 3 && NAME_REGEX.test(name.trim());
   const isPhoneValid = cleanPhone.length === 10;
@@ -461,8 +465,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const isSlotFilled = Boolean(slot);
   const isQuantityValid = quantity >= 1;
 
-  // Comprehensive Step 1 validation check
-  const isStep1Valid = isNameValid && isPhoneValid && isEmailValid && isUserAuthenticated && isSlotFilled && isQuantityValid;
+  // Comprehensive Step 1 validation check including mandatory DPDP Act 2023 Consent
+  const isStep1Valid = isNameValid && isPhoneValid && isEmailValid && isUserAuthenticated && isSlotFilled && isQuantityValid && dpdpConsent;
 
   // Dynamic inline error hints for touched fields
   const nameError = formErrors.name || (touched.name
@@ -515,6 +519,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     if (!isUserAuthenticated) {
       setOtpStatusMsg({ type: 'error', text: 'Please complete Email OTP verification above to proceed.' });
       document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    if (!dpdpConsent) {
       return;
     }
 
@@ -1640,6 +1648,43 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </div>
               </div>
 
+              {/* DPDP Act 2023 Mandatory Consent Checkbox */}
+              <div className="pt-2">
+                <label
+                  htmlFor="dpdp-consent-checkbox"
+                  className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
+                    dpdpConsent
+                      ? 'bg-amber-950/40 border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.15)] ring-1 ring-amber-400/40'
+                      : 'bg-stone-950/80 border-stone-800 hover:border-amber-500/40'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    id="dpdp-consent-checkbox"
+                    required
+                    checked={dpdpConsent}
+                    onChange={(e) => setDpdpConsent(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-stone-700 bg-stone-900 text-amber-500 focus:ring-amber-400 focus:ring-offset-0 focus:ring-1 shrink-0 accent-amber-500 cursor-pointer"
+                  />
+                  <div className="text-xs leading-relaxed text-stone-200 font-normal">
+                    <span>I consent to the collection and processing of my Name, Phone Number, and Email strictly for generating my Digital Eco-Pass and gate security verification, in compliance with the DPDP Act, 2023.</span>
+                    {onOpenDPDPPolicy && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          onOpenDPDPPolicy();
+                        }}
+                        className="ml-1 text-amber-400 underline hover:text-amber-300 font-semibold cursor-pointer inline"
+                      >
+                        (Read Notice)
+                      </button>
+                    )}
+                  </div>
+                </label>
+              </div>
+
               {/* Step 1 Next Button: Strictly disabled until Name >=3 chars, Phone is 10 digits, Email valid, and user authenticated */}
               <div className="space-y-2 pt-2">
                 <button
@@ -1662,6 +1707,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     <span>
                       {!isUserAuthenticated
                         ? 'Please verify your email via OTP above to unlock payment.'
+                        : !dpdpConsent
+                        ? 'Please check the mandatory DPDP Act consent box to proceed.'
                         : 'Complete Full Name (≥3 chars), 10-digit Phone, and valid Email to proceed.'}
                     </span>
                   </div>
