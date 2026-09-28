@@ -119,6 +119,8 @@ export interface EventTicketPass {
   starterDish: string;
   mainsType: MainsOptionType;
   mainsDish: string;
+  extraCombos?: string[];
+  extraStarters?: string[];
   includeDessert: boolean;
   dessertDish?: string;
   dessertPrice: number; // 99

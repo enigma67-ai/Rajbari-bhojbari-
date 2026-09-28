@@ -337,10 +337,10 @@ export async function sendEmailJsConfirmation(
 
   const dateTime = `${data.eventDate || 'Friday, 9th October 2026'} | ${data.slot || 'Grand Aristocratic Dinner (7:30 PM - 10:30 PM)'}`;
 
-  // Read Vite Environment Variables with live production credentials
-  const emailJsServiceId = import.meta.env?.VITE_EMAILJS_SERVICE_ID || 'service_b9a7jvb';
-  const emailJsTemplateId = import.meta.env?.VITE_EMAILJS_TEMPLATE_ID || 'template_en0ot6l';
-  const emailJsPublicKey = import.meta.env?.VITE_EMAILJS_PUBLIC_KEY || 'k5ATfv--D0jJo2aUM';
+  // Read Vite Environment Variables (strictly from import.meta.env with no hardcoded fallback secrets)
+  const emailJsServiceId = (import.meta.env?.VITE_EMAILJS_SERVICE_ID || '').trim();
+  const emailJsTemplateId = (import.meta.env?.VITE_EMAILJS_TEMPLATE_ID || '').trim();
+  const emailJsPublicKey = (import.meta.env?.VITE_EMAILJS_PUBLIC_KEY || '').trim();
 
   const isEmailJsConfigured = Boolean(
     emailJsServiceId &&
@@ -353,17 +353,22 @@ export async function sendEmailJsConfirmation(
 
   // Exact template parameters required by user prompt
   const templateParams: Record<string, unknown> = {
+    customer_name: data.customerName,
+    customer_email: data.customerEmail,
+    booking_id: data.bookingId,
+    total_amount: formattedAmount,
+    dining_slot: data.slot,
+    qr_code_url: qrCodeUrl,
+    // Complementary aliases for flexible EmailJS template configurations:
     to_email: data.customerEmail,
-    guest_name: data.customerName,
     to_name: data.customerName,
+    guest_name: data.customerName,
+    qr_code_link: qrCodeUrl,
     phone_number: data.customerPhone,
     customer_phone: data.customerPhone,
-    booking_id: data.bookingId,
     dining_session: data.slot,
     pass_count: data.quantity,
-    total_amount: formattedAmount,
     booking_amount: formattedAmount,
-    qr_code_link: qrCodeUrl,
     venue: EVENT_VENUE,
     date_time: dateTime,
     official_email: OFFICIAL_EMAIL,

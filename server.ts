@@ -563,7 +563,7 @@ app.post("/api/tickets/book-pass", async (req, res) => {
     ? clientTotalAmount 
     : computedGrandTotal;
 
-  const passId = "RB-PASS-2026-" + Math.floor(10000 + Math.random() * 90000);
+  const passId = "RB-2026-" + Math.floor(10000 + Math.random() * 90000);
   const transactionId = upiUtr 
     ? `UTR-${upiUtr}`
     : (razorpayPaymentId
