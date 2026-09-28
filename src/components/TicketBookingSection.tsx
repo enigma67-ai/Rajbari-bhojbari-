@@ -64,7 +64,6 @@ import {
   sanitizeString,
   NAME_REGEX
 } from '../utils/validation';
-import { TurnstileWidget } from './TurnstileWidget';
 import { TicketScannerModal } from './TicketScannerModal';
 import { PaymentVerifyingAnimation } from './PaymentVerifyingAnimation';
 
@@ -97,32 +96,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailSuccessMessage, setEmailSuccessMessage] = useState<string | null>(null);
   const [emailToast, setEmailToast] = useState<string | null>(null);
-
-  // Rate Limiting & Cooldown (10-second debounce against spam clicks)
-  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
-
-  // Bot Protection (Cloudflare Turnstile)
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [turnstileError, setTurnstileError] = useState<string | null>(null);
-
-  // 10-second debounce / cooldown countdown timer
-  React.useEffect(() => {
-    if (cooldownRemaining <= 0) return;
-    const timer = setInterval(() => {
-      setCooldownRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [cooldownRemaining]);
-
-  const triggerCooldown = (seconds = 10) => {
-    setCooldownRemaining(seconds);
-  };
 
   // Step 1: Mandatory Attendee Details (Initial states are empty strings with NO hardcoded dummy defaults)
   const [name, setName] = useState('');
@@ -678,12 +651,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
   // Final Confirmation & Payment Process for UPI QR
   const handleExecutePayment = async () => {
-    // 1. Rate Limiting: Prevent spam clicks if cooldown is active
-    if (cooldownRemaining > 0) {
-      return;
-    }
-
-    // 2. Strict Login Gate: User MUST be authenticated before submitting payment
+    // 1. Strict Login Gate: User MUST be authenticated before submitting payment
     if (!isUserAuthenticated) {
       setCurrentStep('details');
       setIsOtpSent(true);
@@ -692,7 +660,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       return;
     }
 
-    // 3. Strict 12-digit numeric UTR validation
+    // 2. Strict 12-digit numeric UTR validation
     const cleanUtrDigits = upiUtr.replace(/\D/g, '');
     if (!/^\d{12}$/.test(cleanUtrDigits)) {
       setUtrError('Please enter a valid 12-digit numeric UPI reference / UTR number from your payment receipt.');
@@ -700,7 +668,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     }
     setUtrError(null);
 
-    // 4. Strict Zod Schema Validation & Sanitization
+    // 3. Strict Zod Schema Validation & Sanitization
     const validationResult = bookingAttendeeSchema.safeParse({
       name,
       phone,
@@ -721,7 +689,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         phone: fieldErrors.phone?._errors[0],
         email: fieldErrors.email?._errors[0],
       });
-      triggerCooldown(10);
       return;
     }
 
@@ -951,7 +918,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       setPaymentProcessingError(err?.message || 'Payment processing error. Please try again.');
     } finally {
       setIsSendingEmail(false);
-      triggerCooldown(10);
     }
   };
 
@@ -996,7 +962,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   return (
     <section 
       id="ticket-booking" 
-      className="relative py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-[#040e0a] border-y border-emerald-500/20 scroll-mt-20 overflow-hidden"
+      className="relative py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-[#040e0a] border-y border-emerald-500/20 scroll-mt-32 sm:scroll-mt-36 overflow-hidden"
     >
       {/* Floating Confirmation Email Toast Notification */}
       <AnimatePresence>
@@ -1822,9 +1788,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 <button
                   id="ticket-step1-continue-btn"
                   type="submit"
-                  disabled={!isStep1Valid || cooldownRemaining > 0}
+                  disabled={!isStep1Valid}
                   className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 ${
-                    isStep1Valid && cooldownRemaining === 0
+                    isStep1Valid
                       ? 'bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-stone-950 cursor-pointer active:scale-98 shadow-emerald-900/30'
                       : 'bg-stone-800 text-stone-500 border border-stone-700/60 cursor-not-allowed opacity-70'
                   }`}
@@ -2610,24 +2576,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               </div>
             )}
 
-            {/* BOT PROTECTION: Cloudflare Turnstile */}
-            <div className="pt-1">
-              <TurnstileWidget
-                onVerify={(token) => {
-                  setTurnstileToken(token);
-                  setTurnstileError(null);
-                }}
-                onExpire={() => setTurnstileToken(null)}
-                onError={(err) => setTurnstileError(err)}
-              />
-              {turnstileError && (
-                <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  <span>Turnstile security verification warning: {turnstileError}</span>
-                </p>
-              )}
-            </div>
-
             {/* Actions: Back Button & Confirm UPI Booking Button */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               <button
@@ -2650,13 +2598,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 disabled={
                   isProcessingPayment ||
                   isSendingEmail ||
-                  cooldownRemaining > 0 ||
                   (!isUserLoggedIn ? false : !isUtrValid)
                 }
                 className={`flex-1 py-4 px-6 rounded-xl font-black text-sm tracking-wide transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${
-                  cooldownRemaining > 0
-                    ? 'bg-stone-900 border border-emerald-500/50 text-emerald-300 cursor-not-allowed opacity-90'
-                    : isProcessingPayment || isSendingEmail
+                  isProcessingPayment || isSendingEmail
                     ? 'bg-emerald-600 text-stone-950 opacity-90 cursor-wait'
                     : !isUserLoggedIn
                     ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 shadow-lg cursor-pointer active:scale-98'
@@ -2665,12 +2610,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     : 'bg-stone-800 border border-stone-700 text-stone-500 cursor-not-allowed opacity-60'
                 }`}
               >
-                {cooldownRemaining > 0 ? (
-                  <>
-                    <Clock className="w-4 h-4 text-emerald-300 animate-spin" />
-                    <span>Rate Limit Cooldown: Please wait {cooldownRemaining}s</span>
-                  </>
-                ) : isSendingEmail ? (
+                {isSendingEmail ? (
                   <>
                     <Loader2 className="w-4 h-4 text-stone-950 animate-spin" />
                     <span>Sending Confirmation via EmailJS...</span>

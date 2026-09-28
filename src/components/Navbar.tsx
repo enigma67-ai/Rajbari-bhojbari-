@@ -69,26 +69,26 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button 
             id="nav-logo-btn"
             onClick={() => handleLinkClick('menu-section')}
-            className="flex items-center gap-2.5 sm:gap-3 text-left group transition-transform hover:scale-[1.01] cursor-pointer"
+            className="flex items-center gap-2 sm:gap-3 text-left group transition-transform hover:scale-[1.01] cursor-pointer shrink-0"
           >
-            <IAMChefLogo className="w-11 h-11 sm:w-12 sm:h-12" glow={true} />
+            <IAMChefLogo className="w-10 h-10 sm:w-12 sm:h-12 shrink-0" glow={true} />
             <div>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="font-display font-extrabold text-base sm:text-xl md:text-2xl tracking-tight text-white group-hover:text-amber-300 transition-colors">
+                <span className="font-display font-extrabold text-sm sm:text-lg md:text-xl lg:text-2xl tracking-tight text-white group-hover:text-amber-300 transition-colors whitespace-nowrap">
                   RAJBARI <span className="text-amber-400">BHOJBARI</span> 2026
                 </span>
-                <span className="bg-emerald-950/60 text-emerald-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/40">
+                <span className="hidden xs:inline-block bg-emerald-950/60 text-emerald-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/40 shrink-0">
                   AI FOOD FEST
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-amber-200/70 font-sans tracking-tight">
+              <p className="text-[9px] sm:text-xs text-amber-200/70 font-sans tracking-tight truncate max-w-[200px] sm:max-w-none">
                 Institute of Advanced Management • The Zero-Waste Food Fest
               </p>
             </div>
           </button>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden xl:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -96,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={link.id}
                   id={`nav-link-${link.id}`}
                   onClick={() => handleLinkClick(link.id)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium text-stone-300 hover:text-amber-300 hover:bg-red-950/50 transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-stone-300 hover:text-amber-300 hover:bg-red-950/50 transition-all cursor-pointer whitespace-nowrap"
                 >
                   <Icon className="w-3.5 h-3.5 text-amber-400" />
                   <span>{link.label}</span>
@@ -106,16 +106,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Right Action Icons & Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             
             {/* Bhoj-Bot Quick Trigger (Styled in crisp Royal Blue) */}
             <button
               id="nav-bhojbot-btn"
               onClick={onOpenBhojBot}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-950/60 border border-blue-500/40 text-blue-300 hover:text-white hover:border-blue-400 shadow-md text-xs sm:text-sm font-semibold transition-all group cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-blue-950/60 border border-blue-500/40 text-blue-300 hover:text-white hover:border-blue-400 shadow-md text-xs font-semibold transition-all group cursor-pointer shrink-0"
             >
-              <Bot className="w-4 h-4 text-blue-400" />
-              <span className="hidden sm:inline font-bold text-blue-400">Ask Bhoj-Bot</span>
+              <Bot className="w-4 h-4 text-blue-400 shrink-0" />
+              <span className="hidden md:inline font-bold text-blue-400">Ask Bhoj-Bot</span>
               <span className="bg-blue-500 text-stone-950 text-[10px] font-black px-1.5 py-0.2 rounded-full uppercase">
                 AI
               </span>
@@ -125,27 +125,27 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="nav-cart-btn"
               onClick={onOpenCart}
-              className="p-2.5 rounded-xl bg-red-950/60 border border-amber-500/30 text-stone-200 hover:text-amber-300 hover:border-amber-400 transition-colors cursor-pointer"
+              className="p-2 sm:p-2.5 rounded-xl bg-red-950/60 border border-amber-500/30 text-stone-200 hover:text-amber-300 hover:border-amber-400 transition-colors cursor-pointer shrink-0"
               title="View Smart Plate / Cart"
             >
-              <ShoppingBag className="w-5 h-5 text-amber-300" />
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300" />
             </button>
 
             {/* Primary Action Button: 'Booking Pass' */}
             <button
               id="nav-booking-pass-btn"
               onClick={() => handleLinkClick('ticket-booking')}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-xs sm:text-sm shadow-md shadow-amber-950/50 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-xs sm:text-sm shadow-md shadow-amber-950/50 transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
             >
-              <Ticket className="w-3.5 h-3.5 text-stone-950" />
-              <span>Booking Pass</span>
+              <Ticket className="w-3.5 h-3.5 text-stone-950 shrink-0" />
+              <span className="whitespace-nowrap">Booking Pass</span>
             </button>
 
             {/* Gate Staff Admin Portal Trigger */}
             <button
               id="nav-admin-portal-btn"
               onClick={onOpenAuth}
-              className="p-2.5 rounded-xl bg-stone-900/80 border border-amber-500/30 text-amber-400 hover:text-amber-200 hover:border-amber-400 transition-colors cursor-pointer"
+              className="p-2 sm:p-2.5 rounded-xl bg-stone-900/80 border border-amber-500/30 text-amber-400 hover:text-amber-200 hover:border-amber-400 transition-colors cursor-pointer shrink-0"
               title="Gate Staff Admin Login"
             >
               <KeyRound className="w-4 h-4" />
@@ -155,7 +155,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl bg-stone-900 border border-stone-800 text-stone-300 cursor-pointer"
+              className="xl:hidden p-2 rounded-xl bg-stone-900 border border-stone-800 text-stone-300 cursor-pointer shrink-0"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
