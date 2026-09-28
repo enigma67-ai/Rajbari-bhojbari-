@@ -783,7 +783,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         customerPhone: bookedPass.customerPhone,
         totalAmount: bookedPass.totalAmount,
         paymentMethod: 'UPI_QR',
-        diningSlot: bookedPass.slot,
+        diningSlot: null,
         passQuantity: bookedPass.ticketQuantity,
         qrCodeUrl: bookedPass.qrCodeUrl,
         upiUtr: activeUtr,
@@ -1052,7 +1052,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 text-xs font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] border border-amber-300/60 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
               <QrCode className="w-3.5 h-3.5 text-stone-950" />
-              <span>Verify / Scan Ticket QR (Firestore DB)</span>
+              <span>Verify / Scan Ticket QR (Supabase DB)</span>
             </button>
           </div>
 
@@ -1627,54 +1627,30 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               </div>
 
               {/* Number of Passes & Pricing Calculator */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-300 uppercase tracking-wider">
-                    Number of Passes / Tickets
-                  </label>
-                  <div className="flex items-center gap-3 bg-stone-950 border border-stone-700 rounded-xl p-1.5 px-3">
-                    <button
-                      type="button"
-                      id="ticket-qty-minus-btn"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold flex items-center justify-center transition-colors cursor-pointer"
-                    >
-                      -
-                    </button>
-                    <span className="flex-1 text-center font-mono text-base font-bold text-amber-300">
-                      {quantity} {quantity === 1 ? 'Pass' : 'Passes'}
-                    </span>
-                    <button
-                      type="button"
-                      id="ticket-qty-plus-btn"
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-8 h-8 rounded-lg bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold flex items-center justify-center transition-colors cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-300 uppercase tracking-wider">
-                    Dining Session & Gate Slot
-                  </label>
-                  <select
-                    id="ticket-slot-select"
-                    value={slot}
-                    onChange={(e) => setSlot(e.target.value)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-stone-950 border border-stone-700 text-xs text-stone-200 focus:outline-none focus:border-amber-400"
+              <div className="space-y-1.5 pt-2">
+                <label className="text-xs font-bold text-stone-300 uppercase tracking-wider">
+                  Number of Passes / Tickets
+                </label>
+                <div className="flex items-center gap-3 bg-stone-950 border border-stone-700 rounded-xl p-1.5 px-3">
+                  <button
+                    type="button"
+                    id="ticket-qty-minus-btn"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold flex items-center justify-center transition-colors cursor-pointer"
                   >
-                    <option value="Royal Afternoon Feast (12:30 PM - 3:30 PM)">
-                      Royal Afternoon Feast (12:30 PM - 3:30 PM)
-                    </option>
-                    <option value="Twilight Heritage Soirée (4:30 PM - 7:00 PM)">
-                      Twilight Heritage Soirée (4:30 PM - 7:00 PM)
-                    </option>
-                    <option value="Grand Aristocratic Dinner (7:30 PM - 10:30 PM)">
-                      Grand Aristocratic Dinner (7:30 PM - 10:30 PM)
-                    </option>
-                  </select>
+                    -
+                  </button>
+                  <span className="flex-1 text-center font-mono text-base font-bold text-amber-300">
+                    {quantity} {quantity === 1 ? 'Pass' : 'Passes'}
+                  </span>
+                  <button
+                    type="button"
+                    id="ticket-qty-plus-btn"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-8 h-8 rounded-lg bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
 

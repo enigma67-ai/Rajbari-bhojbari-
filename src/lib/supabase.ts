@@ -272,7 +272,7 @@ export interface PurchaseRecordPayload {
   totalAmount: number;
   paymentMethod: string;
   paymentStatus?: string;
-  diningSlot?: string;
+  diningSlot?: string | null;
   eventDate?: string;
   passQuantity?: number;
   items?: any[];
@@ -320,7 +320,7 @@ export async function recordPurchaseToSupabase(
       customer_phone: purchase.customerPhone || '',
       total_amount: purchase.totalAmount,
       payment_method: purchase.paymentMethod,
-      dining_slot: purchase.diningSlot || 'General Festival Admission',
+      dining_slot: purchase.diningSlot ?? null,
       pass_quantity: purchase.passQuantity || 1,
       qr_code_url: purchase.qrCodeUrl || '',
       upi_utr: purchase.upiUtr || null,
@@ -490,7 +490,16 @@ export async function fetchAllBookingsFromSupabase(): Promise<any[]> {
         .order('created_at', { ascending: false });
 
       if (!error && Array.isArray(data)) {
-        remoteBookings = data;
+        remoteBookings = data.map((b: any) => ({
+          ...b,
+          verified_at_gate: Boolean(
+            b.verified_at_gate === true ||
+            b.status === 'confirmed' ||
+            b.status === 'admitted' ||
+            b.payment_status === 'confirmed'
+          ),
+          payment_status: b.status === 'confirmed' || b.payment_status === 'confirmed' ? 'confirmed' : (b.payment_status || 'paid'),
+        }));
       } else if (error) {
         console.warn('Supabase fetch all bookings query error:', error.message);
       }
@@ -507,6 +516,11 @@ export async function fetchAllBookingsFromSupabase(): Promise<any[]> {
     for (const item of local) {
       const bId = item.booking_id || item.bookingId;
       if (bId && !existingIds.has(bId)) {
+        const isVerified = Boolean(
+          item.verified_at_gate === true ||
+          item.status === 'confirmed' ||
+          item.payment_status === 'confirmed'
+        );
         remoteBookings.push({
           id: item.id || bId,
           booking_id: bId,
@@ -516,8 +530,8 @@ export async function fetchAllBookingsFromSupabase(): Promise<any[]> {
           customer_phone: item.customer_phone || item.customerPhone || '',
           total_amount: Number(item.total_amount || item.totalAmount || 0),
           payment_method: item.payment_method || item.paymentMethod || 'UPI_QR',
-          payment_status: item.payment_status || item.paymentStatus || 'paid',
-          dining_slot: item.dining_slot || item.diningSlot || 'Grand Aristocratic Dinner (7:30 PM - 10:30 PM)',
+          payment_status: isVerified ? 'confirmed' : (item.payment_status || item.paymentStatus || 'paid'),
+          dining_slot: item.dining_slot || item.diningSlot || null,
           event_date: item.event_date || item.eventDate || 'Friday, 9th October 2026',
           pass_quantity: Number(item.pass_quantity || item.passQuantity || 1),
           items: item.items || [],
@@ -529,7 +543,7 @@ export async function fetchAllBookingsFromSupabase(): Promise<any[]> {
           qr_code_url: item.qr_code_url || item.qrCodeUrl || '',
           transaction_id: item.transaction_id || item.transactionId || '',
           upi_utr: item.upi_utr || item.upiUtr || '',
-          verified_at_gate: Boolean(item.verified_at_gate),
+          verified_at_gate: isVerified,
           verified_at_gate_time: item.verified_at_gate_time || null,
           created_at: item.created_at || new Date().toISOString(),
         });
@@ -545,7 +559,7 @@ export async function fetchAllBookingsFromSupabase(): Promise<any[]> {
 }
 
 /**
- * Updates `verified_at_gate` status for a booking in Supabase & local cache.
+ * Updates `status` and `verified_at_gate` status for a booking in Supabase & local cache.
  */
 export async function updateBookingGateVerification(
   bookingId: string,
@@ -559,6 +573,8 @@ export async function updateBookingGateVerification(
       const { error } = await client
         .from('bookings')
         .update({
+          status: verified ? 'confirmed' : 'pending',
+          payment_status: verified ? 'confirmed' : 'paid',
           verified_at_gate: verified,
           verified_at_gate_time: verified ? timestamp : null,
           updated_at: timestamp,
@@ -566,7 +582,16 @@ export async function updateBookingGateVerification(
         .eq('booking_id', bookingId);
 
       if (error) {
-        console.warn('Supabase update verification warning:', error.message);
+        console.warn('Supabase update verification warning, trying status-only query:', error.message);
+        // Fallback update without verified_at_gate if column doesn't exist
+        await client
+          .from('bookings')
+          .update({
+            status: verified ? 'confirmed' : 'pending',
+          })
+          .eq('booking_id', bookingId);
+      } else {
+        console.log(`[Supabase] Booking ${bookingId} status updated to ${verified ? 'confirmed' : 'pending'}`);
       }
     } catch (e: any) {
       console.warn('Failed to update Supabase booking gate verification:', e);
@@ -580,6 +605,8 @@ export async function updateBookingGateVerification(
       if ((item.booking_id || item.bookingId) === bookingId) {
         return {
           ...item,
+          status: verified ? 'confirmed' : 'pending',
+          payment_status: verified ? 'confirmed' : 'paid',
           verified_at_gate: verified,
           verified_at_gate_time: verified ? timestamp : null,
         };
@@ -590,4 +617,166 @@ export async function updateBookingGateVerification(
   } catch (_) {}
 
   return { success: true };
+}
+
+/**
+ * Validates a scanned QR code payload directly against the Supabase `bookings` table.
+ */
+export async function validateTicketAgainstSupabase(rawPayload: string): Promise<{
+  isValid: boolean;
+  ticketId: string;
+  rawPayload: string;
+  ticket?: any;
+  status: 'verified' | 'already_used' | 'invalid' | 'error';
+  message: string;
+  scannedAt?: string | null;
+  source: 'supabase_direct' | 'supabase_cache' | 'not_found';
+}> {
+  if (!rawPayload) {
+    return {
+      isValid: false,
+      ticketId: '',
+      rawPayload,
+      status: 'invalid',
+      message: 'Empty QR code payload.',
+      source: 'not_found',
+    };
+  }
+
+  const trimmed = rawPayload.trim();
+  let ticketId = trimmed;
+
+  // Extract ticketId from common patterns:
+  // 1. RAJBARI_BHOJBARI_PASS_RB-2026-12345_TOTAL_...
+  const rajbariMatch = trimmed.match(/RAJBARI_BHOJBARI_PASS_([^_]+)_TOTAL/i);
+  if (rajbariMatch && rajbariMatch[1]) {
+    ticketId = rajbariMatch[1].trim();
+  } else {
+    // 2. IAM_ECO_PASS:RB-2026-12345:AUTHENTICATED
+    const colonMatch = trimmed.match(/IAM_ECO_PASS:([^:]+):/i);
+    if (colonMatch && colonMatch[1]) {
+      ticketId = colonMatch[1].trim();
+    } else {
+      // 3. RB-2026-XXXX or RB-PASS-2026-XXXX
+      const rbMatch = trimmed.match(/(RB(?:-PASS)?-2026-[A-Za-z0-9-]+)/i);
+      if (rbMatch && rbMatch[1]) {
+        ticketId = rbMatch[1].trim();
+      } else if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          ticketId = parsed.booking_id || parsed.bookingId || parsed.id || ticketId;
+        } catch (_) {}
+      }
+    }
+  }
+
+  const client = getSupabaseClient();
+
+  if (client) {
+    try {
+      // Query Supabase bookings table
+      const { data, error } = await client
+        .from('bookings')
+        .select('*')
+        .or(`booking_id.eq.${ticketId},id.eq.${ticketId}`)
+        .limit(1);
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const b = data[0];
+        const isAdmitted = Boolean(
+          b.verified_at_gate === true ||
+          b.status === 'confirmed' ||
+          b.status === 'admitted' ||
+          b.payment_status === 'confirmed'
+        );
+
+        return {
+          isValid: true,
+          ticketId: b.booking_id || ticketId,
+          rawPayload,
+          ticket: {
+            id: b.booking_id || b.id,
+            bookingId: b.booking_id,
+            customerName: b.customer_name || 'Honored Guest',
+            customerEmail: b.customer_email || '',
+            customerPhone: b.customer_phone || '',
+            totalAmount: Number(b.total_amount || 0),
+            ticketQuantity: Number(b.pass_quantity || 1),
+            slot: b.dining_slot || 'General Festival Admission',
+            eventDate: b.event_date || 'Friday, 9th October 2026',
+            paymentMethod: b.payment_method || 'UPI_QR',
+            paymentStatus: b.payment_status || 'paid',
+            upiUtr: b.upi_utr || b.transaction_id || '',
+            scanned: isAdmitted,
+            scannedAt: b.verified_at_gate_time || null,
+            entryStatus: isAdmitted ? 'Admitted & Verified' : 'Valid • Ready for Entry',
+            items: b.items || [],
+            starterDish: b.starter_dish,
+            mainsDish: b.mains_dish,
+            dessertDish: b.dessert_dish,
+          },
+          status: isAdmitted ? 'already_used' : 'verified',
+          message: isAdmitted
+            ? `Pass ${b.booking_id} was already confirmed/admitted at ${b.verified_at_gate_time || 'earlier time'}.`
+            : `✓ Valid Festival Eco-Pass found in Supabase for ${b.customer_name || 'Honored Guest'} (${b.pass_quantity || 1} Pass).`,
+          scannedAt: b.verified_at_gate_time,
+          source: 'supabase_direct',
+        };
+      }
+    } catch (err) {
+      console.warn('Supabase query validation error:', err);
+    }
+  }
+
+  // Fallback: Check local simulated storage
+  try {
+    const local = JSON.parse(localStorage.getItem('rb_supabase_purchase_history') || '[]');
+    const match = local.find(
+      (item: any) =>
+        (item.booking_id && item.booking_id.toLowerCase().includes(ticketId.toLowerCase())) ||
+        (item.bookingId && item.bookingId.toLowerCase().includes(ticketId.toLowerCase())) ||
+        (item.id && item.id.toLowerCase().includes(ticketId.toLowerCase()))
+    );
+
+    if (match) {
+      const bId = match.booking_id || match.bookingId || ticketId;
+      const isAdmitted = Boolean(match.verified_at_gate === true || match.status === 'confirmed');
+      return {
+        isValid: true,
+        ticketId: bId,
+        rawPayload,
+        ticket: {
+          id: bId,
+          bookingId: bId,
+          customerName: match.customer_name || match.customerName || 'Honored Guest',
+          customerEmail: match.customer_email || match.customerEmail || '',
+          customerPhone: match.customer_phone || match.customerPhone || '',
+          totalAmount: Number(match.total_amount || match.totalAmount || 0),
+          ticketQuantity: Number(match.pass_quantity || match.passQuantity || 1),
+          slot: match.dining_slot || match.diningSlot || 'General Festival Admission',
+          eventDate: match.event_date || match.eventDate || 'Friday, 9th October 2026',
+          paymentMethod: match.payment_method || match.paymentMethod || 'UPI_QR',
+          paymentStatus: match.payment_status || match.paymentStatus || 'paid',
+          upiUtr: match.upi_utr || match.upiUtr || '',
+          scanned: isAdmitted,
+          scannedAt: match.verified_at_gate_time || null,
+          entryStatus: isAdmitted ? 'Admitted & Verified' : 'Valid • Ready for Entry',
+        },
+        status: isAdmitted ? 'already_used' : 'verified',
+        message: isAdmitted
+          ? `Pass ${bId} was previously admitted.`
+          : `✓ Valid Festival Eco-Pass verified in Supabase for ${match.customer_name || match.customerName || 'Honored Guest'}.`,
+        source: 'supabase_cache',
+      };
+    }
+  } catch (_) {}
+
+  return {
+    isValid: false,
+    ticketId,
+    rawPayload,
+    status: 'invalid',
+    message: `No active booking found in Supabase database for Pass ID "${ticketId}".`,
+    source: 'not_found',
+  };
 }

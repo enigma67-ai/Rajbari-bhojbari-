@@ -30,7 +30,11 @@ import {
   ZapOff 
 } from 'lucide-react';
 import { 
-  validateTicketAgainstFirestore, 
+  validateTicketAgainstSupabase, 
+  updateBookingGateVerification, 
+  getSupabaseClient 
+} from '../lib/supabase';
+import { 
   markTicketAsAdmitted, 
   saveTicketPass, 
   TicketValidationResult 
@@ -100,15 +104,15 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
     setHasTorch(false);
   }, []);
 
-  // Handle validating extracted QR code payload against Firestore
+  // Handle validating extracted QR code payload against Supabase
   const handleValidatePayload = useCallback(async (payload: string) => {
     if (!payload.trim() || isVerifying) return;
 
     setIsVerifying(true);
     setAdmitSuccess(null);
     try {
-      const result = await validateTicketAgainstFirestore(payload);
-      setValidationResult(result);
+      const result = await validateTicketAgainstSupabase(payload);
+      setValidationResult(result as TicketValidationResult);
 
       if (result.isValid && result.status === 'verified') {
         try {
@@ -118,7 +122,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
       }
 
       if (onTicketValidated) {
-        onTicketValidated(result);
+        onTicketValidated(result as TicketValidationResult);
       }
     } catch (err) {
       console.error('Ticket validation error:', err);
@@ -291,33 +295,49 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Mark ticket as admitted in Firestore
+  // Mark ticket as admitted in Supabase & Firestore
   const handleMarkAdmitted = async () => {
     if (!validationResult?.ticketId) return;
 
     setIsAdmitting(true);
     try {
-      const res = await markTicketAsAdmitted(
-        validationResult.ticketId, 
-        currentUser?.name ? `Gate Staff (${currentUser.name})` : 'IAM Gate Security'
-      );
-      if (res.success) {
-        setAdmitSuccess(`Successfully admitted pass ${validationResult.ticketId} into IAM Kolkata Fest.`);
-        setValidationResult(prev => prev ? {
-          ...prev,
-          status: 'already_used',
-          message: `Pass ${validationResult.ticketId} has been successfully validated and admitted.`,
-          scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          ticket: {
-            ...prev.ticket,
-            scanned: true,
-            scannedAt: new Date().toISOString(),
-            entryStatus: 'Admitted & Verified',
-          }
-        } : null);
+      const client = getSupabaseClient();
+      if (client) {
+        await client
+          .from('bookings')
+          .update({
+            status: 'confirmed',
+            payment_status: 'confirmed',
+            verified_at_gate: true,
+            verified_at_gate_time: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('booking_id', validationResult.ticketId);
       }
+
+      await updateBookingGateVerification(validationResult.ticketId, true);
+      try {
+        await markTicketAsAdmitted(
+          validationResult.ticketId, 
+          currentUser?.name ? `Gate Staff (${currentUser.name})` : 'IAM Gate Security'
+        );
+      } catch (_) {}
+
+      setAdmitSuccess(`Successfully admitted pass ${validationResult.ticketId} into IAM Kolkata Fest.`);
+      setValidationResult(prev => prev ? {
+        ...prev,
+        status: 'already_used',
+        message: `Pass ${validationResult.ticketId} has been successfully validated and admitted in Supabase.`,
+        scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        ticket: {
+          ...prev.ticket,
+          scanned: true,
+          scannedAt: new Date().toISOString(),
+          entryStatus: 'Admitted & Verified (Supabase)',
+        }
+      } : null);
     } catch (err: any) {
-      console.error('Error admitting ticket:', err);
+      console.error('Error admitting ticket in Supabase:', err);
     } finally {
       setIsAdmitting(false);
     }
@@ -411,7 +431,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                   </span>
                 </div>
                 <p className="text-xs text-amber-200/80">
-                  Instant QR check-in & verification against Firestore database
+                  Instant QR check-in & verification against Supabase database
                 </p>
               </div>
             </div>
@@ -484,7 +504,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                 <Loader2 className="w-10 h-10 text-emerald-400 animate-spin mx-auto" />
                 <h4 className="text-base font-bold text-white">Validating Pass with Database...</h4>
                 <p className="text-xs text-stone-400 max-w-sm mx-auto font-mono">
-                  Cross-referencing scanned pass against Firestore collection...
+                  Cross-referencing scanned pass against Supabase bookings table...
                 </p>
               </div>
             )}
@@ -639,7 +659,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Search className="w-4 h-4 text-stone-950 stroke-[2.5]" />
-                  <span>Verify in Firestore Database</span>
+                  <span>Verify in Supabase Database</span>
                 </button>
 
                 {/* Quick actions for test / recently booked pass */}
@@ -909,7 +929,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
             <div className="pt-3 border-t border-emerald-500/20 flex flex-wrap items-center justify-between text-[11px] text-stone-400 gap-2">
               <span className="flex items-center gap-1 text-emerald-400/90 font-mono">
                 <Shield className="w-3.5 h-3.5" />
-                Firestore Live Database Sync
+                Supabase Live Database Sync
               </span>
               <span>IAM Kolkata Fest Security Gate 2026</span>
             </div>

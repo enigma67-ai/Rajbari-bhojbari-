@@ -35,6 +35,7 @@ import {
 import { 
   fetchAllBookingsFromSupabase, 
   updateBookingGateVerification,
+  getSupabaseClient,
   isSupabaseConfigured
 } from '../lib/supabase';
 import { markTicketAsAdmitted } from '../lib/firebase';
@@ -265,6 +266,31 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
 
     // Persist to Supabase and Firestore in background
     try {
+      const client = getSupabaseClient();
+      if (client) {
+        const { error } = await client
+          .from('bookings')
+          .update({
+            status: nextState ? 'confirmed' : 'pending',
+            payment_status: nextState ? 'confirmed' : 'paid',
+            verified_at_gate: nextState,
+            verified_at_gate_time: nextState ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('booking_id', booking.booking_id);
+
+        if (error) {
+          console.warn('[Admin Gate] Supabase update query notice:', error.message);
+          // Fallback update query with just status
+          await client
+            .from('bookings')
+            .update({ status: nextState ? 'confirmed' : 'pending' })
+            .eq('booking_id', booking.booking_id);
+        } else {
+          console.log(`[Admin Gate] Successfully updated Supabase booking ${booking.booking_id} to ${nextState ? 'confirmed' : 'pending'}`);
+        }
+      }
+
       await updateBookingGateVerification(booking.booking_id, nextState);
       if (nextState) {
         await markTicketAsAdmitted(booking.booking_id, 'Gate Admin Terminal');
