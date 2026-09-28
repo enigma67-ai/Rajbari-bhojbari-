@@ -137,8 +137,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot, onOpe
             </div>
             <div className="text-stone-300">
               <span className="text-amber-400 font-semibold">Office Communication:</span>{' '}
-              <a href="mailto:md.khurshid.shaikh24k@iam.ac.in" className="text-amber-200 font-mono hover:underline">
-                md.khurshid.shaikh24k@iam.ac.in
+              <a href="mailto:ks7901424@gmail.com" className="text-amber-200 font-mono hover:underline">
+                ks7901424@gmail.com
               </a>
             </div>
           </div>

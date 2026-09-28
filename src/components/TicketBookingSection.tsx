@@ -256,12 +256,12 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     }
   };
 
-  // Email OTP: Send passwordless magic code
+  // Email OTP: Send passwordless 6-digit OTP code
   const handleSendEmailOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const cleanEmail = (otpEmail || email).trim().toLowerCase();
-    if (!cleanEmail || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(cleanEmail)) {
-      setOtpStatusMsg({ type: 'error', text: 'Please enter a valid email address to receive your OTP code.' });
+    const emailInput = (otpEmail || email).trim().toLowerCase();
+    if (!emailInput || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailInput)) {
+      setOtpStatusMsg({ type: 'error', text: 'Please enter a valid email address to receive your 6-digit OTP.' });
       return;
     }
 
@@ -270,10 +270,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
     try {
       const { error } = await supabase.auth.signInWithOtp({
-        email: cleanEmail,
+        email: emailInput,
         options: {
           shouldCreateUser: true,
-        },
+        }
       });
 
       if (error) {
@@ -282,16 +282,16 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
       setIsOtpSent(true);
       setOtpCountdown(60);
-      setOtpEmail(cleanEmail);
+      setOtpEmail(emailInput);
       setOtpStatusMsg({
         type: 'success',
-        text: '6-digit OTP code sent! Please check your Inbox and Spam folder.',
+        text: `6-digit OTP sent to ${emailInput}! Please check your Inbox and Spam folder.`,
       });
     } catch (err: any) {
       console.error('Email OTP send error:', err);
       setOtpStatusMsg({
         type: 'error',
-        text: err?.message || 'Failed to send OTP code. Please check your email and try again.',
+        text: err?.message || 'Failed to send 6-digit OTP code. Please check your email and try again.',
       });
     } finally {
       setIsSendingOtp(false);
@@ -302,10 +302,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const handleVerifyEmailOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const cleanCode = otpCode.trim().replace(/\D/g, '');
-    const cleanEmail = otpEmail.trim().toLowerCase();
+    const cleanEmail = (otpEmail || email).trim().toLowerCase();
 
     if (cleanCode.length !== 6) {
-      setOtpStatusMsg({ type: 'error', text: 'Please enter the full 6-digit verification code.' });
+      setOtpStatusMsg({ type: 'error', text: 'Please enter the complete 6-digit OTP code.' });
       return;
     }
 
@@ -332,21 +332,21 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         }
         setOtpStatusMsg({
           type: 'success',
-          text: '✓ Logged in successfully!',
+          text: '✓ 6-Digit OTP verified! Logged in successfully.',
         });
         setIsOtpSent(false);
         setOtpCode('');
       } else {
         setOtpStatusMsg({
           type: 'error',
-          text: 'Verification could not be completed. Please request a new code.',
+          text: 'OTP verification could not be completed. Please request a new 6-digit code.',
         });
       }
     } catch (err: any) {
       console.error('Email OTP verify error:', err);
       setOtpStatusMsg({
         type: 'error',
-        text: err?.message || 'Invalid or expired OTP code. Please enter the correct code.',
+        text: err?.message || 'Invalid or expired 6-digit OTP code. Please check and try again.',
       });
     } finally {
       setIsVerifyingOtp(false);
@@ -1251,82 +1251,136 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
                 {/* Direct Email OTP Authentication Flow */}
                 <div className="space-y-3 pt-1">
-                  {!isOtpSent ? (
-                    <form onSubmit={handleSendEmailOtp} className="flex flex-col sm:flex-row gap-2">
-                      <div className="relative flex-1">
-                        <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                        <input
-                          id="ticket-auth-email-input"
-                          type="email"
-                          required
-                          value={otpEmail}
-                          onChange={(e) => {
-                            setOtpEmail(e.target.value);
-                            if (otpStatusMsg) setOtpStatusMsg(null);
-                          }}
-                          placeholder="Enter your email address (e.g. name@example.com)"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        id="ticket-send-otp-btn"
-                        disabled={isSendingOtp}
-                        className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  <AnimatePresence mode="wait">
+                    {!isOtpSent ? (
+                      <motion.form 
+                        key="email-input-state"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.2 }}
+                        onSubmit={handleSendEmailOtp} 
+                        className="flex flex-col sm:flex-row gap-2"
                       >
-                        {isSendingOtp ? (
-                          <span>Sending OTP...</span>
-                        ) : (
-                          <>
-                            <span>Send OTP Code</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleVerifyEmailOtp} className="space-y-3">
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <input
-                          id="ticket-otp-code-input"
-                          type="text"
-                          required
-                          maxLength={6}
-                          inputMode="numeric"
-                          value={otpCode}
-                          onChange={(e) => {
-                            setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                            if (otpStatusMsg) setOtpStatusMsg(null);
-                          }}
-                          placeholder="Enter 6-digit OTP code"
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-stone-950 border border-emerald-500/60 font-mono tracking-widest text-center text-sm text-amber-300 placeholder-stone-600 focus:outline-none focus:border-emerald-400"
-                        />
+                        <div className="relative flex-1">
+                          <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                          <input
+                            id="ticket-auth-email-input"
+                            type="email"
+                            required
+                            value={otpEmail}
+                            onChange={(e) => {
+                              setOtpEmail(e.target.value);
+                              if (otpStatusMsg) setOtpStatusMsg(null);
+                            }}
+                            placeholder="Enter your email address (e.g. name@example.com)"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400"
+                          />
+                        </div>
                         <button
                           type="submit"
-                          id="ticket-verify-otp-btn"
-                          disabled={isVerifyingOtp || otpCode.length < 6}
-                          className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                          id="ticket-send-otp-btn"
+                          disabled={isSendingOtp}
+                          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                         >
-                          {isVerifyingOtp ? <span>Verifying...</span> : <span>Verify OTP</span>}
+                          {isSendingOtp ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Sending 6-Digit OTP...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Send 6-Digit OTP</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                          )}
                         </button>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-stone-400 px-1">
-                        <span>Sent to <strong className="text-stone-300 font-mono">{otpEmail}</strong></span>
-                        {otpCountdown > 0 ? (
-                          <span className="text-stone-500 font-mono">Resend code in {otpCountdown}s</span>
-                        ) : (
+                      </motion.form>
+                    ) : (
+                      <motion.form 
+                        key="otp-code-state"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.2 }}
+                        onSubmit={handleVerifyEmailOtp} 
+                        className="space-y-3 bg-emerald-950/30 border border-emerald-500/30 p-3.5 rounded-2xl"
+                      >
+                        <div className="flex items-center justify-between text-xs text-emerald-200">
+                          <span className="font-semibold flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>Enter 6-Digit Verification Code</span>
+                          </span>
                           <button
                             type="button"
-                            onClick={() => handleSendEmailOtp()}
-                            className="text-amber-400 hover:text-amber-300 underline cursor-pointer font-semibold"
+                            onClick={() => {
+                              setIsOtpSent(false);
+                              setOtpCode('');
+                              if (otpStatusMsg) setOtpStatusMsg(null);
+                            }}
+                            className="text-[11px] text-amber-300 hover:text-amber-200 underline cursor-pointer"
                           >
-                            Resend OTP
+                            Change Email
                           </button>
-                        )}
-                      </div>
-                    </form>
-                  )}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="relative flex-1">
+                            <input
+                              id="ticket-otp-code-input"
+                              type="text"
+                              required
+                              autoFocus
+                              maxLength={6}
+                              inputMode="numeric"
+                              pattern="[0-9]{6}"
+                              value={otpCode}
+                              onChange={(e) => {
+                                const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                setOtpCode(digits);
+                                if (otpStatusMsg) setOtpStatusMsg(null);
+                              }}
+                              placeholder="• • • • • •"
+                              className="w-full px-4 py-2.5 rounded-xl bg-stone-950 border border-emerald-500/70 font-mono tracking-[0.4em] text-center text-base sm:text-lg font-bold text-amber-300 placeholder-stone-600 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            id="ticket-verify-otp-btn"
+                            disabled={isVerifyingOtp || otpCode.length < 6}
+                            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-stone-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                          >
+                            {isVerifyingOtp ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Verifying OTP...</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Verify & Continue</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-stone-400 px-1 pt-1 border-t border-emerald-900/40">
+                          <span>Code sent to <strong className="text-emerald-300 font-mono">{otpEmail}</strong></span>
+                          {otpCountdown > 0 ? (
+                            <span className="text-stone-400 font-mono">Resend code in {otpCountdown}s</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSendEmailOtp()}
+                              className="text-amber-400 hover:text-amber-300 underline cursor-pointer font-semibold"
+                            >
+                              Resend 6-Digit OTP
+                            </button>
+                          )}
+                        </div>
+                      </motion.form>
+                    )}
+                  </AnimatePresence>
 
                   {/* Alert Banner for OTP Status */}
                   {otpStatusMsg && (
