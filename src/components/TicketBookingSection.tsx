@@ -243,7 +243,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     setOtpStatusMsg(null);
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signInWithOtp({
         email: emailInput,
         options: {
           shouldCreateUser: true,
