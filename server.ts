@@ -758,10 +758,6 @@ async function sendAutomatedConfirmationEmail(pass: any) {
           ${pass.id}
         </p>
       </div>
-
-      <p style="margin: 12px 0 0 0; font-size: 11px; color: #a8a29e; text-align: center;">
-        Traditional Bengali Aristocratic attire (Dhoti-Kurta / Saree / Ethnic Formal) is warmly encouraged.
-      </p>
     </div>
 
     <!-- Footer -->
