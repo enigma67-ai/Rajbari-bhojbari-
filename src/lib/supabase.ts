@@ -271,7 +271,7 @@ export interface PurchaseRecordPayload {
   customerPhone?: string;
   totalAmount: number;
   paymentMethod: string;
-  paymentStatus: string;
+  paymentStatus?: string;
   diningSlot?: string;
   eventDate?: string;
   passQuantity?: number;
@@ -308,13 +308,11 @@ export async function recordPurchaseToSupabase(
   }
 
   try {
-    const drinkItem = purchase.items?.find((i: any) => i.type === 'drink')?.name || '';
-    const starterItem = purchase.items?.find((i: any) => i.type === 'starter')?.name || '';
-    const mainsItem = purchase.items?.find((i: any) => i.type === 'mains')?.name || '';
-    const dessertItem = purchase.items?.find((i: any) => i.type === 'dessert')?.name || '';
-
-    // 1. Primary write to 'bookings' table
-    const bookingPayload = {
+    // STRICT REQUIREMENT: Create a sanitized data object that ONLY includes these specific keys:
+    // customer_name, customer_email, customer_phone, total_amount, payment_method, dining_slot,
+    // pass_quantity, qr_code_url, and upi_utr (along with booking_id and user_id if required).
+    // Explicitly remove or omit event_date, dessert_dish, and any other newly generated fields from the insert payload.
+    const sanitizedBookingPayload = {
       booking_id: purchase.bookingId,
       user_id: purchase.userId,
       customer_name: purchase.customerName,
@@ -322,48 +320,37 @@ export async function recordPurchaseToSupabase(
       customer_phone: purchase.customerPhone || '',
       total_amount: purchase.totalAmount,
       payment_method: purchase.paymentMethod,
-      payment_status: purchase.paymentStatus,
       dining_slot: purchase.diningSlot || 'General Festival Admission',
-      event_date: purchase.eventDate || 'Friday, 9th October 2026',
       pass_quantity: purchase.passQuantity || 1,
-      items: purchase.items || [],
-      welcome_drink: drinkItem,
-      starter_dish: starterItem,
-      mains_dish: mainsItem,
-      dessert_dish: dessertItem,
-      include_dessert: Boolean(dessertItem),
       qr_code_url: purchase.qrCodeUrl || '',
-      transaction_id: purchase.transactionId || '',
       upi_utr: purchase.upiUtr || null,
-      created_at: timestamp,
     };
 
     const { error: bookingError } = await client
       .from('bookings')
-      .upsert(bookingPayload, { onConflict: 'booking_id' });
+      .insert(sanitizedBookingPayload);
 
     if (bookingError) {
-      // Fallback attempt to legacy 'purchase_history' table
+      // If error is duplicate key / already exists on booking_id, update with sanitized payload
+      if (
+        bookingError.code === '23505' ||
+        bookingError.message?.toLowerCase().includes('duplicate') ||
+        bookingError.message?.toLowerCase().includes('already exists')
+      ) {
+        const { error: updateError } = await client
+          .from('bookings')
+          .update(sanitizedBookingPayload)
+          .eq('booking_id', purchase.bookingId);
+        if (!updateError) {
+          console.log(`[Supabase] Successfully updated booking ${purchase.bookingId} for user ${purchase.userId}`);
+          return { success: true, mode: 'supabase' };
+        }
+      }
+
+      // Fallback attempt to legacy 'purchase_history' table with the same sanitized payload
       const { error: historyError } = await client
         .from('purchase_history')
-        .upsert({
-          booking_id: purchase.bookingId,
-          user_id: purchase.userId,
-          customer_name: purchase.customerName,
-          customer_email: purchase.customerEmail,
-          customer_phone: purchase.customerPhone || '',
-          total_amount: purchase.totalAmount,
-          payment_method: purchase.paymentMethod,
-          payment_status: purchase.paymentStatus,
-          dining_slot: purchase.diningSlot || 'General Festival Admission',
-          event_date: purchase.eventDate || 'Friday, 9th October 2026',
-          pass_quantity: purchase.passQuantity || 1,
-          items: purchase.items || [],
-          qr_code_url: purchase.qrCodeUrl || '',
-          transaction_id: purchase.transactionId || '',
-          upi_utr: purchase.upiUtr || null,
-          created_at: timestamp,
-        }, { onConflict: 'booking_id' });
+        .insert(sanitizedBookingPayload);
 
       if (historyError) {
         console.warn('Supabase bookings insert notice:', bookingError.message);

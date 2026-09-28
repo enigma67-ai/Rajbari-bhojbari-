@@ -605,7 +605,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       // Save to Firestore
       await saveTicketPass(updatedPass, currentUser?.id);
 
-      // Update Supabase booking record with chosen dishes
+      // Update Supabase booking record with chosen dishes (strictly sanitized fields)
       if (currentUser?.id) {
         await recordPurchaseToSupabase({
           bookingId: updatedPass.id,
@@ -615,22 +615,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           customerPhone: updatedPass.customerPhone,
           totalAmount: updatedPass.totalAmount,
           paymentMethod: 'UPI_QR',
-          paymentStatus: updatedPass.paymentStatus,
           diningSlot: updatedPass.slot,
-          eventDate: updatedPass.eventDate,
           passQuantity: updatedPass.ticketQuantity,
-          items: [
-            { type: 'pass', name: `Festival Eco-Pass (x${updatedPass.ticketQuantity})`, price: basePricePerTicket * updatedPass.ticketQuantity, qty: updatedPass.ticketQuantity },
-            { type: 'mains', name: updatedPass.mainsDish, price: 0, qty: updatedPass.ticketQuantity, status: 'Included with Pass' },
-            ...extraCombos.map((c, idx) => ({ type: 'mains_addon', name: c, price: 349, qty: 1, status: `Additional Combo #${idx + 1} (+₹349)` })),
-            { type: 'starter', name: updatedPass.starterDish, price: 0, qty: updatedPass.ticketQuantity, status: 'Included with Pass' },
-            ...extraStarters.map((s, idx) => ({ type: 'starter_addon', name: s, price: 349, qty: 1, status: `A La Carte Starter #${idx + 1} (+₹349)` })),
-            ...selectedTastingItems.map((t) => ({ type: 'tasting_free', name: t, price: 0, qty: 1, status: 'Complimentary Tasting (₹0)' })),
-            ...selectedRuralItems.map((r) => ({ type: 'rural_heritage_free', name: r, price: 0, qty: 1, status: 'Rural Heritage Counter (₹0)' })),
-            ...(updatedPass.includeDessert && updatedPass.dessertDish ? [{ type: 'dessert', name: updatedPass.dessertDish, price: 99 * updatedPass.ticketQuantity, qty: updatedPass.ticketQuantity, status: 'Dessert Add-on (+₹99)' }] : []),
-          ],
           qrCodeUrl: updatedPass.qrCodeUrl,
-          transactionId: updatedPass.transactionId,
           upiUtr: updatedPass.upiUtr,
         });
       }
@@ -787,6 +774,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       const activeUserId = authSession?.user?.id || currentUser?.id || `guest_${Date.now()}`;
 
       // 1. PUBLIC.BOOKINGS DATABASE INSERTION FIRST
+      // Strictly sanitized payload containing only the required fields (omits event_date, dessert_dish, etc.)
       const dbResult = await recordPurchaseToSupabase({
         bookingId: bookedPass.id,
         userId: activeUserId,
@@ -795,22 +783,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         customerPhone: bookedPass.customerPhone,
         totalAmount: bookedPass.totalAmount,
         paymentMethod: 'UPI_QR',
-        paymentStatus: 'paid',
         diningSlot: bookedPass.slot,
-        eventDate: bookedPass.eventDate,
         passQuantity: bookedPass.ticketQuantity,
-        items: [
-          { type: 'pass', name: `Festival Eco-Pass (x${bookedPass.ticketQuantity})`, price: basePricePerTicket * bookedPass.ticketQuantity, qty: bookedPass.ticketQuantity },
-          { type: 'mains', name: bookedPass.mainsDish, price: 0, qty: bookedPass.ticketQuantity, status: 'Included with Pass' },
-          ...extraCombos.map((c, idx) => ({ type: 'mains_addon', name: c, price: 349, qty: 1, status: `Additional Combo #${idx + 1} (+₹349)` })),
-          { type: 'starter', name: bookedPass.starterDish, price: 0, qty: bookedPass.ticketQuantity, status: 'Included with Pass' },
-          ...extraStarters.map((s, idx) => ({ type: 'starter_addon', name: s, price: 349, qty: 1, status: `A La Carte Starter #${idx + 1} (+₹349)` })),
-          ...selectedTastingItems.map((t) => ({ type: 'tasting_free', name: t, price: 0, qty: 1, status: 'Complimentary Tasting (₹0)' })),
-          ...selectedRuralItems.map((r) => ({ type: 'rural_heritage_free', name: r, price: 0, qty: 1, status: 'Rural Heritage Counter (₹0)' })),
-          ...(bookedPass.includeDessert && bookedPass.dessertDish ? [{ type: 'dessert', name: bookedPass.dessertDish, price: 99 * bookedPass.ticketQuantity, qty: bookedPass.ticketQuantity, status: 'Dessert Add-on (+₹99)' }] : []),
-        ],
         qrCodeUrl: bookedPass.qrCodeUrl,
-        transactionId: `UTR-${activeUtr}`,
         upiUtr: activeUtr,
       });
 
