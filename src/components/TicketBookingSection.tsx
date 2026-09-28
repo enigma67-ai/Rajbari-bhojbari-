@@ -800,38 +800,89 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         console.warn('Firestore backup pass write notice:', fErr);
       }
 
-      // 2. TRIGGER EMAILJS FUNCTION IMMEDIATELY AFTER DATABASE INSERT SUCCEEDS
+      // 2. TRIGGER EMAILJS DISPATCH IN A SAFE TRY-CATCH BLOCK (NON-BLOCKING FALLBACK)
       setIsSendingEmail(true);
       const emailJsPublicKey = (import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '').trim();
       const emailJsServiceId = (import.meta.env.VITE_EMAILJS_SERVICE_ID || '').trim();
       const emailJsTemplateId = (import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '').trim();
 
-      const emailTemplateParams = {
-        customer_name: bookedPass.customerName,
-        customer_email: bookedPass.customerEmail,
+      const recipientEmail = (
+        bookedPass.customerEmail ||
+        email ||
+        otpEmail ||
+        userDisplayEmail ||
+        authSession?.user?.email ||
+        currentUser?.emailOrPhone ||
+        ''
+      ).trim().toLowerCase();
+
+      const recipientName = (
+        bookedPass.customerName ||
+        name ||
+        currentUser?.name ||
+        'Honored Guest'
+      ).trim();
+
+      const recipientPhone = (
+        bookedPass.customerPhone ||
+        phone ||
+        ''
+      ).trim();
+
+      const emailTemplateParams: Record<string, any> = {
+        // Recipient email aliases: comprehensive mapping to ensure any EmailJS template configuration receives the email
+        customer_email: recipientEmail,
+        to_email: recipientEmail,
+        user_email: recipientEmail,
+        email: recipientEmail,
+        reply_to: recipientEmail,
+        recipient_email: recipientEmail,
+        guest_email: recipientEmail,
+        recipient: recipientEmail,
+        to: recipientEmail,
+
+        // Recipient name aliases
+        customer_name: recipientName,
+        to_name: recipientName,
+        guest_name: recipientName,
+        user_name: recipientName,
+        name: recipientName,
+        recipient_name: recipientName,
+
+        // Phone aliases
+        customer_phone: recipientPhone,
+        phone_number: recipientPhone,
+        phone: recipientPhone,
+
+        // Booking details
         booking_id: bookedPass.id, // e.g., RB-2026-XXXXX
+        pass_id: bookedPass.id,
+        order_id: bookedPass.id,
         total_amount: `₹${bookedPass.totalAmount}/-`,
-        dining_slot: bookedPass.slot,
-        qr_code_url: bookedPass.qrCodeUrl,
-        // Complementary aliases for flexible EmailJS template configurations:
-        to_name: bookedPass.customerName,
-        to_email: bookedPass.customerEmail,
-        guest_name: bookedPass.customerName,
-        qr_code_link: bookedPass.qrCodeUrl,
-        phone_number: bookedPass.customerPhone,
-        customer_phone: bookedPass.customerPhone,
-        dining_session: bookedPass.slot,
-        pass_count: bookedPass.ticketQuantity,
         booking_amount: `₹${bookedPass.totalAmount}/-`,
-        venue: bookedPass.gateLocation || 'Main Green Gate, IAM Kolkata Campus',
+        amount: `₹${bookedPass.totalAmount}/-`,
+        dining_slot: bookedPass.slot,
+        dining_session: bookedPass.slot,
+        slot: bookedPass.slot,
+        pass_count: bookedPass.ticketQuantity,
+        ticket_quantity: bookedPass.ticketQuantity,
+        quantity: bookedPass.ticketQuantity,
+        qr_code_url: bookedPass.qrCodeUrl,
+        qr_code_link: bookedPass.qrCodeUrl,
+        starter_dish: bookedPass.starterDish || 'Included Starter',
+        mains_dish: bookedPass.mainsDish || 'Included Main Course Combo',
+        dessert_dish: bookedPass.dessertDish || 'Misti Mukh Tasting Platter',
+        venue: bookedPass.gateLocation || 'East Heritage Gate, IAM Kolkata Campus',
+        gate_location: bookedPass.gateLocation || 'East Heritage Gate, IAM Kolkata Campus',
         date_time: `${bookedPass.eventDate} | ${bookedPass.slot}`,
+        event_date: bookedPass.eventDate,
       };
 
       let emailDispatched = false;
-      let emailErrorDetails = '';
 
-      if (emailJsPublicKey && emailJsServiceId && emailJsTemplateId) {
-        try {
+      // Safe Try-Catch wrapper: If email dispatch fails for ANY reason, log to console but DO NOT block the user
+      try {
+        if (emailJsPublicKey && emailJsServiceId && emailJsTemplateId && recipientEmail) {
           const emailRes = await emailjs.send(
             emailJsServiceId,
             emailJsTemplateId,
@@ -840,45 +891,50 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           );
           if (emailRes.status === 200 || emailRes.text === 'OK') {
             emailDispatched = true;
+            console.log(`[EmailJS] Confirmation email successfully dispatched to ${recipientEmail}`);
           } else {
-            emailErrorDetails = `Status: ${emailRes.status}`;
+            console.warn('[EmailJS] Dispatch status notice:', emailRes);
           }
-        } catch (sendErr: any) {
-          console.warn('EmailJS send notice:', sendErr);
-          if (sendErr?.status === 200 || sendErr?.text === 'OK') {
-            emailDispatched = true;
-          } else {
-            emailErrorDetails = sendErr?.text || sendErr?.message || 'EmailJS rejected delivery';
-          }
+        } else {
+          // Development or simulated mode
+          emailDispatched = true;
+          console.info('[EmailJS] Simulation/preview mode enabled.');
         }
-      } else {
-        // When env vars are not set in preview/development, simulate successful dispatch
-        emailDispatched = true;
-      }
-      setIsSendingEmail(false);
-
-      // 3. SHOW THE FINAL GREEN 'BOOKING CONFIRMED' UI CARD ONLY AFTER BOTH SUCCEED
-      if (!emailDispatched) {
-        throw new Error(`Email could not be dispatched: ${emailErrorDetails}. The pass has not been marked confirmed.`);
+      } catch (sendErr: any) {
+        // Crucial requirement: Log error to console but DO NOT throw or block the user!
+        console.warn('EmailJS dispatch notice (non-blocking fallback):', sendErr?.text || sendErr?.message || sendErr);
+      } finally {
+        setIsSendingEmail(false);
       }
 
-      // Both database row is saved AND email is successfully dispatched!
+      // 3. ALWAYS TRANSITION TO THE SUCCESSFUL 'BOOKING PASS' CONFIRMATION SCREEN
+      // Since database insertion in public.bookings already succeeded, confirm the pass and show the Pass UI
       setGeneratedPass(bookedPass);
       if (onPassBooked) {
         onPassBooked(bookedPass);
       }
 
-      setConfirmationDispatchInfo({
-        sent: true,
-        message: `Ticket emailed to ${bookedPass.customerEmail} & public.bookings saved`,
-        service: 'emailjs',
-        status: 200,
-      });
-      setEmailSuccessMessage(`Confirmation email with QR pass ticket was sent to ${bookedPass.customerEmail}`);
-      setEmailToast(`Digital Pass emailed to ${bookedPass.customerEmail}!`);
+      if (emailDispatched) {
+        setConfirmationDispatchInfo({
+          sent: true,
+          message: `Ticket emailed to ${bookedPass.customerEmail} & public.bookings saved`,
+          service: 'emailjs',
+          status: 200,
+        });
+        setEmailSuccessMessage(`Confirmation email with QR pass ticket was sent to ${bookedPass.customerEmail}`);
+        setEmailToast(`Digital Pass emailed to ${bookedPass.customerEmail}!`);
+      } else {
+        setConfirmationDispatchInfo({
+          sent: false,
+          message: `Booking saved in public.bookings & verified for ${bookedPass.customerName}`,
+          service: 'supabase',
+          status: 200,
+        });
+        setEmailToast(`Digital Pass created & verified for ${bookedPass.customerName}!`);
+      }
 
       const elapsed = Date.now() - startTime;
-      const minEngagementTime = 2000;
+      const minEngagementTime = 1500;
       if (elapsed < minEngagementTime) {
         await new Promise((resolve) => setTimeout(resolve, minEngagementTime - elapsed));
       }
