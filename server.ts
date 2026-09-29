@@ -142,20 +142,20 @@ Festival Venue & Location Details:
 - Timing: 10:00 AM to 08:30 PM, Friday, 9th October 2026.
 
 The 4 culinary sections are:
-1. AUTHENTIC STARTERS (₹349 each): Murgir Jali Kebab, Amudi Maacher Piyaji, Pat Patar Bora, Aamada Khoi Narkoler Chop, Muchmuchea Shapla.
-2. RURAL BENGAL COUNTER (₹0 Complimentary Tasting): Tetuler Chatni, Chaltar Tok Jhol, Kamrangar Chatni, Amrar Tok.
+1. AUTHENTIC STARTERS (₹349 each): Raj Angan Jali Kebab, Nawab Bari Amudi Piyaji, Panchali Patpata Bora, Aamrasa Narkel Raj-Chop, Padma Prasad Shapla Crisp.
+2. RURAL BENGAL COUNTER (₹0 Complimentary Tasting): Raj Angan Tetul-Ras, Chalta Raj-Ras, Kamranga Kanak Chatni, Amra Rajtok, Nimbu-Lonka Raj Achar, Dhekir Dhwani Rajbhog Bhat, Gramer Shital Panta, Sabuj Rajbari Lau Pata Bata, Shil-Nora Aam-Lonka Rosh, Sonar Bangla Mocha Bhorta, Rajkosh Potol Bhorta, Narkel-Mosur Madhur Bhorta, Baganbari Loti-Chingri Chorchori, Til-Tushar Bhapa, Rajbari Gathi Kochu Bhate.
 3. MAIN COURSE COMBOS (₹349 each):
-   - Combo 1: Desi Murgir Fowl Curry + Cholar Daler Polao
-   - Combo 2: Khiroda Katla / Katlar Suroba + Rajnandini Polao
-   - Combo 3: Aar Macher Astomongola + Kaju Kismis Basonti Polao
-   - Combo 4: Moong Mohon Dal & Rajbarir Chanar Dolma + Aamsotto Kachalonkar Polao
-4. MISTI MUKH PLATTER (₹99 Add-on): Heirloom 4-sweet tasting platter (Piyazer Payes, Porochitroharini, PotolER Monohora, Tal Er Malpua).
+   - Combo 1: Rajbari Deshi Fowl Kalia + Cholar Dal Raj Polao
+   - Combo 2: Khiroda Katla Rajbhog + Rajnandini Rajbhog Polao
+   - Combo 3: Aathmongola Aar Rajras + Kaju-Kismis Basanti Raj Polao
+   - Combo 4: Moong Mohon Rajdal & Rajbari Chanar Shahi Dolma + Aamsotto-Kachalonka Raj Polao
+4. MISTI MUKH PLATTER (₹99 Add-on): Heirloom 4-sweet tasting platter (Piyaz Rajmadhuri Payesh, Porochitroharini Rajbhog, Potol Monohora Rajmukut, Tal-Shonar Malpua).
 
 EVENT ENTRY POLICY & TICKET PASS PRICING:
 - Strict Entry Policy: "NO TICKET, NO ENTRY" — every guest requires a verified digital Eco-Pass with QR code.
 - Event Ticket / Eco-Pass Price: ₹349/- per person.
 - What is included in the ₹349/- Eco-Pass:
-  * Full access to the Rural Bengal Counter (Tetuler Chatni, Chaltar Tok Jhol, Kamrangar Chatni, Amrar Tok).
+  * Full access to the Rural Bengal Counter (Raj Angan Tetul-Ras, Chalta Raj-Ras, Kamranga Kanak Chatni, Amra Rajtok, etc.).
   * 1 Authentic Starter of your choice.
   * 1 Main Course Combo of your choice.
   * Misti Mukh dessert platters are available for an additional ₹99/-.
@@ -299,17 +299,17 @@ app.post("/api/ai/suggest-plate", async (req, res) => {
   const suggestion = {
     title: preference === "pure-veg" ? "The Rajbari Satvik Heritage Feast" : "The Aristocratic Bengal Feast",
     recommendedDishes: preference === "pure-veg" ? [
-      { name: "Chaltar Tok Jhol", mohol: "tasting", role: "Complimentary Tasting" },
-      { name: "Pat Patar Bora (Veg)", mohol: "starters", role: "Authentic Starter" },
-      { name: "Aamada Khoi Narkoler Chop / Chire Chinebadam Cutlet (Veg)", mohol: "starters", role: "Heritage Starter" },
-      { name: "Combo 4 (Veg): Moong Mohon Dal & Rajbarir Chanar Dolma served with Aamsotto Kachalonkar Polao", mohol: "mains", role: "Main Course Combo" },
-      { name: "Misti Mukh Platter (Piyazer Payes, Porochitroharini, PotolER Monohora, Tal Er Malpua)", mohol: "desserts", role: "Heirloom Dessert Add-on" }
+      { name: "Chalta Raj-Ras", mohol: "tasting", role: "Complimentary Tasting" },
+      { name: "Panchali Patpata Bora (Veg)", mohol: "starters", role: "Authentic Starter" },
+      { name: "Aamrasa Narkel Raj-Chop (Veg)", mohol: "starters", role: "Heritage Starter" },
+      { name: "Combo 4 (Veg): Moong Mohon Rajdal & Rajbari Chanar Shahi Dolma served with Aamsotto-Kachalonka Raj Polao", mohol: "mains", role: "Main Course Combo" },
+      { name: "Misti Mukh Platter (Piyaz Rajmadhuri Payesh, Porochitroharini Rajbhog, Potol Monohora Rajmukut, Tal-Shonar Malpua)", mohol: "desserts", role: "Heirloom Dessert Add-on" }
     ] : [
-      { name: "Tetuler Chatni", mohol: "tasting", role: "Complimentary Tasting" },
-      { name: "Murgir Jali Kebab (Non-Veg)", mohol: "starters", role: "Authentic Starter" },
-      { name: "Amudi Maacher Piyaji (Non-Veg)", mohol: "starters", role: "Artisan Fish Starter" },
-      { name: "Combo 1 (Chicken): Desi Murgir Fowl Curry served with Cholar Daler Polao", mohol: "mains", role: "Main Course Combo" },
-      { name: "Misti Mukh Platter (Piyazer Payes, Porochitroharini, PotolER Monohora, Tal Er Malpua)", mohol: "desserts", role: "Heirloom Dessert Add-on" }
+      { name: "Raj Angan Tetul-Ras", mohol: "tasting", role: "Complimentary Tasting" },
+      { name: "Raj Angan Jali Kebab (Non-Veg)", mohol: "starters", role: "Authentic Starter" },
+      { name: "Nawab Bari Amudi Piyaji (Non-Veg)", mohol: "starters", role: "Artisan Fish Starter" },
+      { name: "Combo 1 (Chicken): Rajbari Deshi Fowl Kalia served with Cholar Dal Raj Polao", mohol: "mains", role: "Main Course Combo" },
+      { name: "Misti Mukh Platter (Piyaz Rajmadhuri Payesh, Porochitroharini Rajbhog, Potol Monohora Rajmukut, Tal-Shonar Malpua)", mohol: "desserts", role: "Heirloom Dessert Add-on" }
     ],
     zeroWasteMetric: "98% Whole Ingredient Utilization",
     pairingReason: `Crafted for a party of ${partySize} with ${spicePreference} aromatic seasoning. Aligned with traditional Bengali feast sequences starting with complimentary digestive broths, followed by artisan starters, celebratory slow-cooked polao combos, and rare heirloom confections.`

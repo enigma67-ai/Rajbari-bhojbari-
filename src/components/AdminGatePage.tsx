@@ -136,10 +136,10 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
             items: [
               { type: 'pass', name: 'Festival Eco-Pass (x1)', price: 349, qty: 1, status: 'Base Pass' },
-              { type: 'starter', mohol: 'BHOJ MOHOL', name: 'Murgir Jali Kebab (Non-Veg)', price: 0, qty: 1, status: 'Included with Pass' },
-              { type: 'mains', mohol: 'BHOJ MOHOL', name: 'Combo 1 (Chicken): Desi Murgir Fowl Curry + Cholar Daler Polao', price: 0, qty: 1, status: 'Included with Pass' },
+              { type: 'starter', mohol: 'BHOJ MOHOL', name: 'Raj Angan Jali Kebab (Non-Veg)', price: 0, qty: 1, status: 'Included with Pass' },
+              { type: 'mains', mohol: 'BHOJ MOHOL', name: 'Combo 1 (Chicken): Rajbari Deshi Fowl Kalia served with Cholar Dal Raj Polao', price: 0, qty: 1, status: 'Included with Pass' },
               { type: 'dessert', mohol: 'MOHINI MOHOL', name: 'Misti Mukh 4-Sweet Tasting Platter', price: 99, qty: 1, status: 'Dessert Add-on (+₹99)' },
-              { type: 'tasting_free', mohol: 'RURAL MOHOL', name: 'Rural Bengal Counter (9 Chulha Delicacies)', price: 0, qty: 1, status: 'Complimentary Tasting' },
+              { type: 'tasting_free', mohol: 'RURAL MOHOL', name: 'Rural Bengal Counter (10 Chulha Delicacies)', price: 0, qty: 1, status: 'Complimentary Tasting' },
             ],
           },
           {
@@ -162,8 +162,8 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
             items: [
               { type: 'pass', name: 'Festival Eco-Pass (x2)', price: 698, qty: 2, status: 'Base Passes' },
-              { type: 'starter', mohol: 'BHOJ MOHOL', name: 'Pat Patar Bora (Veg)', price: 0, qty: 2, status: 'Included with Pass' },
-              { type: 'mains', mohol: 'BHOJ MOHOL', name: 'Combo 4 (Veg): Moong Mohon Dal & Chanar Dolma + Polao', price: 0, qty: 2, status: 'Included with Pass' },
+              { type: 'starter', mohol: 'BHOJ MOHOL', name: 'Panchali Patpata Bora (Veg)', price: 0, qty: 2, status: 'Included with Pass' },
+              { type: 'mains', mohol: 'BHOJ MOHOL', name: 'Combo 4 (Veg): Moong Mohon Rajdal & Rajbari Chanar Shahi Dolma served with Aamsotto-Kachalonka Raj Polao', price: 0, qty: 2, status: 'Included with Pass' },
               { type: 'tasting_free', mohol: 'RURAL MOHOL', name: 'Rural Bengal Counter (Tok, Jhol, Ambol)', price: 0, qty: 2, status: 'Complimentary Tasting' },
             ],
           },
@@ -186,8 +186,8 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
             items: [
               { type: 'pass', name: 'Festival Eco-Pass (x1)', price: 349, qty: 1, status: 'Base Pass' },
-              { type: 'starter', mohol: 'BHOJ MOHOL', name: 'Amudi Maacher Piyaji (Non-Veg)', price: 0, qty: 1, status: 'Included with Pass' },
-              { type: 'mains', mohol: 'BHOJ MOHOL', name: 'Combo 2 (Fish): Katlar Suroba + Rajnandini Polao', price: 0, qty: 1, status: 'Included with Pass' },
+              { type: 'starter', mohol: 'BHOJ MOHOL', name: 'Nawab Bari Amudi Piyaji (Non-Veg)', price: 0, qty: 1, status: 'Included with Pass' },
+              { type: 'mains', mohol: 'BHOJ MOHOL', name: 'Combo 2 (Fish): Khiroda Katla Rajbhog served with Rajnandini Rajbhog Polao', price: 0, qty: 1, status: 'Included with Pass' },
             ],
           }
         ];

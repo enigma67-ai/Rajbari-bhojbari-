@@ -354,35 +354,36 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   // Step 2: Meal Selections (Included in ₹349/- base pass)
   const [welcomeDrink, setWelcomeDrink] = useState('Rural Bengal Counter (Full Complimentary Tasting)');
   const [starterType, setStarterType] = useState<StarterOptionType>('non_veg');
-  const [starterDish, setStarterDish] = useState('Murgir Jali Kebab (Non-Veg)');
+  const [starterDish, setStarterDish] = useState('Raj Angan Jali Kebab (Non-Veg)');
   
   const [mainsType, setMainsType] = useState<MainsOptionType>('non_veg_1');
-  const [mainsDish, setMainsDish] = useState('Combo 1 (Chicken): Desi Murgir Fowl Curry served with Cholar Daler Polao');
+  const [mainsDish, setMainsDish] = useState('Combo 1 (Chicken): Rajbari Deshi Fowl Kalia served with Cholar Dal Raj Polao');
 
   // Additional Combos & Starters & Tasting selections for Dynamic Pricing
   const [extraCombos, setExtraCombos] = useState<string[]>([]);
   const [extraStarters, setExtraStarters] = useState<string[]>([]);
   const [selectedTastingItems, setSelectedTastingItems] = useState<string[]>([
     'Tetuler Chatni',
-    'Chaltar Tok Jhol',
+    'Chaltar Tok Jhaal',
     'Kamrangar Chatni',
-    'Amrar Tok',
+    'Aamrar Tok',
   ]);
   const [selectedRuralItems, setSelectedRuralItems] = useState<string[]>([
-    'Dheki Chata Chaler Bhat',
-    'Atop Chaler Panta Bhat',
-    'Lau Pata Bata',
-    'Shile Bata Kancha Aam R Lonka',
-    'Mochar Bhorta',
-    'Potoler Kosha Bhorta',
-    'Musurdal NarkolER Bhorta',
-    'Kochur Loti Kucho Chingri Diye Bagan Chorchori',
-    'Til Bhapa',
+    'Dhekir Dhwani Rajbhog Bhat',
+    'Gramer Shital Panta',
+    'Sabuj Rajbari Lau Pata Bata',
+    'Shil-Nora Aam-Lonka Rosh',
+    'Sonar Bangla Mocha Bhorta',
+    'Rajkosh Potol Bhorta',
+    'Narkel-Mosur Madhur Bhorta',
+    'Baganbari Loti-Chingri Chorchori',
+    'Til-Tushar Bhapa',
+    'Rajbari Gathi Kochu Bhate',
   ]);
 
   // Step 2D: Dessert Add-on (₹99/-) - Optional (default: false)
   const [includeDessert, setIncludeDessert] = useState(false);
-  const [dessertDish, setDessertDish] = useState('Misti Mukh Platter (Piyazer Payes, Porochitroharini, PotolER Monohora, Tal Er Malpua)');
+  const [dessertDish, setDessertDish] = useState('Misti Mukh Platter (Piyaz Rajmadhuri Payesh, Porochitroharini Rajbhog, Potol Monohora Rajmukut, Tal-Shonar Malpua)');
 
   // Step 2: Payment Selection (Exclusively UPI QR via HDFC SmartHub Vyapar)
   const [paymentMethod, setPaymentMethod] = useState<'UPI_QR'>('UPI_QR');
@@ -560,9 +561,9 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const handleStarterTypeChange = (type: StarterOptionType) => {
     setStarterType(type);
     if (type === 'veg') {
-      setStarterDish('Pat Patar Bora (Veg)');
+      setStarterDish('Panchali Patpata Bora (Veg)');
     } else {
-      setStarterDish('Murgir Jali Kebab (Non-Veg)');
+      setStarterDish('Raj Angan Jali Kebab (Non-Veg)');
     }
   };
 
@@ -570,13 +571,13 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const handleMainsTypeChange = (type: MainsOptionType) => {
     setMainsType(type);
     if (type === 'veg') {
-      setMainsDish('Combo 4 (Veg): Moong Mohon Dal & Rajbarir Chanar Dolma served with Aamsotto Kachalonkar Polao');
+      setMainsDish('Combo 4 (Veg): Moong Mohon Rajdal & Rajbari Chanar Shahi Dolma served with Aamsotto-Kachalonka Raj Polao');
     } else if (type === 'non_veg_1') {
-      setMainsDish('Combo 1 (Chicken): Desi Murgir Fowl Curry served with Cholar Daler Polao');
+      setMainsDish('Combo 1 (Chicken): Rajbari Deshi Fowl Kalia served with Cholar Dal Raj Polao');
     } else if (type === 'non_veg_2') {
-      setMainsDish('Combo 2 (Fish): Khiroda Katla / Katlar Suroba served with Rajnandini Polao');
+      setMainsDish('Combo 2 (Fish): Khiroda Katla Rajbhog served with Rajnandini Rajbhog Polao');
     } else if (type === 'non_veg_3') {
-      setMainsDish('Combo 3 (Fish): Aar Macher Astomongola served with Kaju Kismis Basonti Polao');
+      setMainsDish('Combo 3 (Fish): Aathmongola Aar Rajras served with Kaju-Kismis Basanti Raj Polao');
     }
   };
 
@@ -1887,10 +1888,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { name: 'Tetuler Chatni', tag: 'Sweet & Tangy', desc: 'Wild tamarind & date palm jaggery' },
-                  { name: 'Chaltar Tok Jhol', tag: 'Cooling Broth', desc: 'Bruised elephant apple & wild turmeric' },
-                  { name: 'Kamrangar Chatni', tag: 'Native Starfruit', desc: 'Translucent starfruit & ginger relish' },
-                  { name: 'Amrar Tok', tag: 'Agrarian Cooler', desc: 'Hog plum soup with mustard seeds' },
+                  { name: 'Tetuler Chatni', tag: 'Sweet & Tangy', desc: 'Dark brown tamarind & coriander paste' },
+                  { name: 'Chaltar Tok Jhaal', tag: 'Reddish-Orange', desc: 'Elephant apple pulp & chili chutney' },
+                  { name: 'Kamrangar Chatni', tag: 'Star Slices', desc: 'Translucent yellow starfruit & ginger' },
+                  { name: 'Aamrar Tok', tag: 'Green Plums', desc: 'Whole hog plums in spiced light syrup' },
                 ].map((item) => {
                   const isChecked = selectedTastingItems.includes(item.name);
                   return (
@@ -1936,20 +1937,21 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-stone-400">
-                All 9 heirloom village preparations are prepared freshly on traditional wood-fired chulhas and stone shil-noras. Included with every festival pass at <strong>₹0</strong>:
+                All 10 heirloom village preparations are prepared freshly on traditional wood-fired chulhas and stone shil-noras. Included with every festival pass at <strong>₹0</strong>:
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {[
-                  { name: 'Dheki Chata Chaler Bhat', tag: 'Heirloom Rice', desc: 'Hand-pounded whole unpolished rice' },
-                  { name: 'Atop Chaler Panta Bhat', tag: 'Probiotic Feast', desc: 'Overnight fermented rice with mustard oil' },
-                  { name: 'Lau Pata Bata', tag: 'Zero-Waste Leaf', desc: 'Charred bottle gourd leaves on shil-nora' },
-                  { name: 'Shile Bata Kancha Aam R Lonka', tag: 'Fiery & Sour', desc: 'Raw mango mash with bird’s eye chilli' },
-                  { name: 'Mochar Bhorta', tag: 'Floral Delicacy', desc: 'Steamed banana flower with coconut & mustard' },
-                  { name: 'Potoler Kosha Bhorta', tag: 'Peel Upcycling', desc: 'Upcycled pointed gourd skins with kalonji' },
-                  { name: 'Musurdal NarkolER Bhorta', tag: 'Comfort Protein', desc: 'Dry-simmered lentils with roasted coconut' },
-                  { name: 'Kochur Loti Kucho Chingri Diye Bagan Chorchori', tag: 'Pond & Garden', desc: 'Colocasia stolons with small shrimp' },
-                  { name: 'Til Bhapa', tag: 'Banana Leaf', desc: 'Steamed sesame paste in leaf parcels' },
+                  { name: 'Dhekir Dhwani Rajbhog Bhat', tag: 'Heirloom Rice', desc: 'Hand-pounded whole unpolished rice' },
+                  { name: 'Gramer Shital Panta', tag: 'Probiotic Feast', desc: 'Overnight fermented rice with mustard oil' },
+                  { name: 'Sabuj Rajbari Lau Pata Bata', tag: 'Zero-Waste Leaf', desc: 'Charred bottle gourd leaves on shil-nora' },
+                  { name: 'Shil-Nora Aam-Lonka Rosh', tag: 'Fiery & Sour', desc: 'Raw mango mash with bird’s eye chilli' },
+                  { name: 'Sonar Bangla Mocha Bhorta', tag: 'Floral Delicacy', desc: 'Steamed banana flower with coconut & mustard' },
+                  { name: 'Rajkosh Potol Bhorta', tag: 'Peel Upcycling', desc: 'Upcycled pointed gourd skins with kalonji' },
+                  { name: 'Narkel-Mosur Madhur Bhorta', tag: 'Comfort Protein', desc: 'Dry-simmered lentils with roasted coconut' },
+                  { name: 'Baganbari Loti-Chingri Chorchori', tag: 'Pond & Garden', desc: 'Colocasia stolons with small shrimp' },
+                  { name: 'Til-Tushar Bhapa', tag: 'Banana Leaf', desc: 'Steamed sesame paste in leaf parcels' },
+                  { name: 'Rajbari Gathi Kochu Bhate', tag: 'Heritage Root', desc: 'Mashed arum tubers with mustard oil' },
                 ].map((item) => {
                   const isChecked = selectedRuralItems.includes(item.name);
                   return (
@@ -1996,32 +1998,32 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {[
                   {
-                    name: 'Murgir Jali Kebab (Non-Veg)',
-                    bengali: 'মুরগির জালি কাবাব',
+                    name: 'Raj Angan Jali Kebab (Non-Veg)',
+                    bengali: 'রাজ অঙ্গন জালি কাবাব',
                     type: 'non-veg',
                     desc: 'Minced chicken in fragrant shahi spices enveloped in a golden egg-lace (jali) web.',
                   },
                   {
-                    name: 'Amudi Maacher Piyaji (Non-Veg)',
-                    bengali: 'আমোদি মাছের পেঁয়াজি',
+                    name: 'Nawab Bari Amudi Piyaji (Non-Veg)',
+                    bengali: 'নবাব বাড়ি আমোদি পেঁয়াজি',
                     type: 'non-veg',
                     desc: 'Crisp golden river fritters of fresh local Amudi fish with sweet sliced onions & kalonji.',
                   },
                   {
-                    name: 'Pat Patar Bora (Veg)',
-                    bengali: 'পাট পাতার বড়া',
+                    name: 'Panchali Patpata Bora (Veg)',
+                    bengali: 'পাঁচালী পাটপাতা বড়া',
                     type: 'pure-veg',
                     desc: 'Tender fresh jute leaves crisp-fried in stone-ground rice flour and poppy seed batter.',
                   },
                   {
-                    name: 'Aamada Khoi Narkoler Chop / Chire Chinebadam Cutlet (Veg)',
-                    bengali: 'আম আদা খই নারকেলের চপ / কাটলেট',
+                    name: 'Aamrasa Narkel Raj-Chop (Veg)',
+                    bengali: 'আমড়াসা নারকেল রাজ-চপ',
                     type: 'pure-veg',
                     desc: 'Heritage croquettes of grated coconut, puffed khoi, and fragrant fresh mango-ginger.',
                   },
                   {
-                    name: 'Muchmuchea Shapla (Veg)',
-                    bengali: 'মুচমুচে শাপলা',
+                    name: 'Padma Prasad Shapla Crisp (Veg)',
+                    bengali: 'পদ্মা প্রসাদ শাপলা ক্রিস্প',
                     type: 'vegan',
                     desc: 'Crunchy golden fritters of wild water lily stems seasoned with roasted cumin and rock salt.',
                   },
@@ -2071,11 +2073,11 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1">
                   {[
-                    'Murgir Jali Kebab (Non-Veg)',
-                    'Amudi Maacher Piyaji (Non-Veg)',
-                    'Pat Patar Bora (Veg)',
-                    'Aamada Khoi Narkoler Chop / Chire Chinebadam Cutlet (Veg)',
-                    'Muchmuchea Shapla (Veg)',
+                    'Raj Angan Jali Kebab (Non-Veg)',
+                    'Nawab Bari Amudi Piyaji (Non-Veg)',
+                    'Panchali Patpata Bora (Veg)',
+                    'Aamrasa Narkel Raj-Chop (Veg)',
+                    'Padma Prasad Shapla Crisp (Veg)',
                   ].map((starter) => {
                     const isExtraSelected = extraStarters.includes(starter);
                     return (
@@ -2118,29 +2120,29 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 {[
                   {
                     key: 'combo-1',
-                    name: 'Combo 1 (Chicken): Desi Murgir Fowl Curry served with Cholar Daler Polao',
-                    bengali: 'কম্বো ১ (মুরগি): দেশি মুরগির ফাউল কারি + ছোলার ডালের পোলাও',
+                    name: 'Combo 1 (Chicken): Rajbari Deshi Fowl Kalia served with Cholar Dal Raj Polao',
+                    bengali: 'কম্বো ১ (মুরগি): রাজবাড়ি দেশি ফাউল কালিয়া + ছোলার ডাল রাজ পোলাও',
                     type: 'non-veg',
                     desc: 'Slow-simmered rustic country chicken in whole-spice gravy with Gobindobhog polao cooked with cholar dal & ghee.',
                   },
                   {
                     key: 'combo-2',
-                    name: 'Combo 2 (Fish): Khiroda Katla / Katlar Suroba served with Rajnandini Polao',
-                    bengali: 'কম্বো ২ (মাছ): ক্ষীরোদা কাতলা / কাতলার সুরোবা + রাজনন্দিনী পোলাও',
+                    name: 'Combo 2 (Fish): Khiroda Katla Rajbhog served with Rajnandini Rajbhog Polao',
+                    bengali: 'কম্বো ২ (মাছ): ক্ষীরোদা কাতলা রাজভোগ + রাজনন্দিনী রাজভোগ পোলাও',
                     type: 'non-veg',
                     desc: 'Prime river Katla fish in velvety reduced milk and saffron broth, paired with fragrant Rajnandini polao.',
                   },
                   {
                     key: 'combo-3',
-                    name: 'Combo 3 (Fish): Aar Macher Astomongola served with Kaju Kismis Basonti Polao',
-                    bengali: 'কম্বো ৩ (মাছ): আড় মাছের অষ্টমঙ্গল + কাজু কিসমিস বাসন্তী পোলাও',
+                    name: 'Combo 3 (Fish): Aathmongola Aar Rajras served with Kaju-Kismis Basanti Raj Polao',
+                    bengali: 'কম্বো ৩ (মাছ): আটমঙ্গলা আড় রাজরস + কাজু-কিসমিস বাসন্তী রাজ পোলাও',
                     type: 'non-veg',
                     desc: 'River Aar fish in festive eight-spice gravy with golden sweet Basanti polao laden with cashews & raisins.',
                   },
                   {
                     key: 'combo-4',
-                    name: 'Combo 4 (Veg): Moong Mohon Dal & Rajbarir Chanar Dolma served with Aamsotto Kachalonkar Polao',
-                    bengali: 'কম্বো ৪ (নিরামিষ): মুগ মোহন ডাল ও রাজবাড়ির ছানার ডোলমা + আমসত্ত্ব কাঁচালঙ্কার পোলাও',
+                    name: 'Combo 4 (Veg): Moong Mohon Rajdal & Rajbari Chanar Shahi Dolma served with Aamsotto-Kachalonka Raj Polao',
+                    bengali: 'কম্বো ৪ (নিরামিষ): মুগ মোহন রাজডাল ও রাজবাড়ি ছানার শাহি ডোলমা + আমসত্ত্ব-কাঁচালঙ্কা রাজ পোলাও',
                     type: 'pure-veg',
                     desc: 'Stuffed artisan chhana dolma in royal gravy with mango-leather & green chilli aromatic Gobindobhog polao.',
                   },
@@ -2189,10 +2191,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                   {[
-                    { key: 'extra-1', name: 'Combo 1 (Chicken): Desi Murgir Fowl Curry served with Cholar Daler Polao' },
-                    { key: 'extra-2', name: 'Combo 2 (Fish): Khiroda Katla / Katlar Suroba served with Rajnandini Polao' },
-                    { key: 'extra-3', name: 'Combo 3 (Fish): Aar Macher Astomongola served with Kaju Kismis Basonti Polao' },
-                    { key: 'extra-4', name: 'Combo 4 (Veg): Moong Mohon Dal & Rajbarir Chanar Dolma served with Aamsotto Kachalonkar Polao' },
+                    { key: 'extra-1', name: 'Combo 1 (Chicken): Rajbari Deshi Fowl Kalia served with Cholar Dal Raj Polao' },
+                    { key: 'extra-2', name: 'Combo 2 (Fish): Khiroda Katla Rajbhog served with Rajnandini Rajbhog Polao' },
+                    { key: 'extra-3', name: 'Combo 3 (Fish): Aathmongola Aar Rajras served with Kaju-Kismis Basanti Raj Polao' },
+                    { key: 'extra-4', name: 'Combo 4 (Veg): Moong Mohon Rajdal & Rajbari Chanar Shahi Dolma served with Aamsotto-Kachalonka Raj Polao' },
                   ].map((extra) => {
                     const isExtraSelected = extraCombos.includes(extra.name);
                     return (
@@ -2236,7 +2238,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                       </span>
                     </div>
                     <div className="text-xs text-stone-300">
-                      An exquisite 4-sweet heirloom platter: Piyazer Payes, Porochitroharini, PotolER Monohora, and Tal Er Malpua.
+                      An exquisite 4-sweet heirloom platter: Piyaz Rajmadhuri Payesh, Porochitroharini Rajbhog, Potol Monohora Rajmukut, and Tal-Shonar Malpua.
                     </div>
                   </div>
                 </div>
@@ -2262,19 +2264,19 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-stone-300">
                     <div className="p-2 rounded-lg bg-stone-950/70 border border-stone-800">
-                      <span className="font-semibold text-emerald-200 block">Piyazer Payes</span>
+                      <span className="font-semibold text-emerald-200 block">Piyaz Rajmadhuri Payesh</span>
                       <span className="text-[10px] text-stone-400">Caramelised onion kheer</span>
                     </div>
                     <div className="p-2 rounded-lg bg-stone-950/70 border border-stone-800">
-                      <span className="font-semibold text-emerald-200 block">Porochitroharini</span>
+                      <span className="font-semibold text-emerald-200 block">Porochitroharini Rajbhog</span>
                       <span className="text-[10px] text-stone-400">Royal heirloom confection</span>
                     </div>
                     <div className="p-2 rounded-lg bg-stone-950/70 border border-stone-800">
-                      <span className="font-semibold text-emerald-200 block">PotolER Monohora</span>
+                      <span className="font-semibold text-emerald-200 block">Potol Monohora Rajmukut</span>
                       <span className="text-[10px] text-stone-400">Sweet stuffed pointed gourd</span>
                     </div>
                     <div className="p-2 rounded-lg bg-stone-950/70 border border-stone-800">
-                      <span className="font-semibold text-emerald-200 block">Tal Er Malpua</span>
+                      <span className="font-semibold text-emerald-200 block">Tal-Shonar Malpua</span>
                       <span className="text-[10px] text-stone-400">Ripe palmyra palm crepes</span>
                     </div>
                   </div>
@@ -2926,7 +2928,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                       </div>
                       {generatedPass.includeDessert && (
                         <div className="text-amber-300 font-semibold">
-                          • <strong>Dessert Add-On (+₹99/-):</strong> Misti Mukh Platter (Piyazer Payes, Porochitroharini, PotolER Monohora, Tal Er Malpua)
+                          • <strong>Dessert Add-On (+₹99/-):</strong> Misti Mukh Platter (Piyaz Rajmadhuri Payesh, Porochitroharini Rajbhog, Potol Monohora Rajmukut, Tal-Shonar Malpua)
                         </div>
                       )}
                     </div>
