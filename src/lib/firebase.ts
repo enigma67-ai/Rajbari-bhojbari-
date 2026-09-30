@@ -8,7 +8,7 @@ import {
   type User 
 } from 'firebase/auth';
 import { 
-  getFirestore, 
+  initializeFirestore, 
   doc, 
   getDoc, 
   setDoc, 
@@ -29,9 +29,10 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export { onAuthStateChanged, type User };
 
-// Always pass databaseId from config
-export const db = getFirestore(
+// Initialize Firestore with long-polling auto-detection to prevent WebSocket connection failures
+export const db = initializeFirestore(
   app, 
+  { experimentalAutoDetectLongPolling: true },
   firebaseConfig.firestoreDatabaseId || '(default)'
 );
 
@@ -40,16 +41,18 @@ export async function testFirestoreConnection(): Promise<boolean> {
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
     return true;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('Firebase client is offline, check connection.');
+  } catch (error: any) {
+    if (
+      error?.code === 'unavailable' || 
+      (error instanceof Error && (error.message.includes('client is offline') || error.message.includes('Could not reach')))
+    ) {
+      console.warn('Firebase client operating in offline mode.');
       return false;
     }
     // Expected if document doesn't exist, but connection to server succeeded
     return true;
   }
 }
-testFirestoreConnection();
 
 // Google Sign In
 export async function signInWithGoogle() {

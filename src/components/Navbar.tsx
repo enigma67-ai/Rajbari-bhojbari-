@@ -19,6 +19,7 @@ import { IAMChefLogo } from './IAMChefLogo';
 
 interface NavbarProps {
   cartCount?: number;
+  cartTotal?: number;
   userBookingsCount?: number;
   onOpenCart: () => void;
   onOpenAuth: () => void;
@@ -30,6 +31,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   cartCount = 0,
+  cartTotal = 0,
   userBookingsCount = 0,
   onOpenCart,
   onOpenAuth,
@@ -121,14 +123,27 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </button>
 
-            {/* Cart / Smart Plate Drawer Button (No counter badge as requested) */}
+            {/* Cart / Smart Plate Drawer Button with Live Counter & Total Value Display */}
             <button
               id="nav-cart-btn"
               onClick={onOpenCart}
-              className="p-2 sm:p-2.5 rounded-xl bg-red-950/60 border border-amber-500/30 text-stone-200 hover:text-amber-300 hover:border-amber-400 transition-colors cursor-pointer shrink-0"
+              className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-red-950 via-[#2a080d] to-stone-900 border border-amber-500/50 hover:border-amber-400 text-stone-200 hover:text-amber-300 transition-all cursor-pointer shrink-0 shadow-md group"
               title="View Smart Plate / Cart"
             >
-              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300" />
+              <div className="relative flex items-center justify-center shrink-0">
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 group-hover:scale-110 transition-transform" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2.5 bg-emerald-500 text-stone-950 font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm animate-pulse">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col text-left leading-none">
+                <span className="text-[9px] uppercase font-bold text-amber-300/80 hidden xs:block">Plate</span>
+                <span className="text-xs sm:text-sm font-black font-mono text-amber-300">
+                  ₹{cartTotal}
+                </span>
+              </div>
             </button>
 
             {/* Primary Action Button: 'Booking Pass' */}
@@ -144,9 +159,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Gate Staff Admin Portal Trigger */}
             <button
               id="nav-admin-portal-btn"
-              onClick={onOpenAuth}
+              onClick={() => onNavClick('admin')}
               className="p-2 sm:p-2.5 rounded-xl bg-stone-900/80 border border-amber-500/30 text-amber-400 hover:text-amber-200 hover:border-amber-400 transition-colors cursor-pointer shrink-0"
-              title="Gate Staff Admin Login"
+              title="Gate Staff Admin Portal"
             >
               <KeyRound className="w-4 h-4" />
             </button>
@@ -213,17 +228,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               );
             })}
 
-            {/* Mobile Admin Staff Login */}
+            {/* Mobile Admin Staff Portal */}
             <button
               id="mobile-nav-admin-login-btn"
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenAuth();
+                onNavClick('admin');
               }}
               className="w-full mt-2 flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold text-amber-400 hover:text-amber-300 bg-black/50 border border-amber-500/30 text-left cursor-pointer"
             >
               <KeyRound className="w-4 h-4 text-amber-400" />
-              <span>Gate Staff Admin Login</span>
+              <span>Gate Staff Admin Portal</span>
             </button>
           </div>
         )}

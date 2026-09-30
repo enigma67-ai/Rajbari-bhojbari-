@@ -82,8 +82,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   onCelebration,
   onOpenDPDPPolicy,
 }) => {
-  // Step tracker: 1: Auth -> 2: Details -> 3: Payment -> 4: Pass -> 5: Meal
-  const [currentStep, setCurrentStep] = useState<'auth' | 'otp' | 'details' | 'meal' | 'payment' | 'pass'>('auth');
+  // Step tracker: 1: Details -> 2: Payment -> 3: Pass -> 4: Meal (Public Guest Checkout)
+  const [currentStep, setCurrentStep] = useState<'details' | 'meal' | 'payment' | 'pass' | 'auth' | 'otp'>('details');
   const [isCelebrationModalOpen, setIsCelebrationModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -453,8 +453,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const isSlotFilled = Boolean(slot);
   const isQuantityValid = quantity >= 1;
 
-  // Comprehensive Step 1 validation check including mandatory DPDP Act 2023 Consent
-  const isStep1Valid = isNameValid && isPhoneValid && isEmailValid && isUserAuthenticated && isSlotFilled && isQuantityValid && dpdpConsent;
+  // Comprehensive Step 1 validation check including mandatory DPDP Act 2023 Consent (Public Guest Checkout)
+  const isStep1Valid = isNameValid && isPhoneValid && isEmailValid && isSlotFilled && isQuantityValid && dpdpConsent;
 
   // Dynamic inline error hints for touched fields
   const nameError = formErrors.name || (touched.name
@@ -490,8 +490,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const cleanUtr = upiUtr.replace(/\D/g, '');
   const isUtrValid = /^\d{12}$/.test(cleanUtr);
 
-  // Payment is unlocked when details are complete, user is logged in, and valid 12-digit UTR is entered
-  const isReadyToPay = isBookingDetailsComplete && isUserLoggedIn && isUtrValid;
+  // Payment is unlocked when details are complete and valid 12-digit UTR is entered (Guest checkout supported)
+  const isReadyToPay = isBookingDetailsComplete && isUtrValid;
 
   const handleCopyMerchantTid = () => {
     navigator.clipboard.writeText('62903194');
@@ -503,18 +503,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const handleValidateDetails = (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({ name: true, phone: true, email: true });
-
-    if (!isUserAuthenticated) {
-      const targetEmail = (email || otpEmail).trim().toLowerCase();
-      if (targetEmail && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(targetEmail)) {
-        setOtpEmail(targetEmail);
-        handleSendEmailOtp(undefined, targetEmail);
-      } else {
-        setOtpStatusMsg({ type: 'error', text: 'Please enter a valid email address to receive your 6-digit OTP.' });
-        document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
-      }
-      return;
-    }
 
     if (!dpdpConsent) {
       return;
@@ -639,16 +627,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
   // Final Confirmation & Payment Process for UPI QR
   const handleExecutePayment = async () => {
-    // 1. Strict Login Gate: User MUST be authenticated before submitting payment
-    if (!isUserAuthenticated) {
-      setCurrentStep('details');
-      setIsOtpSent(true);
-      setOtpStatusMsg({ type: 'error', text: 'Please verify your session with the 6-digit OTP code before proceeding to payment.' });
-      document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
-
-    // 2. Strict 12-digit numeric UTR validation
+    // 1. Strict 12-digit numeric UTR validation
     const cleanUtrDigits = upiUtr.replace(/\D/g, '');
     if (!/^\d{12}$/.test(cleanUtrDigits)) {
       setUtrError('Please enter a valid 12-digit numeric UPI reference / UTR number from your payment receipt.');
@@ -656,7 +635,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     }
     setUtrError(null);
 
-    // 3. Strict Zod Schema Validation & Sanitization
+    // 2. Strict Zod Schema Validation & Sanitization
     const validationResult = bookingAttendeeSchema.safeParse({
       name,
       phone,
@@ -831,6 +810,12 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       ).trim();
 
       const emailTemplateParams: Record<string, any> = {
+        // Raw data variables for EmailJS template
+        customer_name: recipientName,
+        qr_code_url: bookedPass.qrCodeUrl,
+        booking_id: bookedPass.id,
+        ticket_count: bookedPass.ticketQuantity,
+
         // Recipient email aliases: comprehensive mapping to ensure any EmailJS template configuration receives the email
         customer_email: recipientEmail,
         to_email: recipientEmail,
@@ -843,7 +828,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         to: recipientEmail,
 
         // Recipient name aliases
-        customer_name: recipientName,
         to_name: recipientName,
         guest_name: recipientName,
         user_name: recipientName,
@@ -856,7 +840,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         phone: recipientPhone,
 
         // Booking details
-        booking_id: bookedPass.id, // e.g., RB-2026-XXXXX
         pass_id: bookedPass.id,
         order_id: bookedPass.id,
         total_amount: `₹${bookedPass.totalAmount}/-`,
@@ -868,7 +851,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
         pass_count: bookedPass.ticketQuantity,
         ticket_quantity: bookedPass.ticketQuantity,
         quantity: bookedPass.ticketQuantity,
-        qr_code_url: bookedPass.qrCodeUrl,
         qr_code_link: bookedPass.qrCodeUrl,
         starter_dish: bookedPass.starterDish || 'Included Starter',
         mains_dish: bookedPass.mainsDish || 'Included Main Course Combo',
@@ -1027,7 +1009,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 right-0 w-80 h-80 bg-red-950/30 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative max-w-5xl mx-auto space-y-8">
+      <div className="relative max-w-7xl w-full mx-auto space-y-8">
         
         {/* Section Header */}
         <div className="text-center space-y-3">
@@ -1075,46 +1057,26 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
         {/* Multi-Step Indicator Bar with smooth transitions */}
         <div className="max-w-3xl mx-auto bg-[#180406] border border-amber-500/30 rounded-2xl p-2 sm:p-3 shadow-md transition-all duration-300">
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-1 sm:gap-2 text-center text-[11px] sm:text-xs">
-            {/* Step 1 Pill: Auth */}
-            <button
-              type="button"
-              onClick={() => currentStep !== 'pass' && currentStep !== 'meal' && setCurrentStep('auth')}
-              className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
-                currentStep === 'auth' || currentStep === 'otp'
-                  ? 'bg-amber-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] font-black scale-[1.02]'
-                  : isUserAuthenticated
-                  ? 'text-emerald-400 hover:text-emerald-300'
-                  : 'text-stone-400 hover:text-amber-200'
-              }`}
-            >
-              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">1</span>
-              <span>{isUserAuthenticated ? '1. Auth ✓' : '1. Auth (OTP)'}</span>
-            </button>
-
-            {/* Step 2 Pill: Guest Details */}
+          <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[11px] sm:text-xs">
+            {/* Step 1 Pill: Guest Details */}
             <button
               type="button"
               onClick={() => {
-                if (isUserAuthenticated && currentStep !== 'pass' && currentStep !== 'meal') {
+                if (currentStep !== 'pass' && currentStep !== 'meal') {
                   setCurrentStep('details');
-                } else if (!isUserAuthenticated) {
-                  setCurrentStep('auth');
                 }
               }}
-              className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 ${
+              className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                 currentStep === 'details'
                   ? 'bg-amber-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] font-black scale-[1.02]'
-                  : isUserAuthenticated && currentStep !== 'pass'
-                  ? 'text-stone-300 hover:text-amber-300 cursor-pointer'
-                  : 'text-stone-600 cursor-not-allowed opacity-60'
+                  : 'text-stone-300 hover:text-amber-300'
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">2</span>
-              <span>2. Guest Details</span>
+              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">1</span>
+              <span>1. Guest Details</span>
             </button>
 
-            {/* Step 3 Pill: Payment */}
+            {/* Step 2 Pill: Payment */}
             <button
               type="button"
               onClick={() => {
@@ -1132,11 +1094,11 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   : 'text-stone-600 cursor-not-allowed opacity-60'
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">3</span>
-              <span>3. UPI Payment</span>
+              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">2</span>
+              <span>2. UPI Payment</span>
             </button>
 
-            {/* Step 4 Pill: Pass */}
+            {/* Step 3 Pill: Pass */}
             <button
               type="button"
               onClick={() => {
@@ -1153,11 +1115,11 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   : 'text-stone-600 cursor-not-allowed opacity-60'
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">4</span>
-              <span>4. Digital Pass</span>
+              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">3</span>
+              <span>3. Digital Pass</span>
             </button>
 
-            {/* Step 5 Pill: Feast Choice */}
+            {/* Step 4 Pill: Feast Choice */}
             <button
               type="button"
               onClick={() => {
@@ -1166,7 +1128,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 }
               }}
               disabled={!generatedPass}
-              className={`hidden sm:flex py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 ${
+              className={`py-2 px-1 sm:px-2 rounded-xl font-bold transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 ${
                 currentStep === 'meal'
                   ? 'bg-amber-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] font-black scale-[1.02]'
                   : generatedPass
@@ -1174,8 +1136,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   : 'text-stone-600 cursor-not-allowed opacity-60'
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">5</span>
-              <span>Feast Choice</span>
+              <span className="w-4 h-4 rounded-full bg-black/30 text-[10px] flex items-center justify-center font-mono">4</span>
+              <span>4. Feast Choice</span>
             </button>
           </div>
         </div>
@@ -1489,14 +1451,14 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold text-emerald-200 flex items-center gap-2">
                   <User className="w-5 h-5 text-emerald-400" />
-                  <span>Step 2: Mandatory Guest Details</span>
+                  <span>Step 1: Guest Details & Pass Selection</span>
                 </h3>
                 <p className="text-xs text-stone-400 mt-1">
                   Required for gate security verification and automated digital pass issuance.
                 </p>
               </div>
               <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 text-xs font-bold font-mono">
-                Step 2 of 3
+                Step 1 of 2
               </span>
             </div>
 
@@ -1802,31 +1764,19 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 </label>
               </div>
 
-              {/* Step 2 Buttons: Back to Step 1 & Proceed to Step 3 */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentStep('auth');
-                    document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="px-5 py-3.5 rounded-xl bg-stone-950 hover:bg-stone-800 border border-stone-700 text-stone-300 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Back to Step 1: Auth</span>
-                </button>
-
+              {/* Step 1 Submit Button: Proceed to Step 2 */}
+              <div className="pt-2">
                 <button
                   id="ticket-step1-continue-btn"
                   type="submit"
                   disabled={!isStep1Valid}
-                  className={`flex-1 py-4 px-6 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 ${
+                  className={`w-full py-4 px-6 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 ${
                     isStep1Valid
                       ? 'bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-stone-950 cursor-pointer active:scale-98 shadow-emerald-900/30'
                       : 'bg-stone-800 text-stone-500 border border-stone-700/60 cursor-not-allowed opacity-70'
                   }`}
                 >
-                  <span>Proceed to Step 3: UPI Payment (₹{grandTotal}/-)</span>
+                  <span>Proceed to Step 2: UPI Payment (₹{grandTotal}/-)</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -1835,9 +1785,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 <div className="text-[11px] text-center text-amber-400/90 flex items-center justify-center gap-1.5 pt-1">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>
-                    {!isUserAuthenticated
-                      ? 'Please verify your email via OTP in Step 1 to continue.'
-                      : !dpdpConsent
+                    {!dpdpConsent
                       ? 'Please check the mandatory DPDP Act consent box to proceed.'
                       : 'Complete Full Name (≥3 chars), 10-digit Phone, and valid Email to proceed.'}
                   </span>
@@ -2393,7 +2341,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold text-amber-200 flex items-center gap-2">
                   <QrCode className="w-5 h-5 text-amber-400" />
-                  <span>Step 3: UPI QR Payment & Confirmation</span>
+                  <span>Step 2: UPI QR Payment & Confirmation</span>
                 </h3>
                 <p className="text-xs text-stone-400 mt-1">
                   Scan verified HDFC SmartHub Vyapar QR and enter your 12-digit UPI UTR number.
@@ -2402,7 +2350,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
 
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 text-xs font-bold font-mono">
-                  Step 3 of 3
+                  Step 2 of 2
                 </span>
                 <span className="font-mono text-xs font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-1 rounded-full">
                   {quantity} {quantity === 1 ? 'Pass' : 'Passes'}

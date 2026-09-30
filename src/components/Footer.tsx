@@ -68,7 +68,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot, onOpe
           </ul>
         </div>
 
-        {/* Quick Links */}
+        {/* Smart Features */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
             <Cpu className="w-3.5 h-3.5 text-emerald-400" />
@@ -77,28 +77,33 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot, onOpe
           <ul className="space-y-1.5 text-stone-300 text-xs">
             <li>
               <button onClick={() => onNavClick('ticket-booking')} className="hover:text-amber-300 transition-colors cursor-pointer">
-                Booking Pass & Meal Vouchers
+                Booking Pass
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('schedule-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
-                AI Schedule & Live Workshops
+              <button onClick={onOpenBhojBot} className="hover:text-amber-300 transition-colors cursor-pointer">
+                AI Games
               </button>
             </li>
             <li>
               <button onClick={onOpenBhojBot} className="hover:text-blue-300 transition-colors flex items-center gap-1.5 cursor-pointer">
                 <Bot className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-blue-400 font-semibold">Bhoj-Bot AI Culinary Concierge</span>
+                <span className="text-blue-400 font-semibold">Bhoj Bot</span>
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('feedback-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
-                Eco Guestbook & Feedback
+              <button onClick={() => onNavClick('menu-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
+                QR-led stories & AI interaction
               </button>
             </li>
             <li>
               <button onClick={() => onNavClick('contact-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
-                Campus Location & Eco-Transit
+                Campus Location
+              </button>
+            </li>
+            <li>
+              <button onClick={() => onNavClick('feedback-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
+                Feedback
               </button>
             </li>
             {onOpenDPDPPolicy && (

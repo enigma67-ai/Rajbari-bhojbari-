@@ -9,7 +9,8 @@ import {
   Bot, 
   ShieldCheck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from 'lucide-react';
 import { MenuItem } from '../types';
 
@@ -17,6 +18,7 @@ interface DishDetailModalProps {
   dish: MenuItem | null;
   onClose: () => void;
   onAddToCart: (dish: MenuItem) => void;
+  onBuyNow?: (dish: MenuItem) => void;
   onAskBhojBot: (dish: MenuItem) => void;
 }
 
@@ -24,6 +26,7 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
   dish,
   onClose,
   onAddToCart,
+  onBuyNow,
   onAskBhojBot,
 }) => {
   return (
@@ -98,7 +101,9 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-4 py-3 px-4 rounded-xl bg-stone-900/80 border border-amber-500/25">
                 <div>
                   <span className="text-xs text-stone-400 uppercase tracking-wider block">Festival Price</span>
-                  <span className="text-2xl font-bold text-amber-300">₹{dish.price}</span>
+                  <span className="text-2xl font-bold text-amber-300">
+                    {dish.price === 0 ? '₹ Complementary' : `₹${dish.price}`}
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -192,11 +197,29 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                     onAddToCart(dish);
                     onClose();
                   }}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-sm shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all cursor-pointer"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-sm shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add to Eco Plate (₹{dish.price})</span>
+                  <span>
+                    {dish.price === 0 ? 'Add to Plate (₹ Complementary)' : `Add to Plate (₹${dish.price})`}
+                  </span>
                 </motion.button>
+
+                {onBuyNow && (
+                  <motion.button
+                    id="modal-buy-now-btn"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      onClose();
+                      onBuyNow(dish);
+                    }}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-stone-950 font-black text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all cursor-pointer"
+                  >
+                    <Zap className="w-4 h-4 fill-stone-950" />
+                    <span>Buy Now</span>
+                  </motion.button>
+                )}
               </div>
 
             </div>

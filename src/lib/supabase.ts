@@ -605,7 +605,7 @@ export async function updateBookingGateVerification(
       if ((item.booking_id || item.bookingId) === bookingId) {
         return {
           ...item,
-          status: verified ? 'confirmed' : 'pending',
+          status: verified ? 'admitted' : 'pending',
           payment_status: verified ? 'confirmed' : 'paid',
           verified_at_gate: verified,
           verified_at_gate_time: verified ? timestamp : null,
@@ -614,6 +614,49 @@ export async function updateBookingGateVerification(
       return item;
     });
     localStorage.setItem('rb_supabase_purchase_history', JSON.stringify(updated));
+  } catch (_) {}
+
+  return { success: true };
+}
+
+/**
+ * Permanently deletes a booking record from Supabase `bookings` table and local backups.
+ */
+export async function deleteBookingFromSupabase(
+  bookingId: string
+): Promise<{ success: boolean; error?: string }> {
+  const client = getSupabaseClient();
+
+  if (client) {
+    try {
+      const { error } = await client
+        .from('bookings')
+        .delete()
+        .eq('booking_id', bookingId);
+
+      if (error) {
+        console.warn('Supabase delete booking warning, trying purchase_history:', error.message);
+        await client
+          .from('purchase_history')
+          .delete()
+          .eq('booking_id', bookingId);
+      } else {
+        console.log(`[Supabase] Booking ${bookingId} permanently deleted.`);
+      }
+    } catch (e: any) {
+      console.warn('Failed to delete booking from Supabase:', e);
+    }
+  }
+
+  // Remove from local storage backups
+  try {
+    const local = JSON.parse(localStorage.getItem('rb_supabase_purchase_history') || '[]');
+    const updated = local.filter((item: any) => (item.booking_id || item.bookingId) !== bookingId);
+    localStorage.setItem('rb_supabase_purchase_history', JSON.stringify(updated));
+
+    const verifiedSaved = JSON.parse(localStorage.getItem('rb_gate_verified_bookings') || '{}');
+    delete verifiedSaved[bookingId];
+    localStorage.setItem('rb_gate_verified_bookings', JSON.stringify(verifiedSaved));
   } catch (_) {}
 
   return { success: true };

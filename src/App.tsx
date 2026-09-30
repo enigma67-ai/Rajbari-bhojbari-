@@ -87,6 +87,7 @@ export default function App() {
 
   // Modal Open States
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'guest' | 'admin'>('guest');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isBhojBotOpen, setIsBhojBotOpen] = useState(false);
@@ -95,6 +96,9 @@ export default function App() {
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [bhojBotInitialQuery, setBhojBotInitialQuery] = useState<string>('');
   const [celebrationData, setCelebrationData] = useState<CelebrationData | null>(null);
+  const [pendingDishToAdd, setPendingDishToAdd] = useState<MenuItem | null>(null);
+  const [shouldOpenCartOnLogin, setShouldOpenCartOnLogin] = useState(false);
+  const [openCartOnLogin, setOpenCartOnLogin] = useState(false);
 
   // Persist Cart
   useEffect(() => {
@@ -283,8 +287,39 @@ export default function App() {
     }
   };
 
+  // Fulfill pending dish add-to-cart or buy-now after guest logs in successfully
+  useEffect(() => {
+    if (currentUser && pendingDishToAdd) {
+      const dish = pendingDishToAdd;
+      setPendingDishToAdd(null);
+      setCart((prev) => {
+        const existing = prev.find((item) => item.dish.id === dish.id);
+        if (existing) {
+          return prev.map((item) =>
+            item.dish.id === dish.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
+        }
+        return [...prev, { dish, quantity: 1 }];
+      });
+
+      if (openCartOnLogin) {
+        setOpenCartOnLogin(false);
+        setIsCartOpen(true);
+      }
+    }
+  }, [currentUser, pendingDishToAdd, openCartOnLogin]);
+
   // Cart operations
   const handleAddToCart = (dish: MenuItem) => {
+    if (!currentUser) {
+      setPendingDishToAdd(dish);
+      setAuthModalMode('guest');
+      setIsAuthOpen(true);
+      return;
+    }
+
     setCart((prev) => {
       const existing = prev.find((item) => item.dish.id === dish.id);
       if (existing) {
@@ -298,7 +333,27 @@ export default function App() {
     });
   };
 
+  const handleBuyNow = (dish: MenuItem) => {
+    if (!currentUser) {
+      setPendingDishToAdd(dish);
+      setOpenCartOnLogin(true);
+      setAuthModalMode('guest');
+      setIsAuthOpen(true);
+      return;
+    }
+
+    handleAddToCart(dish);
+    setIsCartOpen(true);
+  };
+
   const handleAddMultipleToCart = (dishes: MenuItem[]) => {
+    if (!currentUser) {
+      if (dishes.length > 0) setPendingDishToAdd(dishes[0]);
+      setAuthModalMode('guest');
+      setIsAuthOpen(true);
+      return;
+    }
+
     setCart((prev) => {
       const newCart = [...prev];
       for (const dish of dishes) {
@@ -314,6 +369,12 @@ export default function App() {
   };
 
   const handleUpdateQuantity = (dishId: string, delta: number) => {
+    if (delta > 0 && !currentUser) {
+      setAuthModalMode('guest');
+      setIsAuthOpen(true);
+      return;
+    }
+
     setCart((prev) =>
       prev
         .map((item) => {
@@ -401,16 +462,21 @@ export default function App() {
   };
 
   const cartTotalCount = cart.reduce((acc, i) => acc + i.quantity, 0);
+  const cartTotalAmount = cart.reduce((acc, i) => acc + (i.dish.price * i.quantity), 0);
 
   return (
-    <div className="min-h-screen bg-[#120305] text-amber-50 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950">
+    <div className="min-h-screen w-full bg-[#120305] text-amber-50 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950 overflow-x-hidden">
       
       {/* Navigation Header */}
       <Navbar
         cartCount={cartTotalCount}
+        cartTotal={cartTotalAmount}
         userBookingsCount={userBookings.length}
         onOpenCart={() => setIsCartOpen(true)}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => {
+          setAuthModalMode('guest');
+          setIsAuthOpen(true);
+        }}
         onOpenBhojBot={() => {
           setBhojBotInitialQuery('');
           setIsBhojBotOpen(true);
@@ -438,7 +504,10 @@ export default function App() {
         <TicketBookingSection
           currentUser={currentUser}
           onPassBooked={(pass) => setUserTickets((prev) => [pass, ...prev])}
-          onOpenAuth={() => setIsAuthOpen(true)}
+          onOpenAuth={() => {
+            setAuthModalMode('guest');
+            setIsAuthOpen(true);
+          }}
           onCelebration={(data) => setCelebrationData(data)}
           onOpenDPDPPolicy={() => setIsDPDPModalOpen(true)}
         />
@@ -447,6 +516,7 @@ export default function App() {
         <MenuSection
           onSelectDish={(dish) => setSelectedDish(dish)}
           onAddToCart={handleAddToCart}
+          onBuyNow={handleBuyNow}
           onUpdateQuantity={handleUpdateQuantity}
           cart={cart}
           onOpenPlateSuggester={() => setIsPlateSuggesterOpen(true)}
@@ -458,7 +528,10 @@ export default function App() {
         {/* Feedback & Guestbook Section */}
         <FeedbackSection
           currentUser={currentUser}
-          onOpenAuth={() => setIsAuthOpen(true)}
+          onOpenAuth={() => {
+            setAuthModalMode('guest');
+            setIsAuthOpen(true);
+          }}
         />
 
         {/* Contact & Venue Information Section */}
@@ -473,15 +546,12 @@ export default function App() {
           id="floating-booking-pass-btn"
           onClick={() => handleNavigate('ticket-booking')}
           className="group flex items-center gap-2.5 px-4.5 py-3 rounded-full bg-gradient-to-r from-[#991b1b] via-[#7f1d1d] to-[#b45309] hover:from-[#b91c1c] hover:to-[#d97706] text-amber-100 font-extrabold text-xs sm:text-sm border border-amber-400/60 shadow-[0_0_25px_rgba(245,158,11,0.45)] hover:shadow-[0_0_35px_rgba(245,158,11,0.65)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
-          title="Book Your Festival Booking Pass (₹349/-)"
+          title="Book Your Festival Booking Pass"
         >
           <div className="w-6 h-6 rounded-full bg-amber-400/20 border border-amber-300/40 flex items-center justify-center text-amber-300 group-hover:rotate-12 transition-transform">
             <Ticket className="w-3.5 h-3.5" />
           </div>
           <span className="font-display tracking-wide font-black">Booking Pass</span>
-          <span className="bg-amber-400 text-stone-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
-            ₹349
-          </span>
         </button>
 
         {/* Floating AI Concierge Mascot Button - Bhoj-Bot (Royal Blue) */}
@@ -527,6 +597,7 @@ export default function App() {
 
       <AuthModal
         isOpen={isAuthOpen}
+        initialMode={authModalMode}
         onClose={() => setIsAuthOpen(false)}
         onSuccess={handleUserLogin}
         onNavigateToAdmin={navigateToAdmin}
@@ -549,13 +620,17 @@ export default function App() {
         onClearCart={handleClearCart}
         onBookingCreated={(newBooking) => setUserBookings((prev) => [newBooking, ...prev])}
         onCelebration={(data) => setCelebrationData(data)}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => {
+          setAuthModalMode('guest');
+          setIsAuthOpen(true);
+        }}
       />
 
       <DishDetailModal
         dish={selectedDish}
         onClose={() => setSelectedDish(null)}
         onAddToCart={handleAddToCart}
+        onBuyNow={handleBuyNow}
         onAskBhojBot={handleAskBhojBotAboutDish}
       />
 

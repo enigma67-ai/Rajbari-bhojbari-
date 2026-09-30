@@ -53,14 +53,33 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Guest Contact Form States (Auto-filled if logged in as guest)
+  const isActualGuestUser = Boolean(
+    currentUser &&
+    currentUser.id !== 'admin_gate_staff' &&
+    currentUser.name !== 'Gate Staff Admin'
+  );
+
+  const [guestName, setGuestName] = useState(
+    isActualGuestUser && currentUser?.name ? currentUser.name : ''
+  );
+  const [guestEmail, setGuestEmail] = useState(
+    isActualGuestUser && currentUser?.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : ''
+  );
+  const [guestPhone, setGuestPhone] = useState(
+    isActualGuestUser && currentUser?.emailOrPhone && !currentUser.emailOrPhone.includes('@')
+      ? currentUser.emailOrPhone
+      : ''
+  );
+
   // Payment Form States
   const [cardDetails, setCardDetails] = useState({
-    name: currentUser?.name || '',
+    name: guestName || 'Honored Eco Guest',
     number: '4532 8912 3456 7890',
     expiry: '12/28',
     cvv: '891',
   });
-  const [upiVpa, setUpiVpa] = useState(currentUser?.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : 'guest@okhdfcbank');
+  const [upiVpa, setUpiVpa] = useState(guestEmail || 'guest@okhdfcbank');
   const [upiUtr, setUpiUtr] = useState('');
   const [utrError, setUtrError] = useState<string | null>(null);
   const [copiedTid, setCopiedTid] = useState(false);
@@ -80,12 +99,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   // Visual Feedback & Database Verification Handler for UPI UTR Submission
   const handleSubmitUpiPayment = async () => {
-    if (!currentUser) {
-      setErrorMsg('Please log in before submitting payment so your purchase history is securely tied to your personal account.');
-      if (onOpenAuth) onOpenAuth();
-      return;
-    }
-
     const cleanUtr = upiUtr.replace(/\D/g, '');
     if (cleanUtr.length !== 12) {
       setUtrError('Please enter a valid 12-digit numeric UPI reference / UTR number from your payment receipt.');
@@ -99,6 +112,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     const startTime = Date.now();
 
+    const finalCustomerName = guestName.trim() || (isActualGuestUser ? currentUser?.name : '') || 'Honored Royal Guest';
+    const finalCustomerEmail = guestEmail.trim() || (isActualGuestUser && currentUser?.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : '') || 'guest@iam.ac.in';
+    const finalCustomerPhone = guestPhone.trim() || (isActualGuestUser && currentUser?.emailOrPhone && !currentUser.emailOrPhone.includes('@') ? currentUser.emailOrPhone : '') || '9876543210';
+    const finalUserId = isActualGuestUser && currentUser?.id ? currentUser.id : `guest_${Date.now()}`;
+
     try {
       // 1. Create UPI Payment Intent
       const resIntent = await fetch('/api/payments/create-intent', {
@@ -109,8 +127,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           method: 'upi',
           items: cart.map(i => ({ id: i.dish.id, name: i.dish.name, qty: i.quantity, price: i.dish.price })),
           customerInfo: {
-            name: currentUser?.name || 'Honored Eco Guest',
-            contact: currentUser?.emailOrPhone || upiVpa,
+            name: finalCustomerName,
+            contact: finalCustomerEmail,
           },
         }),
       });
@@ -145,12 +163,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       }
 
       // 3. Persist Booking to Firestore Database
-      const effectiveUserId = currentUser?.id || 'guest_user';
       const bookingRecord: Omit<SavedBooking, 'id'> = {
-        userId: effectiveUserId,
-        customerName: currentUser?.name || cardDetails.name || 'Honored Eco Guest',
-        customerEmail: currentUser?.emailOrPhone || upiVpa || 'guest@iam.ac.in',
-        customerPhone: currentUser?.emailOrPhone || '9876543210',
+        userId: finalUserId,
+        customerName: finalCustomerName,
+        customerEmail: finalCustomerEmail,
+        customerPhone: finalCustomerPhone,
         items: cart.map(i => ({
           id: i.dish.id,
           name: i.dish.name,
@@ -171,44 +188,42 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         createdAt: new Date().toISOString(),
       };
 
-      const saved = await saveUserBooking(effectiveUserId, bookingRecord);
+      const saved = await saveUserBooking(finalUserId, bookingRecord);
       if (onBookingCreated) {
         onBookingCreated(saved);
       }
 
       // 4. Persist to Supabase Database
-      if (currentUser?.id) {
-        try {
-          await recordPurchaseToSupabase({
-            bookingId: confirmRes.booking.bookingId || bookingRecord.bookingCode,
-            userId: currentUser.id,
-            customerName: currentUser.name || bookingRecord.customerName,
-            customerEmail: currentUser.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : (bookingRecord.customerEmail || 'guest@iam.ac.in'),
-            customerPhone: !currentUser.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : (bookingRecord.customerPhone || ''),
-            totalAmount: grandTotal,
-            paymentMethod: 'UPI_QR',
-            paymentStatus: 'confirmed',
-            diningSlot: bookingRecord.dineSlot,
-            eventDate: 'Friday, 9th October 2026',
-            passQuantity: cart.reduce((acc, i) => acc + i.quantity, 0),
-            items: cart.map(i => ({
-              id: i.dish.id,
-              name: i.dish.name,
-              bengaliName: i.dish.bengaliName,
-              mohol: i.dish.mohol,
-              category: i.dish.category,
-              price: i.dish.price,
-              quantity: i.quantity,
-              totalPrice: i.dish.price * i.quantity,
-              status: i.dish.price === 0 ? 'Complimentary Tasting (₹0)' : 'A La Carte / Feast Item',
-            })),
-            qrCodeUrl: confirmRes.booking.ticketPassQr || confirmRes.booking.qrCodeUrl || '',
-            transactionId: `UTR-${cleanUtr}`,
-            upiUtr: cleanUtr,
-          });
-        } catch (supaErr) {
-          console.warn('Supabase sync notice:', supaErr);
-        }
+      try {
+        await recordPurchaseToSupabase({
+          bookingId: confirmRes.booking.bookingId || bookingRecord.bookingCode,
+          userId: finalUserId,
+          customerName: finalCustomerName,
+          customerEmail: finalCustomerEmail,
+          customerPhone: finalCustomerPhone,
+          totalAmount: grandTotal,
+          paymentMethod: 'UPI_QR',
+          paymentStatus: 'confirmed',
+          diningSlot: bookingRecord.dineSlot,
+          eventDate: 'Friday, 9th October 2026',
+          passQuantity: cart.reduce((acc, i) => acc + i.quantity, 0),
+          items: cart.map(i => ({
+            id: i.dish.id,
+            name: i.dish.name,
+            bengaliName: i.dish.bengaliName,
+            mohol: i.dish.mohol,
+            category: i.dish.category,
+            price: i.dish.price,
+            quantity: i.quantity,
+            totalPrice: i.dish.price * i.quantity,
+            status: i.dish.price === 0 ? 'Complimentary Tasting (₹0)' : 'A La Carte / Feast Item',
+          })),
+          qrCodeUrl: confirmRes.booking.ticketPassQr || confirmRes.booking.qrCodeUrl || '',
+          transactionId: `UTR-${cleanUtr}`,
+          upiUtr: cleanUtr,
+        });
+      } catch (supaErr) {
+        console.warn('Supabase sync notice:', supaErr);
       }
 
       // Ensure engaging animation finishes its visual cycle (min 2.4s) before transition
@@ -252,13 +267,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const handleInitiatePayment = async () => {
-    // Require user to be logged in before submitting payment
-    if (!currentUser) {
-      setErrorMsg('Please log in before submitting payment so your purchase history is securely tied to your personal account.');
-      if (onOpenAuth) onOpenAuth();
-      return;
-    }
-
     setErrorMsg('');
     setIsProcessing(true);
 
@@ -553,6 +561,36 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             </div>
 
+            {/* Guest Contact Details */}
+            <div className="p-4 rounded-2xl bg-[#1b0508] border border-amber-500/30 space-y-3">
+              <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
+                <User className="w-4 h-4 text-amber-400" />
+                <span>Guest Buyer Information</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="text-[10px] text-stone-400 font-semibold uppercase block mb-1">Guest Full Name</label>
+                  <input
+                    type="text"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    placeholder="Enter your full name"
+                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-stone-700 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-400 font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-stone-400 font-semibold uppercase block mb-1">Email / Contact</label>
+                  <input
+                    type="text"
+                    value={guestEmail}
+                    onChange={(e) => setGuestEmail(e.target.value)}
+                    placeholder="e.g. guest@iam.ac.in"
+                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-stone-700 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-400 font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Proceed to Payment Method Selection */}
             <button
               id="proceed-to-payment-methods-btn"
@@ -570,236 +608,115 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">
               <div>
-                <h2 className="text-2xl font-bold text-emerald-100">
-                  Select Payment Option
+                <h2 className="text-2xl font-bold text-emerald-100 flex items-center gap-2">
+                  <QrCode className="w-6 h-6 text-amber-400" />
+                  <span>Instant UPI QR Payment</span>
                 </h2>
-                <p className="text-xs text-stone-400">Choose between UPI, Card, or Cash on Counter</p>
+                <p className="text-xs text-stone-400">Scan merchant QR or enter 12-digit UTR reference code</p>
               </div>
               <span className="text-xl font-bold text-emerald-300">₹{grandTotal}</span>
             </div>
 
-            {/* Method Tabs */}
-            <div className="grid grid-cols-3 gap-2.5">
-              <button
-                type="button"
-                id="pay-opt-upi"
-                onClick={() => setPaymentMethod('upi')}
-                className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${
-                  paymentMethod === 'upi'
-                    ? 'bg-amber-600/30 border-amber-400 text-amber-100 ring-1 ring-amber-400 shadow-md'
-                    : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-stone-200'
-                }`}
-              >
-                <QrCode className="w-5 h-5 text-amber-400" />
-                <span className="text-xs font-bold">UPI / QR</span>
-                <span className="text-[10px] text-emerald-400">Fast & Instant</span>
-              </button>
-
-              <button
-                type="button"
-                id="pay-opt-card"
-                onClick={() => setPaymentMethod('card')}
-                className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${
-                  paymentMethod === 'card'
-                    ? 'bg-amber-600/30 border-amber-400 text-amber-100 ring-1 ring-amber-400 shadow-md'
-                    : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-stone-200'
-                }`}
-              >
-                <CreditCard className="w-5 h-5 text-amber-400" />
-                <span className="text-xs font-bold">Card (Debit/Credit)</span>
-                <span className="text-[10px] text-stone-400">3D Secure 2FA</span>
-              </button>
-
-              <button
-                type="button"
-                id="pay-opt-cash"
-                onClick={() => setPaymentMethod('cash')}
-                className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${
-                  paymentMethod === 'cash'
-                    ? 'bg-amber-600/30 border-amber-400 text-amber-100 ring-1 ring-amber-400 shadow-md'
-                    : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-stone-200'
-                }`}
-              >
-                <Banknote className="w-5 h-5 text-amber-400" />
-                <span className="text-xs font-bold">Cash on Counter</span>
-                <span className="text-[10px] text-amber-400">Pay at Welcome Desk</span>
-              </button>
-            </div>
-
             {/* UPI Option View */}
-            {paymentMethod === 'upi' && (
-              <div className="p-4 sm:p-5 rounded-2xl bg-stone-900/90 border border-emerald-500/30 space-y-4 text-center">
-                {/* Dynamically calculated Total Amount in large font */}
-                <div className="p-3 rounded-xl bg-[#072116] border border-emerald-500/40 text-center">
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">
-                    Zero-Waste Eco-Plate Checkout
-                  </span>
-                  <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-200 mt-0.5">
-                    Total Payable: ₹{grandTotal}/-
-                  </div>
+            <div className="p-4 sm:p-5 rounded-2xl bg-stone-900/90 border border-emerald-500/30 space-y-4 text-center">
+              {/* Dynamically calculated Total Amount in large font */}
+              <div className="p-3 rounded-xl bg-[#072116] border border-emerald-500/40 text-center">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">
+                  Zero-Waste Eco-Plate Checkout
+                </span>
+                <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-200 mt-0.5">
+                  Total Payable: ₹{grandTotal}/-
                 </div>
+              </div>
 
-                {/* Centered Styled Scanner Box with Soft Pulsing Emerald Glow */}
-                <div className="relative p-3.5 sm:p-4 rounded-2xl bg-white border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.25)] animate-pulse max-w-xs mx-auto flex flex-col items-center">
-                  <div className="w-full flex items-center justify-between border-b border-stone-200 pb-1.5 mb-2">
-                    <span className="font-black text-[11px] text-blue-900">HDFC SmartHub Vyapar</span>
-                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[9px] font-bold">
-                      UPI • BHIM
-                    </span>
-                  </div>
-
-                  <div className="w-52 max-w-full p-2 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                    <img
-                      src="https://i.postimg.cc/4dkfnBP3/IMG-20260925-WA0013.jpg"
-                      alt="HDFC SmartHub Vyapar QR"
-                      className="w-full h-auto object-contain rounded-xl"
-                    />
-                  </div>
-
-                  <p className="text-[10px] text-stone-600 font-bold mt-2">
-                    Scan with Google Pay, PhonePe, Paytm or BHIM
-                  </p>
-                </div>
-
-                {/* One-click 'Copy Merchant TID: 62903194' button */}
-                <div className="flex flex-col items-center gap-1">
-                  <button
-                    type="button"
-                    id="copy-modal-merchant-tid-btn"
-                    onClick={handleCopyMerchantTid}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-300 text-xs font-semibold shadow transition-all active:scale-95 cursor-pointer"
-                  >
-                    {copiedTid ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-emerald-400" />}
-                    <span>{copiedTid ? 'Copied TID: 62903194!' : 'Copy Merchant TID: 62903194'}</span>
-                  </button>
-                  <span className="text-[10px] text-stone-400">
-                    Merchant TID: 62903194 • Zero-Fee Direct UPI
+              {/* Centered Styled Scanner Box with Soft Pulsing Emerald Glow */}
+              <div className="relative p-3.5 sm:p-4 rounded-2xl bg-white border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.25)] animate-pulse max-w-xs mx-auto flex flex-col items-center">
+                <div className="w-full flex items-center justify-between border-b border-stone-200 pb-1.5 mb-2">
+                  <span className="font-black text-[11px] text-blue-900">HDFC SmartHub Vyapar</span>
+                  <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[9px] font-bold">
+                    UPI • BHIM
                   </span>
                 </div>
 
-                <div className="space-y-1.5 text-left pt-1">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="modal-upi-utr-input" className="text-xs font-semibold text-stone-300 flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Enter 12-digit UPI Reference / UTR Number <span className="text-rose-400">*</span></span>
-                    </label>
-                    <span className={`text-[11px] font-mono ${upiUtr.length === 12 ? 'text-emerald-400 font-bold' : 'text-stone-400'}`}>
-                      {upiUtr.length}/12 digits
-                    </span>
-                  </div>
-
-                  <div className="relative">
-                    <input
-                      id="modal-upi-utr-input"
-                      type="text"
-                      maxLength={12}
-                      value={upiUtr}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 12);
-                        setUpiUtr(val);
-                        if (utrError && val.length === 12) setUtrError(null);
-                      }}
-                      placeholder="e.g. 629031940128"
-                      className={`w-full px-3.5 py-3 rounded-xl bg-black/60 border text-xs sm:text-sm font-mono tracking-wider text-emerald-200 placeholder:text-stone-600 focus:outline-none transition-all ${
-                        utrError
-                          ? 'border-rose-500 focus:border-rose-400 ring-1 ring-rose-500/50'
-                          : upiUtr.length === 12
-                          ? 'border-emerald-500 focus:border-emerald-400 ring-1 ring-emerald-500/50'
-                          : 'border-stone-700 focus:border-emerald-400'
-                      }`}
-                    />
-                    {upiUtr.length === 12 && (
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-500/40">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Validated
-                      </span>
-                    )}
-                  </div>
-
-                  {utrError ? (
-                    <p className="text-xs text-rose-400 flex items-center gap-1.5 mt-1 font-medium">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>{utrError}</span>
-                    </p>
-                  ) : (
-                    <p className="text-[11px] text-stone-400">
-                      Scan the QR above with any UPI app (GPay/PhonePe/Paytm/BHIM), complete the ₹{grandTotal}/- payment, then enter the 12-digit UTR from your receipt.
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Card Option View */}
-            {paymentMethod === 'card' && (
-              <div className="p-4 rounded-2xl bg-stone-900/80 border border-amber-500/20 space-y-3">
-                <div className="space-y-1">
-                  <label className="text-xs text-stone-400 block">Cardholder Name</label>
-                  <input
-                    id="card-name-input"
-                    type="text"
-                    autoComplete="nope"
-                    value={cardDetails.name}
-                    onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                    placeholder="Name on Card"
-                    className="w-full px-3 py-2 rounded-xl bg-black/50 border border-stone-700 text-xs text-stone-200 focus:outline-none focus:border-amber-400"
+                <div className="w-52 max-w-full p-2 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                  <img
+                    src="https://i.postimg.cc/4dkfnBP3/IMG-20260925-WA0013.jpg"
+                    alt="HDFC SmartHub Vyapar QR"
+                    className="w-full h-auto object-contain rounded-xl"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs text-stone-400 block">Card Number</label>
-                  <input
-                    id="card-number-input"
-                    type="text"
-                    autoComplete="nope"
-                    value={cardDetails.number}
-                    onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                    placeholder="4532 8912 3456 7890"
-                    className="w-full px-3 py-2 rounded-xl bg-black/50 border border-stone-700 text-xs text-stone-200 font-mono focus:outline-none focus:border-amber-400"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs text-stone-400 block">Expiry (MM/YY)</label>
-                    <input
-                      id="card-expiry-input"
-                      type="text"
-                      autoComplete="nope"
-                      value={cardDetails.expiry}
-                      onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                      placeholder="12/28"
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-stone-700 text-xs text-stone-200 font-mono text-center focus:outline-none focus:border-amber-400"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-stone-400 block">CVV</label>
-                    <input
-                      id="card-cvv-input"
-                      type="password"
-                      maxLength={4}
-                      autoComplete="nope"
-                      value={cardDetails.cvv}
-                      onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
-                      placeholder="•••"
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-stone-700 text-xs text-stone-200 font-mono text-center focus:outline-none focus:border-amber-400"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Cash Option View */}
-            {paymentMethod === 'cash' && (
-              <div className="p-4 rounded-2xl bg-stone-900/80 border border-amber-500/20 space-y-2 text-xs text-stone-300">
-                <div className="font-bold text-amber-300 flex items-center gap-1.5">
-                  <Banknote className="w-4 h-4 text-amber-400" />
-                  <span>Cash on Counter Booking</span>
-                </div>
-                <p>
-                  You will receive an instant <strong>Digital Order Pass</strong>. Simply present it at the Probesh Mohol Registration Counter, settle in cash, and proceed directly to food pickup without queuing twice!
+                <p className="text-[10px] text-stone-600 font-bold mt-2">
+                  Scan with Google Pay, PhonePe, Paytm or BHIM
                 </p>
               </div>
-            )}
+
+              {/* One-click 'Copy Merchant TID: 62903194' button */}
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  id="copy-modal-merchant-tid-btn"
+                  onClick={handleCopyMerchantTid}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-300 text-xs font-semibold shadow transition-all active:scale-95 cursor-pointer"
+                >
+                  {copiedTid ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-emerald-400" />}
+                  <span>{copiedTid ? 'Copied TID: 62903194!' : 'Copy Merchant TID: 62903194'}</span>
+                </button>
+                <span className="text-[10px] text-stone-400">
+                  Merchant TID: 62903194 • Zero-Fee Direct UPI
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-left pt-1">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="modal-upi-utr-input" className="text-xs font-semibold text-stone-300 flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Enter 12-digit UPI Reference / UTR Number <span className="text-rose-400">*</span></span>
+                  </label>
+                  <span className={`text-[11px] font-mono ${upiUtr.length === 12 ? 'text-emerald-400 font-bold' : 'text-stone-400'}`}>
+                    {upiUtr.length}/12 digits
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <input
+                    id="modal-upi-utr-input"
+                    type="text"
+                    maxLength={12}
+                    value={upiUtr}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      setUpiUtr(val);
+                      if (utrError && val.length === 12) setUtrError(null);
+                    }}
+                    placeholder="e.g. 629031940128"
+                    className={`w-full px-3.5 py-3 rounded-xl bg-black/60 border text-xs sm:text-sm font-mono tracking-wider text-emerald-200 placeholder:text-stone-600 focus:outline-none transition-all ${
+                      utrError
+                        ? 'border-rose-500 focus:border-rose-400 ring-1 ring-rose-500/50'
+                        : upiUtr.length === 12
+                        ? 'border-emerald-500 focus:border-emerald-400 ring-1 ring-emerald-500/50'
+                        : 'border-stone-700 focus:border-emerald-400'
+                    }`}
+                  />
+                  {upiUtr.length === 12 && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-500/40">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Validated
+                    </span>
+                  )}
+                </div>
+
+                {utrError ? (
+                  <p className="text-xs text-rose-400 flex items-center gap-1.5 mt-1 font-medium">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{utrError}</span>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-stone-400">
+                    Scan the QR above with any UPI app (GPay/PhonePe/Paytm/BHIM), complete the ₹{grandTotal}/- payment, then enter the 12-digit UTR from your receipt.
+                  </p>
+                )}
+              </div>
+            </div>
 
             {errorMsg && (
               <div className="p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs">
@@ -807,26 +724,22 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             )}
 
-            {/* Account Login Required Banner */}
+            {/* Guest Checkout Notice / Optional Sign In */}
             {!currentUser && (
-              <div className="p-4 rounded-xl bg-amber-950/60 border border-amber-500/40 text-left space-y-2.5">
-                <div className="flex items-start gap-2.5">
-                  <Lock className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h5 className="text-xs font-bold text-amber-200">Account Login Required for Feast Checkout</h5>
-                    <p className="text-[11px] text-stone-300 mt-0.5 leading-relaxed">
-                      Please sign in before paying so your order receipt and dining tokens are tied to your personal user account in Supabase.
-                    </p>
-                  </div>
+              <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-left flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <User className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="text-stone-300 text-[11px]">Checking out as <strong>Guest</strong></span>
                 </div>
-                <button
-                  type="button"
-                  onClick={onOpenAuth}
-                  className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 text-xs font-bold flex items-center justify-center gap-1.5 shadow"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>Sign In / Register with OTP or Google</span>
-                </button>
+                {onOpenAuth && (
+                  <button
+                    type="button"
+                    onClick={onOpenAuth}
+                    className="text-amber-400 hover:text-amber-300 underline text-[11px] font-semibold cursor-pointer"
+                  >
+                    Sign In (Optional)
+                  </button>
+                )}
               </div>
             )}
 
@@ -844,16 +757,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               <button
                 type="button"
                 id="pay-confirm-initiate-btn"
-                onClick={
-                  !currentUser
-                    ? onOpenAuth
-                    : paymentMethod === 'upi'
-                    ? handleSubmitUpiPayment
-                    : handleInitiatePayment
-                }
+                onClick={handleSubmitUpiPayment}
                 disabled={isProcessing}
                 className={`flex-1 py-3.5 rounded-xl font-bold text-sm tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  paymentMethod === 'upi' && upiUtr.length === 12
+                  upiUtr.length === 12
                     ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-stone-950 shadow-emerald-500/20'
                     : 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-stone-950 hover:from-amber-500 hover:to-amber-400'
                 }`}
@@ -861,14 +768,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 {isProcessing ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Connecting Secure Gateway...</span>
+                    <span>Processing UPI Payment...</span>
                   </>
-                ) : !currentUser ? (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <span>Sign In to Unlock Payment (₹{grandTotal})</span>
-                  </>
-                ) : paymentMethod === 'upi' ? (
+                ) : (
                   <>
                     <ShieldCheck className="w-4 h-4" />
                     <span>
@@ -876,11 +778,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         ? `Submit UTR & Confirm Payment (₹${grandTotal})`
                         : `Submit 12-Digit UTR to Confirm (₹${grandTotal})`}
                     </span>
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Proceed to Verify (₹{grandTotal})</span>
                   </>
                 )}
               </button>

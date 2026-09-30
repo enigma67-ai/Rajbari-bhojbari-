@@ -30,11 +30,13 @@ import {
   Eye,
   FileSpreadsheet,
   LayoutGrid,
-  Table as TableIcon
+  Table as TableIcon,
+  Trash2
 } from 'lucide-react';
 import { 
   fetchAllBookingsFromSupabase, 
   updateBookingGateVerification,
+  deleteBookingFromSupabase,
   getSupabaseClient,
   isSupabaseConfigured
 } from '../lib/supabase';
@@ -238,8 +240,10 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
 
   // Toggle Gate Entry Verification
   const handleToggleVerification = async (booking: BookingRow) => {
-    const nextState = !booking.verified_at_gate;
-    const nowTimestamp = nextState ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+    if (booking.verified_at_gate) return; // Already admitted
+
+    const nextState = true;
+    const timestamp = new Date().toISOString();
 
     // Optimistic UI Update
     setBookings((prev) =>
@@ -247,56 +251,77 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
         b.booking_id === booking.booking_id
           ? {
               ...b,
-              verified_at_gate: nextState,
-              verified_at_gate_time: nextState ? new Date().toISOString() : null,
+              verified_at_gate: true,
+              verified_at_gate_time: timestamp,
+              payment_status: 'confirmed',
             }
           : b
       )
     );
 
-    if (nextState) {
-      try {
-        playCelebrationChime();
-        triggerFestiveCelebration();
-      } catch (_) {}
-      showNotification(`✓ Pass ${booking.booking_id} marked as ADMITTED for ${booking.customer_name}`, 'success');
-    } else {
-      showNotification(`Pass ${booking.booking_id} reset to PENDING entry`, 'info');
-    }
+    // Persist to local storage backup
+    try {
+      const verifiedSaved = JSON.parse(localStorage.getItem('rb_gate_verified_bookings') || '{}');
+      verifiedSaved[booking.booking_id] = { verified: true, time: timestamp };
+      localStorage.setItem('rb_gate_verified_bookings', JSON.stringify(verifiedSaved));
+    } catch (_) {}
 
-    // Persist to Supabase and Firestore in background
+    try {
+      playCelebrationChime();
+      triggerFestiveCelebration();
+    } catch (_) {}
+    showNotification(`✓ Pass ${booking.booking_id} marked as ADMITTED for ${booking.customer_name}`, 'success');
+
+    // Permanent Supabase Update query
     try {
       const client = getSupabaseClient();
       if (client) {
         const { error } = await client
           .from('bookings')
           .update({
-            status: nextState ? 'confirmed' : 'pending',
-            payment_status: nextState ? 'confirmed' : 'paid',
-            verified_at_gate: nextState,
-            verified_at_gate_time: nextState ? new Date().toISOString() : null,
-            updated_at: new Date().toISOString(),
+            status: 'admitted',
+            payment_status: 'confirmed',
+            verified_at_gate: true,
+            verified_at_gate_time: timestamp,
+            updated_at: timestamp,
           })
           .eq('booking_id', booking.booking_id);
 
         if (error) {
-          console.warn('[Admin Gate] Supabase update query notice:', error.message);
-          // Fallback update query with just status
+          console.warn('[Admin Gate] Primary update query warning, fallback to status:', error.message);
           await client
             .from('bookings')
-            .update({ status: nextState ? 'confirmed' : 'pending' })
+            .update({ status: 'admitted', payment_status: 'confirmed' })
             .eq('booking_id', booking.booking_id);
         } else {
-          console.log(`[Admin Gate] Successfully updated Supabase booking ${booking.booking_id} to ${nextState ? 'confirmed' : 'pending'}`);
+          console.log(`[Admin Gate] Successfully updated Supabase row ${booking.booking_id} status to 'admitted'`);
         }
       }
 
-      await updateBookingGateVerification(booking.booking_id, nextState);
-      if (nextState) {
-        await markTicketAsAdmitted(booking.booking_id, 'Gate Admin Terminal');
-      }
+      await updateBookingGateVerification(booking.booking_id, true);
+      await markTicketAsAdmitted(booking.booking_id, 'Gate Admin Terminal');
     } catch (err) {
       console.warn('Backend gate status update notice:', err);
+    }
+  };
+
+  // Delete Test Booking matching booking_id
+  const handleDeleteBooking = async (booking: BookingRow) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to permanently delete booking "${booking.booking_id}" (${booking.customer_name})? This action will remove it permanently from Supabase.`
+    );
+    if (!confirmDelete) return;
+
+    // Optimistic UI Removal
+    setBookings((prev) => prev.filter((b) => b.booking_id !== booking.booking_id));
+
+    showNotification(`Booking ${booking.booking_id} deleted successfully.`, 'info');
+
+    // Permanent Supabase Delete
+    try {
+      await deleteBookingFromSupabase(booking.booking_id);
+    } catch (err) {
+      console.warn('Error deleting booking from Supabase:', err);
     }
   };
 
@@ -768,28 +793,40 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                       </div>
                     </div>
 
-                    {/* Entry Verified Action Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleVerification(booking)}
-                      className={`px-3.5 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-md ${
-                        booking.verified_at_gate
-                          ? 'bg-emerald-500 text-stone-950 hover:bg-emerald-400 shadow-emerald-500/30'
-                          : 'bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-yellow-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
-                      }`}
-                    >
+                    {/* Entry Verified Action Button & Delete Button */}
+                    <div className="flex items-center gap-2">
                       {booking.verified_at_gate ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                          <span>Admitted ✓</span>
-                        </>
+                        <button
+                          type="button"
+                          disabled
+                          className="px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 bg-emerald-600 text-white cursor-not-allowed opacity-95 shadow-md border border-emerald-400/30"
+                          title="Guest Admitted"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-white stroke-[2.5]" />
+                          <span>✅ Admitted</span>
+                        </button>
                       ) : (
-                        <>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleVerification(booking)}
+                          className="px-3.5 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-md bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.25)]"
+                          title="Admit Guest at Gate"
+                        >
                           <ShieldCheck className="w-4 h-4 text-stone-950" />
                           <span>Admit Guest</span>
-                        </>
+                        </button>
                       )}
-                    </button>
+
+                      {/* Delete Test Booking Trash Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBooking(booking)}
+                        className="p-2 rounded-xl bg-red-950/80 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95 flex items-center justify-center shrink-0"
+                        title="Delete Test Booking from Database"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card Body: Guest Info, UTR, Dining Session */}
@@ -1009,17 +1046,34 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                     </td>
 
                     <td className="py-3 px-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleVerification(b)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
-                          b.verified_at_gate
-                            ? 'bg-emerald-500 text-stone-950 hover:bg-emerald-400 shadow-emerald-500/20'
-                            : 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 hover:from-amber-400 hover:to-yellow-400 font-bold'
-                        }`}
-                      >
-                        {b.verified_at_gate ? '✓ Admitted' : 'Admit'}
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        {b.verified_at_gate ? (
+                          <button
+                            type="button"
+                            disabled
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm bg-emerald-600 text-white cursor-not-allowed opacity-95 border border-emerald-400/30"
+                          >
+                            ✅ Admitted
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleVerification(b)}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 hover:from-amber-400 hover:to-yellow-400 font-bold active:scale-95"
+                          >
+                            Admit Guest
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteBooking(b)}
+                          className="p-1.5 rounded-lg bg-red-950/80 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white transition-colors cursor-pointer"
+                          title="Delete Booking from Database"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

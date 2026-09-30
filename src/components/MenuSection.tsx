@@ -14,7 +14,8 @@ import {
   Crown,
   ChevronRight,
   Flame,
-  Check
+  Check,
+  Zap
 } from 'lucide-react';
 import { MenuItem, CartItem } from '../types';
 import { MENU_ITEMS, MOHOL_INFO } from '../data/festData';
@@ -22,12 +23,13 @@ import { MENU_ITEMS, MOHOL_INFO } from '../data/festData';
 interface MenuSectionProps {
   onSelectDish: (dish: MenuItem) => void;
   onAddToCart: (dish: MenuItem) => void;
+  onBuyNow?: (dish: MenuItem) => void;
   onUpdateQuantity?: (dishId: string, delta: number) => void;
   cart: CartItem[];
   onOpenPlateSuggester: () => void;
 }
 
-export type TraditionalMoholId = 'all' | 'probesh' | 'bhoj' | 'mohini' | 'matini';
+export type TraditionalMoholId = 'all' | 'probesh' | 'bhoj' | 'mohini' | 'matini' | 'rural';
 
 interface MoholDefinition {
   id: TraditionalMoholId;
@@ -91,6 +93,7 @@ export const TRADITIONAL_MOHOLS: MoholDefinition[] = [
 export const MenuSection: React.FC<MenuSectionProps> = ({
   onSelectDish,
   onAddToCart,
+  onBuyNow,
   onUpdateQuantity,
   cart,
   onOpenPlateSuggester,
@@ -195,7 +198,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   };
 
   return (
-    <section id="menu-section" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-16">
+    <section id="menu-section" className="py-12 px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto scroll-mt-16">
       
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-amber-500/25">
@@ -305,6 +308,21 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
             <span>Matini Mohol</span>
             <span className="text-[10px] bg-amber-950/80 px-1.5 py-0.5 rounded text-amber-300 font-bold border border-amber-500/40">₹99</span>
           </button>
+
+          {/* Rural Bengal Counter Pill */}
+          <button
+            id="tab-mohol-rural"
+            onClick={() => handleScrollToMohol('rural')}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+              selectedMohol === 'rural'
+                ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-stone-950 font-black shadow-lg shadow-amber-950/40 scale-100 ring-1 ring-amber-300'
+                : 'bg-[#1f0609] border border-amber-900/60 text-stone-300 hover:text-amber-200 hover:border-amber-600/60'
+            }`}
+          >
+            <Leaf className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Rural Bengal Counter</span>
+            <span className="text-[10px] bg-emerald-950 px-1.5 py-0.5 rounded text-emerald-300 font-bold border border-emerald-500/40">₹ Complementary</span>
+          </button>
         </div>
       </div>
 
@@ -409,15 +427,12 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-300 max-w-2xl">
-                    Crisp handcrafted starters and authentic Rural Bengal Heritage live counter specialties.
+                    Crisp handcrafted starters prepared to authentic royal Bengal heritage recipes.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-red-950 border border-amber-500/40 text-amber-200 font-bold text-xs shadow-sm">
+                  <span className="px-3.5 py-1.5 rounded-full bg-red-950 border border-amber-500/50 text-amber-200 font-extrabold text-xs shadow-md">
                     Starters: ₹349 each
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-bold text-xs shadow-sm">
-                    Rural Counter: Included (₹0)
                   </span>
                 </div>
               </div>
@@ -439,36 +454,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                         quantityInCart={getCartQuantity(dish.id)}
                         onSelectDish={onSelectDish}
                         onAddToCart={() => onAddToCart(dish)}
-                        onIncrement={() => handleIncrement(dish)}
-                        onDecrement={() => handleDecrement(dish)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Subsection B: Rural Bengal Counter (Included with Pass) */}
-              {groupedDishes.probesh.rural.length > 0 && (
-                <div className="space-y-4 pt-4">
-                  <div className="flex items-center justify-between border-b border-emerald-900/60 pb-2">
-                    <div className="flex items-center gap-2">
-                      <Leaf className="w-4 h-4 text-emerald-400" />
-                      <h4 className="text-base font-bold text-white tracking-wide uppercase">
-                        Rural Bengal Counter <span className="text-emerald-300 text-sm font-normal">(Included with Pass — ₹0)</span>
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-bold text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-400/40">
-                      Free Tasting Access
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {groupedDishes.probesh.rural.map((dish) => (
-                      <DishCard
-                        key={dish.id}
-                        dish={dish}
-                        quantityInCart={getCartQuantity(dish.id)}
-                        onSelectDish={onSelectDish}
-                        onAddToCart={() => onAddToCart(dish)}
+                        onBuyNow={() => onBuyNow ? onBuyNow(dish) : onAddToCart(dish)}
                         onIncrement={() => handleIncrement(dish)}
                         onDecrement={() => handleDecrement(dish)}
                       />
@@ -515,6 +501,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                     quantityInCart={getCartQuantity(dish.id)}
                     onSelectDish={onSelectDish}
                     onAddToCart={() => onAddToCart(dish)}
+                    onBuyNow={() => onBuyNow ? onBuyNow(dish) : onAddToCart(dish)}
                     onIncrement={() => handleIncrement(dish)}
                     onDecrement={() => handleDecrement(dish)}
                   />
@@ -551,7 +538,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {groupedDishes.mohini.map((dish) => (
                   <DishCard
                     key={dish.id}
@@ -559,6 +546,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                     quantityInCart={getCartQuantity(dish.id)}
                     onSelectDish={onSelectDish}
                     onAddToCart={() => onAddToCart(dish)}
+                    onBuyNow={() => onBuyNow ? onBuyNow(dish) : onAddToCart(dish)}
                     onIncrement={() => handleIncrement(dish)}
                     onDecrement={() => handleDecrement(dish)}
                   />
@@ -603,6 +591,52 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                     quantityInCart={getCartQuantity(dish.id)}
                     onSelectDish={onSelectDish}
                     onAddToCart={() => onAddToCart(dish)}
+                    onBuyNow={() => onBuyNow ? onBuyNow(dish) : onAddToCart(dish)}
+                    onIncrement={() => handleIncrement(dish)}
+                    onDecrement={() => handleDecrement(dish)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* =========================================================================
+              5. RURAL BENGAL HERITAGE COUNTER (Very last position / bottom of menu list)
+             ========================================================================= */}
+          {(selectedMohol === 'all' || selectedMohol === 'probesh' || selectedMohol === 'rural') && groupedDishes.probesh.rural.length > 0 && (
+            <section id="mohol-rural" className="scroll-mt-36 space-y-6">
+              {/* Section Header */}
+              <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-[#112419] via-[#0a1811] to-[#040e0a] border border-emerald-500/40 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Leaf className="w-5 h-5 text-emerald-400" />
+                    <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                      Rural Bengal Heritage Counter
+                    </h3>
+                    <span className="text-sm sm:text-base text-emerald-400 font-serif italic">
+                      (পল্লী বাংলা হেরিটেজ কাউন্টার)
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-stone-300 max-w-2xl">
+                    10 heirloom village preparations freshly cooked on traditional wood-fired chulhas and stone shil-noras. Included with every festival Eco-Pass.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3.5 py-1.5 rounded-full bg-emerald-950 border border-emerald-400 text-emerald-300 font-black text-xs shadow-md uppercase tracking-wider">
+                    Included with Pass — ₹ Complementary
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {groupedDishes.probesh.rural.map((dish) => (
+                  <DishCard
+                    key={dish.id}
+                    dish={dish}
+                    quantityInCart={getCartQuantity(dish.id)}
+                    onSelectDish={onSelectDish}
+                    onAddToCart={() => onAddToCart(dish)}
+                    onBuyNow={() => onBuyNow ? onBuyNow(dish) : onAddToCart(dish)}
                     onIncrement={() => handleIncrement(dish)}
                     onDecrement={() => handleDecrement(dish)}
                   />
@@ -626,6 +660,7 @@ interface DishCardProps {
   quantityInCart: number;
   onSelectDish: (dish: MenuItem) => void;
   onAddToCart: () => void;
+  onBuyNow: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
 }
@@ -635,6 +670,7 @@ const DishCard: React.FC<DishCardProps> = ({
   quantityInCart,
   onSelectDish,
   onAddToCart,
+  onBuyNow,
   onIncrement,
   onDecrement,
 }) => {
@@ -709,7 +745,7 @@ const DishCard: React.FC<DishCardProps> = ({
             <div className="mb-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/50 text-emerald-300 text-[11px] font-bold uppercase tracking-wide">
                 <Leaf className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Rural Bengal Counter — Included with Pass (₹0)</span>
+                <span>Rural Bengal Counter — Included with Pass (₹ Complementary)</span>
               </span>
             </div>
           )}
@@ -725,8 +761,12 @@ const DishCard: React.FC<DishCardProps> = ({
               </p>
             </div>
             <div className="text-right flex-shrink-0">
-              <span className={`text-lg sm:text-xl font-black font-display ${isFree ? 'text-emerald-400' : 'text-amber-300'}`}>
-                ₹{dish.price}
+              <span className={`text-sm sm:text-base md:text-lg font-black font-display whitespace-nowrap ${isFree ? 'text-emerald-400' : 'text-amber-300'}`}>
+                {dish.mohol === 'rural' && dish.price === 0
+                  ? '₹ Complementary'
+                  : isFree
+                  ? '₹ Complementary'
+                  : `₹${dish.price}`}
               </span>
               {isFree && (
                 <span className="block text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
@@ -757,8 +797,8 @@ const DishCard: React.FC<DishCardProps> = ({
           </button>
         </div>
 
-        {/* 2. INTERACTIVE CARD QUANTITY CONTROLS (- / +) */}
-        <div className="flex items-center gap-2 pt-2 border-t border-stone-800">
+        {/* 2. INTERACTIVE CARD ACTION BUTTONS (Add to Plate + Buy Now) */}
+        <div className="flex items-center gap-1.5 pt-2 border-t border-stone-800">
           <button
             id={`dish-detail-btn-${dish.id}`}
             type="button"
@@ -766,7 +806,7 @@ const DishCard: React.FC<DishCardProps> = ({
               e.stopPropagation();
               onSelectDish(dish);
             }}
-            className="p-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 hover:text-amber-300 transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 hover:text-amber-300 transition-colors cursor-pointer shrink-0"
             title="Inspect Zero-Waste Recipe Details"
             aria-label="Inspect dish details"
           >
@@ -776,24 +816,43 @@ const DishCard: React.FC<DishCardProps> = ({
           <div className="flex-1">
             <AnimatePresence mode="wait">
               {quantityInCart === 0 ? (
-                /* Default button: clean single + Add to Eco-Plate */
-                <motion.button
-                  key="add-btn"
-                  id={`dish-add-cart-${dish.id}`}
-                  type="button"
+                /* Default buttons: Add to Cart + Buy Now */
+                <motion.div
+                  key="add-buy-btns"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddToCart();
-                  }}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-xs shadow-md shadow-amber-950/40 transition-all active:scale-95 cursor-pointer"
+                  className="w-full flex items-center gap-1.5"
                 >
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>Add to Eco-Plate</span>
-                </motion.button>
+                  <button
+                    id={`dish-add-cart-${dish.id}`}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddToCart();
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1 py-2.5 px-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-xs shadow-md shadow-amber-950/40 transition-all active:scale-95 cursor-pointer"
+                    title="Add item to Eco-Plate"
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span className="truncate">Add to Cart</span>
+                  </button>
+
+                  <button
+                    id={`dish-buy-now-${dish.id}`}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBuyNow();
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1 py-2.5 px-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-stone-950 font-black text-xs shadow-md shadow-emerald-950/40 transition-all active:scale-95 cursor-pointer"
+                    title="Buy now with instant checkout"
+                  >
+                    <Zap className="w-3.5 h-3.5 fill-stone-950 stroke-[2.5]" />
+                    <span className="truncate">Buy Now</span>
+                  </button>
+                </motion.div>
               ) : (
                 /* Active counter pill: [ - ] [ quantity ] [ + ] */
                 <motion.div
@@ -811,17 +870,17 @@ const DishCard: React.FC<DishCardProps> = ({
                       e.stopPropagation();
                       onDecrement();
                     }}
-                    className="w-8 h-8 rounded-lg bg-red-950 hover:bg-red-900 text-amber-300 hover:text-white flex items-center justify-center transition-all active:scale-90 cursor-pointer border border-amber-800/60"
+                    className="w-7 h-7 rounded-lg bg-red-950 hover:bg-red-900 text-amber-300 hover:text-white flex items-center justify-center transition-all active:scale-90 cursor-pointer border border-amber-800/60"
                     aria-label="Decrease dish quantity"
                   >
-                    <Minus className="w-4 h-4 stroke-[2.5]" />
+                    <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
 
-                  <div className="flex items-center gap-1.5 px-2">
-                    <span className="font-mono text-sm font-black text-white">
+                  <div className="flex items-center gap-1 px-1">
+                    <span className="font-mono text-xs font-black text-white">
                       {quantityInCart}
                     </span>
-                    <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider">
+                    <span className="text-[9px] text-amber-300 font-bold uppercase tracking-wider">
                       in plate
                     </span>
                   </div>
@@ -833,10 +892,10 @@ const DishCard: React.FC<DishCardProps> = ({
                       e.stopPropagation();
                       onIncrement();
                     }}
-                    className="w-8 h-8 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow border border-amber-400/40 font-bold"
+                    className="w-7 h-7 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow border border-amber-400/40 font-bold"
                     aria-label="Increase dish quantity"
                   >
-                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
                 </motion.div>
               )}

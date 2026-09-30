@@ -349,11 +349,12 @@ export async function sendEmailJsConfirmation(
   // Exact template parameters required by user prompt
   const templateParams: Record<string, unknown> = {
     customer_name: data.customerName,
-    customer_email: data.customerEmail,
+    qr_code_url: qrCodeUrl,
     booking_id: data.bookingId,
+    ticket_count: data.quantity,
+    customer_email: data.customerEmail,
     total_amount: formattedAmount,
     dining_slot: data.slot,
-    qr_code_url: qrCodeUrl,
     // Complementary aliases for flexible EmailJS template configurations:
     to_email: data.customerEmail,
     user_email: data.customerEmail,
