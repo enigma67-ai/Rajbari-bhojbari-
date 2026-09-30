@@ -473,7 +473,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.93, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#160c08] border border-amber-500/40 rounded-3xl shadow-2xl p-6 sm:p-8 text-stone-200 z-10"
+            className="relative w-[95%] sm:w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-auto bg-[#160c08] border border-amber-500/40 rounded-3xl shadow-2xl p-5 sm:p-8 text-stone-200 z-10"
           >
             <motion.button
               id="close-payment-modal-btn"

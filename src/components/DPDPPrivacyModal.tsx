@@ -22,7 +22,7 @@ export const DPDPPrivacyModal: React.FC<DPDPPrivacyModalProps> = ({ isOpen, onCl
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-2xl bg-gradient-to-b from-[#1c0507] via-[#120305] to-[#0a0203] border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(245,158,11,0.25)] text-stone-200 my-8 font-sans"
+          className="relative w-[95%] sm:w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-auto bg-gradient-to-b from-[#1c0507] via-[#120305] to-[#0a0203] border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(245,158,11,0.25)] text-stone-200 my-8 font-sans"
         >
           {/* Close button top right */}
           <button

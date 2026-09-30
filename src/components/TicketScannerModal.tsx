@@ -413,7 +413,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-2xl bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border border-amber-500/40 rounded-3xl shadow-2xl overflow-hidden my-auto text-stone-200"
+          className="relative w-[95%] sm:w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-auto bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border border-amber-500/40 rounded-3xl shadow-2xl my-auto text-stone-200"
         >
           {/* Header Banner */}
           <div className="relative px-5 py-4 sm:px-6 sm:py-5 border-b border-amber-500/25 bg-red-950/70 flex items-center justify-between">

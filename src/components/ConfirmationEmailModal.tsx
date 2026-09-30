@@ -77,7 +77,7 @@ export const ConfirmationEmailModal: React.FC<ConfirmationEmailModalProps> = ({
           initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 15 }}
-          className="relative w-full max-w-3xl bg-[#0c0a09] border-2 border-amber-600/60 rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col text-stone-100"
+          className="relative w-[95%] sm:w-full max-w-3xl bg-[#0c0a09] border-2 border-amber-600/60 rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[85vh] flex flex-col text-stone-100"
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-amber-950 via-stone-900 to-amber-950 px-6 py-4 border-b border-amber-700/40 flex items-center justify-between">

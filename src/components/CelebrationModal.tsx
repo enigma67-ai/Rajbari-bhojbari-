@@ -114,7 +114,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 24, stiffness: 300 }}
-            className="relative w-full max-w-2xl bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border-2 border-amber-500/40 rounded-3xl shadow-2xl p-5 sm:p-7 overflow-hidden z-10 my-8 text-stone-100"
+            className="relative w-[95%] sm:w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-auto bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border-2 border-amber-500/40 rounded-3xl shadow-2xl p-5 sm:p-7 z-10 my-8 text-stone-100"
           >
             {/* Ambient Festive Shimmer */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-amber-500/15 blur-3xl pointer-events-none" />

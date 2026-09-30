@@ -34,6 +34,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { 
+  supabase,
   fetchAllBookingsFromSupabase, 
   updateBookingGateVerification,
   deleteBookingFromSupabase,
@@ -83,7 +84,7 @@ export interface BookingRow {
   created_at?: string;
 }
 
-const DEFAULT_PASSWORDS = ['IAM2026', 'BHOJ2026', 'GATE2026', 'admin123', 'rajbari2026'];
+const ADMIN_GATE_PASSWORD = 'K246790';
 
 export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }) => {
   // Authentication State
@@ -216,9 +217,9 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
     const clean = passwordInput.trim();
     const envAdminPassword = (import.meta.env.VITE_ADMIN_PASSWORD || '').trim();
     const isMatch =
-      (envAdminPassword && clean.toLowerCase() === envAdminPassword.toLowerCase()) ||
-      DEFAULT_PASSWORDS.some((p) => p.toLowerCase() === clean.toLowerCase()) ||
-      clean.length >= 4;
+      clean === ADMIN_GATE_PASSWORD ||
+      clean.toLowerCase() === ADMIN_GATE_PASSWORD.toLowerCase() ||
+      (envAdminPassword && clean.toLowerCase() === envAdminPassword.toLowerCase());
 
     if (isMatch) {
       setIsAuthenticated(true);
@@ -227,7 +228,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
       } catch (_) {}
       setAuthError(null);
     } else {
-      setAuthError('Incorrect Security PIN. Please enter authorized staff credentials (e.g. IAM2026)');
+      setAuthError('Incorrect Security PIN / Password. Please enter authorized staff credentials.');
     }
   };
 
@@ -238,90 +239,113 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
     } catch (_) {}
   };
 
-  // Toggle Gate Entry Verification
+  // Toggle Gate Entry Verification / Confirm Admission
   const handleToggleVerification = async (booking: BookingRow) => {
     if (booking.verified_at_gate) return; // Already admitted
 
-    const nextState = true;
+    const id = booking.booking_id;
     const timestamp = new Date().toISOString();
 
-    // Optimistic UI Update
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.booking_id === booking.booking_id
-          ? {
-              ...b,
-              verified_at_gate: true,
-              verified_at_gate_time: timestamp,
-              payment_status: 'confirmed',
-            }
-          : b
-      )
-    );
-
-    // Persist to local storage backup
     try {
-      const verifiedSaved = JSON.parse(localStorage.getItem('rb_gate_verified_bookings') || '{}');
-      verifiedSaved[booking.booking_id] = { verified: true, time: timestamp };
-      localStorage.setItem('rb_gate_verified_bookings', JSON.stringify(verifiedSaved));
-    } catch (_) {}
+      // 1. Execute actual asynchronous Supabase database update
+      const { error } = await supabase
+        .from('bookings')
+        .update({
+          status: 'admitted',
+          payment_status: 'confirmed',
+          verified_at_gate: true,
+          verified_at_gate_time: timestamp,
+          updated_at: timestamp,
+        })
+        .eq('booking_id', id);
 
-    try {
-      playCelebrationChime();
-      triggerFestiveCelebration();
-    } catch (_) {}
-    showNotification(`✓ Pass ${booking.booking_id} marked as ADMITTED for ${booking.customer_name}`, 'success');
-
-    // Permanent Supabase Update query
-    try {
-      const client = getSupabaseClient();
-      if (client) {
-        const { error } = await client
+      if (error) {
+        console.warn('[Admin Gate] Primary update failed, executing status-only update fallback:', error.message);
+        const { error: fallbackError } = await supabase
           .from('bookings')
-          .update({
-            status: 'admitted',
-            payment_status: 'confirmed',
-            verified_at_gate: true,
-            verified_at_gate_time: timestamp,
-            updated_at: timestamp,
-          })
-          .eq('booking_id', booking.booking_id);
+          .update({ status: 'admitted', payment_status: 'confirmed' })
+          .eq('booking_id', id);
 
-        if (error) {
-          console.warn('[Admin Gate] Primary update query warning, fallback to status:', error.message);
-          await client
-            .from('bookings')
-            .update({ status: 'admitted', payment_status: 'confirmed' })
-            .eq('booking_id', booking.booking_id);
-        } else {
-          console.log(`[Admin Gate] Successfully updated Supabase row ${booking.booking_id} status to 'admitted'`);
+        if (fallbackError) {
+          throw fallbackError;
         }
       }
 
-      await updateBookingGateVerification(booking.booking_id, true);
-      await markTicketAsAdmitted(booking.booking_id, 'Gate Admin Terminal');
-    } catch (err) {
-      console.warn('Backend gate status update notice:', err);
+      // Synchronize helpers & Firestore
+      await updateBookingGateVerification(id, true);
+      try {
+        await markTicketAsAdmitted(id, 'Gate Admin Terminal');
+      } catch (_) {}
+
+      // 2. Only update the local UI state after the Supabase request returns a success response
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.booking_id === id
+            ? {
+                ...b,
+                verified_at_gate: true,
+                verified_at_gate_time: timestamp,
+                payment_status: 'confirmed',
+              }
+            : b
+        )
+      );
+
+      // Persist to local storage backup
+      try {
+        const verifiedSaved = JSON.parse(localStorage.getItem('rb_gate_verified_bookings') || '{}');
+        verifiedSaved[id] = { verified: true, time: timestamp };
+        localStorage.setItem('rb_gate_verified_bookings', JSON.stringify(verifiedSaved));
+      } catch (_) {}
+
+      try {
+        playCelebrationChime();
+        triggerFestiveCelebration();
+      } catch (_) {}
+      showNotification(`✓ Pass ${id} marked as ADMITTED for ${booking.customer_name}`, 'success');
+    } catch (err: any) {
+      console.error('Error admitting pass in Supabase:', err);
+      showNotification(`Database error: ${err?.message || 'Failed to update pass in Supabase'}`, 'info');
     }
   };
 
-  // Delete Test Booking matching booking_id
+  // Delete Booking matching booking_id
   const handleDeleteBooking = async (booking: BookingRow) => {
+    const id = booking.booking_id;
     const confirmDelete = window.confirm(
-      `Are you sure you want to permanently delete booking "${booking.booking_id}" (${booking.customer_name})? This action will remove it permanently from Supabase.`
+      `Are you sure you want to permanently delete booking "${id}" (${booking.customer_name})? This action will remove it permanently from Supabase.`
     );
     if (!confirmDelete) return;
 
-    // Optimistic UI Removal
-    setBookings((prev) => prev.filter((b) => b.booking_id !== booking.booking_id));
-
-    showNotification(`Booking ${booking.booking_id} deleted successfully.`, 'info');
-
-    // Permanent Supabase Delete
     try {
-      await deleteBookingFromSupabase(booking.booking_id);
-    } catch (err) {
-      console.warn('Error deleting booking from Supabase:', err);
+      // 1. Execute actual asynchronous Supabase database delete
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('booking_id', id);
+
+      if (error) {
+        console.warn('Delete from bookings failed, attempting purchase_history table:', error.message);
+        const { error: fallbackError } = await supabase
+          .from('purchase_history')
+          .delete()
+          .eq('booking_id', id);
+
+        if (fallbackError) {
+          throw fallbackError;
+        }
+      }
+
+      // Clean local storage cache
+      await deleteBookingFromSupabase(id);
+
+      // 2. Only update the local UI state after the Supabase request returns a success response
+      setBookings((prev) => prev.filter((b) => b.booking_id !== id));
+
+      showNotification(`Booking ${id} deleted successfully from database.`, 'info');
+    } catch (err: any) {
+      console.error('Error deleting booking from Supabase:', err);
+      showNotification(`Failed to delete booking: ${err?.message || 'Database error'}`, 'info');
     }
   };
 
@@ -451,7 +475,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                     setPasswordInput(e.target.value);
                     if (authError) setAuthError(null);
                   }}
-                  placeholder="Enter staff PIN (e.g. IAM2026)"
+                  placeholder="Enter Gate Staff Password"
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/60 border border-amber-500/40 text-sm text-white font-mono placeholder-stone-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
                 />
               </div>
@@ -514,7 +538,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
 
       {/* Top Header Bar */}
       <header className="sticky top-0 z-30 bg-[#1a0507]/95 backdrop-blur-xl border-b border-amber-500/25 shadow-xl px-4 sm:px-6 py-3.5">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           
           <div className="flex items-center gap-3">
             <button
@@ -541,7 +565,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Open Camera Scanner Button */}
             <button
               type="button"
@@ -587,10 +611,10 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         
-        {/* KPI Metrics Banner */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        {/* KPI Metrics Banner (Single Column on Mobile, 2 on Tablet, 4 on Desktop) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="p-4 rounded-2xl bg-[#1a0507] border border-amber-500/35 space-y-1 shadow-lg">
             <div className="text-[11px] text-stone-400 uppercase font-semibold flex items-center justify-between">
               <span>Total Bookings</span>
@@ -745,10 +769,10 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
         </div>
 
         {/* ------------------------------------------------------------------ */}
-        {/* BOOKINGS LIST (CARDS VIEW) */}
+        {/* BOOKINGS LIST (CARDS VIEW - Stacks 1 col mobile, 2 md, 3 lg)       */}
         {/* ------------------------------------------------------------------ */}
         {viewMode === 'cards' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredBookings.map((booking) => {
               const isExpanded = expandedBookingIds.has(booking.booking_id);
               const itemsCount = booking.items?.length || 0;
@@ -763,7 +787,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                   }`}
                 >
                   {/* Card Header: Pass ID, Status & Verification Toggle */}
-                  <div className="p-4 sm:p-5 border-b border-amber-500/20 flex items-start justify-between gap-3">
+                  <div className="p-4 sm:p-5 border-b border-amber-500/20 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-base text-amber-300">
@@ -794,7 +818,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                     </div>
 
                     {/* Entry Verified Action Button & Delete Button */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                       {booking.verified_at_gate ? (
                         <button
                           type="button"
@@ -822,7 +846,7 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
                         type="button"
                         onClick={() => handleDeleteBooking(booking)}
                         className="p-2 rounded-xl bg-red-950/80 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95 flex items-center justify-center shrink-0"
-                        title="Delete Test Booking from Database"
+                        title="Delete Booking from Database"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -987,11 +1011,11 @@ export const AdminGatePage: React.FC<AdminGatePageProps> = ({ onNavigateToHome }
         )}
 
         {/* ------------------------------------------------------------------ */}
-        {/* BOOKINGS LIST (TABLE VIEW) */}
+        {/* BOOKINGS LIST (TABLE VIEW - Horizontally scrollable on mobile)     */}
         {/* ------------------------------------------------------------------ */}
         {viewMode === 'table' && (
-          <div className="bg-[#1a0507] border border-amber-500/35 rounded-2xl overflow-x-auto shadow-xl">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto w-full rounded-2xl border border-amber-500/35 bg-[#1a0507] shadow-xl">
+            <table className="w-full min-w-[760px] text-left text-xs">
               <thead className="bg-[#150305] text-amber-200 uppercase tracking-wider font-semibold border-b border-amber-500/25">
                 <tr>
                   <th className="py-3.5 px-4 font-mono">Pass Code</th>

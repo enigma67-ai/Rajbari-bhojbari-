@@ -27,7 +27,7 @@ interface AuthModalProps {
   initialMode?: 'guest' | 'admin';
 }
 
-const DEFAULT_PASSWORDS = ['IAM2026', 'BHOJ2026', 'GATE2026', 'admin123', 'rajbari2026'];
+const ADMIN_GATE_PASSWORD = 'K246790';
 
 export const AuthModal: React.FC<AuthModalProps> = ({ 
   isOpen, 
@@ -167,8 +167,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     const envAdminPassword = (import.meta.env.VITE_ADMIN_PASSWORD || '').trim();
 
     const isMatch =
-      (envAdminPassword && cleanInput.toLowerCase() === envAdminPassword.toLowerCase()) ||
-      DEFAULT_PASSWORDS.some((p) => p.toLowerCase() === cleanInput.toLowerCase());
+      cleanInput === ADMIN_GATE_PASSWORD ||
+      cleanInput.toLowerCase() === ADMIN_GATE_PASSWORD.toLowerCase() ||
+      (envAdminPassword && cleanInput.toLowerCase() === envAdminPassword.toLowerCase());
 
     setTimeout(() => {
       setIsAdminLoading(false);
@@ -214,7 +215,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.93, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-md bg-gradient-to-b from-[#24080c] to-[#150305] border border-amber-500/40 rounded-3xl shadow-2xl p-6 sm:p-8 text-stone-200 z-10 overflow-hidden ring-1 ring-amber-500/20 backdrop-blur-2xl space-y-6"
+            className="relative w-[95%] sm:w-full max-w-md max-h-[85vh] overflow-y-auto mx-auto bg-gradient-to-b from-[#24080c] to-[#150305] border border-amber-500/40 rounded-3xl shadow-2xl p-6 sm:p-8 text-stone-200 z-10 ring-1 ring-amber-500/20 backdrop-blur-2xl space-y-6"
           >
             {/* Top Close Button */}
             <button
@@ -416,7 +417,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                             setPassword(e.target.value);
                             if (adminErrorMsg) setAdminErrorMsg('');
                           }}
-                          placeholder="Enter staff password (e.g. IAM2026)"
+                          placeholder="Enter Gate Staff Password"
                           className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/60 border border-amber-500/40 text-sm text-white font-mono placeholder-stone-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
                         />
                       </div>

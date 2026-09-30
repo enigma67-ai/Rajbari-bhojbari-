@@ -1026,19 +1026,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             Your Eco-Pass includes full access to the Rural Bengal Counter, 1 Authentic Starter, and 1 Main Course Combo of your choice. Misti Mukh dessert platters are available for an additional ₹99/-.
           </p>
 
-          {/* Ticket QR Scanner Button */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5">
-            <button
-              type="button"
-              id="ticket-scanner-overlay-btn"
-              onClick={() => setIsScannerOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 text-xs font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] border border-amber-300/60 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              <QrCode className="w-3.5 h-3.5 text-stone-950" />
-              <span>Verify / Scan Ticket QR (Supabase DB)</span>
-            </button>
-          </div>
-
           {/* Strict Entry Policy Warning Banner */}
           <div className="max-w-2xl mx-auto mt-3 p-3 sm:p-4 rounded-2xl bg-[#1f0609] border border-amber-500/40 text-amber-100 text-xs sm:text-sm flex items-center gap-3 shadow-lg text-left">
             <div className="w-9 h-9 rounded-xl bg-red-900/60 border border-amber-500/40 flex-shrink-0 flex items-center justify-center text-amber-400">

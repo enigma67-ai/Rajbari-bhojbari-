@@ -32,6 +32,8 @@ interface BhojBotModalProps {
   onOpenBookingModal?: () => void;
 }
 
+const BHOJ_BOT_SYSTEM_PROMPT = `You are Bhoj-Bot, the official polite and helpful AI concierge for Rajbari Bhojbari 2026. It is a Zero-Waste Heritage Bengali Food Fest at the IAM Kolkata Campus taking place on Friday, 9th October 2026. The Eco-Pass costs ₹349. You know about the menu, which features authentic 19th-century recipes like Raj Angan Jali Kebab, Nawab Bari Amudi Piyaji, Panchali Patpata Bora, Khiroda Katla, Polao, and Misti Mukh. Your goal is to answer questions briefly, highlight the zero-waste sustainability aspect, and encourage guests to use the 'Buy Now' or 'Add to Cart' buttons to book their passes.`;
+
 export const BhojBotModal: React.FC<BhojBotModalProps> = ({
   isOpen,
   onClose,
@@ -46,7 +48,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
     {
       id: 'welcome',
       sender: 'bhojbot',
-      text: "Hello and welcome! I am Bhoj-Bot, your intelligent culinary concierge for Rajbari Bhojbari 2026: The Zero-Waste AI Food Fest at IAM Kolkata Campus. Aligned with World Tourism Day's digital agenda, I can guide you through our authentic Bengali heritage recipes across the Rural Bengal Counter, Starters, Main Course Combos, and Misti Mukh Platter, provide directions to our IAM Kolkata campus, and track your Eco-Pass bookings anytime!",
+      text: "Pranam! I am Bhoj-Bot, your official AI concierge for Rajbari Bhojbari 2026 at IAM Kolkata Campus (Friday, 9th October 2026). Our ₹349 Eco-Pass gives you access to authentic 19th-century recipes like Raj Angan Jali Kebab, Panchali Patpata Bora, and Polao while championing zero-waste sustainability. How may I assist your feast today?",
       timestamp: '10:00 AM',
       source: 'gemini-3.5-flash',
     },
@@ -134,31 +136,96 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
           text: m.text,
         }));
 
-      const res = await fetch('/api/gemini/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: textToSend,
-          history: historyPayload,
-          contextDish: contextDish || undefined,
-          userBookings, // Pass confirmed bookings memory so Bhoj-Bot remembers
-          mode: chatMode,
-        }),
-      });
-
-      let reply = "I am honored to share our royal culinary heritage. How else may I assist your banquet?";
+      let reply = "";
       let source = "gemini-3.5-flash";
       let groundingType: 'maps' | 'search' | 'none' = 'none';
       let searchQueries: string[] = [];
 
-      if (res.ok) {
+      // 1. Check for client-side API Key from import.meta.env.VITE_GEMINI_API_KEY
+      const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
+
+      if (apiKey) {
         try {
-          const data = await res.json();
-          if (data && data.reply) reply = data.reply;
-          if (data && data.source) source = data.source;
-          if (data && data.groundingType) groundingType = data.groundingType;
-          if (data && data.searchQueries) searchQueries = data.searchQueries;
-        } catch (_) {}
+          const contents = [
+            ...historyPayload.map((h) => ({
+              role: h.role === 'user' ? 'user' : 'model',
+              parts: [{ text: h.text }],
+            })),
+            {
+              role: 'user',
+              parts: [{ text: textToSend }],
+            },
+          ];
+
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                system_instruction: {
+                  parts: [{ text: BHOJ_BOT_SYSTEM_PROMPT }],
+                },
+                contents,
+                generationConfig: {
+                  temperature: 0.7,
+                  maxOutputTokens: 600,
+                },
+              }),
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const textResult = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textResult && textResult.trim()) {
+              reply = textResult.trim();
+              source = "gemini-2.5-flash";
+            }
+          }
+        } catch (clientApiErr) {
+          console.warn("Direct Gemini API request notice, routing through server endpoint:", clientApiErr);
+        }
+      }
+
+      // 2. If client API key not available or direct request returned empty, route via server proxy
+      if (!reply) {
+        const res = await fetch('/api/gemini/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: textToSend,
+            history: historyPayload,
+            contextDish: contextDish || undefined,
+            userBookings, // Pass confirmed bookings memory so Bhoj-Bot remembers
+            systemPrompt: BHOJ_BOT_SYSTEM_PROMPT,
+            mode: chatMode,
+          }),
+        });
+
+        if (res.ok) {
+          try {
+            const data = await res.json();
+            if (data && data.reply) reply = data.reply;
+            if (data && data.source) source = data.source;
+            if (data && data.groundingType) groundingType = data.groundingType;
+            if (data && data.searchQueries) searchQueries = data.searchQueries;
+          } catch (_) {}
+        }
+      }
+
+      // 3. Fallback context-aware intelligence if network services are offline
+      if (!reply) {
+        const lower = textToSend.toLowerCase();
+        if (lower.includes('pass') || lower.includes('cost') || lower.includes('price') || lower.includes('ticket') || lower.includes('entry') || lower.includes('349')) {
+          reply = "The Rajbari Bhojbari 2026 Eco-Pass is ₹349. It includes full festival entry, complimentary access to our zero-waste Rural Bengal tasting counter, 1 authentic starter, and 1 main course combo. Misti Mukh dessert platters are an optional ₹99 add-on. We encourage you to click 'Buy Now' or 'Add to Cart' to reserve your passes today!";
+        } else if (lower.includes('menu') || lower.includes('dish') || lower.includes('recipe') || lower.includes('food') || lower.includes('kebab') || lower.includes('bora') || lower.includes('katla') || lower.includes('polao') || lower.includes('sweet') || lower.includes('misti')) {
+          reply = "Our zero-waste royal menu revives authentic 19th-century Bengali zamindari recipes! Signature items include Raj Angan Jali Kebab, Nawab Bari Amudi Piyaji, Panchali Patpata Bora, Khiroda Katla, Polao combos, and the Misti Mukh platter. Every recipe emphasizes zero-waste sustainability. Click 'Add to Cart' or 'Buy Now' to secure your passes!";
+        } else if (lower.includes('waste') || lower.includes('sustain') || lower.includes('zero') || lower.includes('eco')) {
+          reply = "Rajbari Bhojbari 2026 is an eco-friendly Zero-Waste Heritage Food Fest! From peel-to-root cooking and clay pots to compostable Sal leaf platters, every dish minimizes food waste while honoring 19th-century heritage. Join us on Friday, 9th October at IAM Kolkata Campus—grab your ₹349 Eco-Pass using 'Buy Now'!";
+        } else {
+          reply = "Pranam! I am Bhoj-Bot. Rajbari Bhojbari 2026 is taking place on Friday, 9th October 2026 at IAM Kolkata Campus. Experience authentic 19th-century recipes like Raj Angan Jali Kebab, Nawab Bari Amudi Piyaji, Panchali Patpata Bora, Khiroda Katla, Polao, and Misti Mukh with a ₹349 Eco-Pass. Use the 'Buy Now' or 'Add to Cart' buttons to book your passes!";
+        }
       }
 
       const isBookingRecall = textToSend.toLowerCase().includes('booking') || 
@@ -193,7 +260,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
       const errorMessage: ChatMessage = {
         id: 'bot_err_' + Date.now(),
         sender: 'bhojbot',
-        text: "My royal culinary archives are refreshing! In the meantime, remember to explore MATI MOHOL for our zero-waste Kumro Chhalka Chorchori cooked in clay pots, or check your dining pass.",
+        text: "Pranam! Rajbari Bhojbari 2026 is taking place on Friday, 9th October at IAM Kolkata Campus. Our ₹349 Zero-Waste Eco-Pass gives you access to authentic 19th-century recipes like Raj Angan Jali Kebab, Panchali Patpata Bora, and Polao. Please use 'Buy Now' or 'Add to Cart' to reserve your passes!",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         source: 'bhojbot-curated-engine',
       };
@@ -235,7 +302,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-2xl h-[88vh] flex flex-col bg-[#180406] border border-amber-500/35 rounded-3xl shadow-2xl overflow-hidden z-10 ring-1 ring-amber-500/20 backdrop-blur-2xl"
+            className="relative w-[95%] sm:w-full max-w-2xl h-[88vh] max-h-[85vh] sm:max-h-[88vh] mx-auto flex flex-col bg-[#180406] border border-amber-500/35 rounded-3xl shadow-2xl overflow-hidden z-10 ring-1 ring-amber-500/20 backdrop-blur-2xl"
           >
             {/* Header with IAM Chef Mascot Logo */}
             <div className="px-5 py-3.5 bg-gradient-to-r from-[#120305] via-[#24080c] to-[#120305] border-b border-amber-500/30 flex items-center justify-between">
@@ -408,20 +475,23 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
 
               {isLoading && (
                 <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className="flex gap-3 justify-start"
                 >
                   <div className="flex-shrink-0 mt-0.5">
                     <IAMChefLogo className="w-8 h-8" glow={true} />
                   </div>
-                  <div className="bg-[#24080c] border border-amber-500/25 text-stone-300 rounded-2xl rounded-tl-none p-3.5 flex items-center gap-2 text-xs">
-                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-                    <span>
-                      {chatMode === 'complex' 
-                        ? 'Gemini 3.1 Pro is designing zero-waste culinary blueprints...' 
-                        : 'Bhoj-Bot is analyzing smart recipes & live Google groundings...'}
-                    </span>
+                  <div className="bg-[#24080c] border border-amber-500/25 text-stone-300 rounded-2xl rounded-tl-none p-3.5 flex items-center gap-2.5 text-xs shadow-md">
+                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin flex-shrink-0" />
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-amber-200">Bhoj-Bot is typing</span>
+                      <span className="inline-flex gap-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
               )}

@@ -147,14 +147,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             className="fixed inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
           />
 
-          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+          <div className="absolute inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
             <motion.div 
               id="cart-drawer-panel"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="w-screen max-w-lg bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border-l border-amber-500/35 p-5 sm:p-6 flex flex-col justify-between shadow-2xl text-stone-200 z-10"
+              className="w-screen max-w-full sm:max-w-lg bg-gradient-to-b from-[#24080c] via-[#1a0507] to-[#120305] border-l border-amber-500/35 p-4 sm:p-6 flex flex-col justify-between shadow-2xl text-stone-200 z-10"
             >
               {/* Drawer Header */}
               <div>

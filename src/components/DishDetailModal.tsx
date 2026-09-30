@@ -49,7 +49,7 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 24 }}
             transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[#1a0507] border border-amber-500/40 rounded-2xl shadow-2xl text-stone-200 z-10"
+            className="relative w-[95%] sm:w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-auto bg-[#1a0507] border border-amber-500/40 rounded-2xl shadow-2xl text-stone-200 z-10"
           >
             {/* Close Button */}
             <motion.button
