@@ -7,15 +7,35 @@ interface FooterProps {
   onNavClick: (id: string) => void;
   onOpenBhojBot: () => void;
   onOpenDPDPPolicy?: () => void;
+  onOpenLegal?: (tab: 'privacy' | 'terms' | 'refund' | 'disclaimer' | 'cookies' | 'security' | 'accessibility' | 'community') => void;
+  onOpenCookiePreferences?: () => void;
+  onOpenGuide?: () => void;
+  onOpenHelp?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot, onOpenDPDPPolicy }) => {
+export const Footer: React.FC<FooterProps> = ({ 
+  onNavClick, 
+  onOpenBhojBot, 
+  onOpenDPDPPolicy,
+  onOpenLegal,
+  onOpenCookiePreferences,
+  onOpenGuide,
+  onOpenHelp,
+}) => {
+  const handleLegalClick = (tab: 'privacy' | 'terms' | 'refund' | 'disclaimer' | 'cookies' | 'security' | 'accessibility' | 'community') => {
+    if (onOpenLegal) {
+      onOpenLegal(tab);
+    } else if (onOpenDPDPPolicy) {
+      onOpenDPDPPolicy();
+    }
+  };
+
   return (
     <footer className="bg-[#120305] border-t border-amber-500/25 text-stone-300 text-xs py-12 px-4 sm:px-6 lg:px-8 mt-16 font-sans">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-amber-900/60">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-amber-900/60">
         
         {/* Brand Info */}
-        <div className="space-y-3 md:col-span-1">
+        <div className="space-y-3 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-red-950/80 border border-amber-500/40 flex items-center justify-center p-0.5 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
               <IAMChefLogo size={36} />
@@ -65,72 +85,157 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot, onOpe
                 Misti Mukh Platter (+₹99 Add-on)
               </button>
             </li>
+            <li>
+              <button onClick={() => onNavClick('ticket-booking')} className="text-amber-400 font-bold hover:text-amber-300 transition-colors text-left cursor-pointer">
+                Book ₹349 Eco-Pass →
+              </button>
+            </li>
           </ul>
         </div>
 
-        {/* Smart Features */}
+        {/* Guest Support & Orientation */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
             <Cpu className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Smart Features</span>
+            <span>Guest Orientation</span>
           </h4>
           <ul className="space-y-1.5 text-stone-300 text-xs">
-            <li>
-              <button onClick={() => onNavClick('ticket-booking')} className="hover:text-amber-300 transition-colors cursor-pointer">
-                Booking Pass
-              </button>
-            </li>
-            <li>
-              <button onClick={onOpenBhojBot} className="hover:text-amber-300 transition-colors cursor-pointer">
-                AI Games
-              </button>
-            </li>
+            {onOpenGuide && (
+              <li>
+                <button onClick={onOpenGuide} className="hover:text-amber-300 transition-colors cursor-pointer text-left font-semibold text-amber-200">
+                  Festival Guide & Tour
+                </button>
+              </li>
+            )}
+            {onOpenHelp && (
+              <li>
+                <button onClick={onOpenHelp} className="hover:text-amber-300 transition-colors cursor-pointer text-left">
+                  Help Center & FAQs
+                </button>
+              </li>
+            )}
             <li>
               <button onClick={onOpenBhojBot} className="hover:text-blue-300 transition-colors flex items-center gap-1.5 cursor-pointer">
                 <Bot className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-blue-400 font-semibold">Bhoj Bot</span>
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavClick('menu-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
-                QR-led stories & AI interaction
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavClick('contact-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
-                Campus Location
+                <span className="text-blue-400 font-semibold">Ask Bhoj-Bot AI</span>
               </button>
             </li>
             <li>
               <button onClick={() => onNavClick('feedback-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
-                Feedback
+                Sustainability Guestbook
               </button>
             </li>
-            {onOpenDPDPPolicy && (
+            <li>
+              <button onClick={() => onNavClick('contact-section')} className="hover:text-amber-300 transition-colors cursor-pointer">
+                Campus Location & Metro
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        {/* Legal & Compliance Center */}
+        <div className="space-y-2">
+          <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>Legal & Policies</span>
+          </h4>
+          <ul className="space-y-1.5 text-stone-300 text-xs">
+            <li>
+              <button
+                type="button"
+                onClick={() => handleLegalClick('privacy')}
+                className="hover:text-amber-300 transition-colors text-left cursor-pointer"
+              >
+                Privacy Policy (DPDP Act)
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleLegalClick('terms')}
+                className="hover:text-amber-300 transition-colors text-left cursor-pointer"
+              >
+                Terms of Service & Entry Rules
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleLegalClick('refund')}
+                className="hover:text-amber-300 transition-colors text-left cursor-pointer"
+              >
+                Refund & Cancellation Policy
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleLegalClick('disclaimer')}
+                className="hover:text-amber-300 transition-colors text-left cursor-pointer"
+              >
+                Allergen & Culinary Notice
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleLegalClick('cookies')}
+                className="hover:text-amber-300 transition-colors text-left cursor-pointer"
+              >
+                Cookie & Storage Disclosures
+              </button>
+            </li>
+            {onOpenCookiePreferences && (
               <li>
                 <button
                   type="button"
-                  onClick={onOpenDPDPPolicy}
-                  className="text-amber-400 hover:text-amber-300 font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+                  onClick={onOpenCookiePreferences}
+                  className="text-amber-400 hover:text-amber-300 transition-colors text-left cursor-pointer"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span>Privacy Policy (DPDP Act)</span>
+                  Cookie Preferences
                 </button>
               </li>
             )}
+            <li>
+              <button
+                type="button"
+                onClick={() => handleLegalClick('security')}
+                className="hover:text-amber-300 transition-colors text-left cursor-pointer"
+              >
+                Security & Disclosure
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleLegalClick('accessibility')}
+                className="hover:text-amber-300 transition-colors text-left cursor-pointer"
+              >
+                Accessibility Statement
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleLegalClick('community')}
+                className="hover:text-amber-300 transition-colors text-left cursor-pointer"
+              >
+                Community Guidelines
+              </button>
+            </li>
           </ul>
         </div>
 
         {/* Academic Host & Helpline */}
         <div className="space-y-2.5">
           <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">
-            Host & Concierge
+            Host & Concierge Desk
           </h4>
           <p className="text-amber-200 font-semibold text-xs">
             Institute of Advanced Management (IAM)
           </p>
           <p className="text-[11px] text-stone-300 leading-relaxed">
-            Salt Lake Sector V, Kolkata, West Bengal. Spearheading sustainable hospitality, smart zero-waste cooking, and AI gastronomy research.
+            Salt Lake Sector V, Kolkata, West Bengal 700106. Spearheading sustainable hospitality and AI gastronomy research.
           </p>
           
           <div className="space-y-1 pt-1 text-[11px]">
@@ -166,16 +271,21 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick, onOpenBhojBot, onOpe
 
       <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-stone-400">
         <div className="flex items-center gap-3 flex-wrap">
-          <span>© 2026 IAM AI ZERO-WASTE FOOD FEST • Institute of Advanced Management (IAM).</span>
-          {onOpenDPDPPolicy && (
-            <button
-              type="button"
-              onClick={onOpenDPDPPolicy}
-              className="text-amber-400 hover:text-amber-300 transition-colors underline cursor-pointer"
-            >
-              Privacy Policy (DPDP Act)
-            </button>
-          )}
+          <span>© 2026 IAM AI ZERO-WASTE FOOD FEST • Institute of Advanced Management (IAM), Kolkata.</span>
+          <button
+            type="button"
+            onClick={() => handleLegalClick('privacy')}
+            className="text-amber-400 hover:text-amber-300 transition-colors underline cursor-pointer"
+          >
+            DPDP Privacy Notice
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLegalClick('terms')}
+            className="text-amber-400 hover:text-amber-300 transition-colors underline cursor-pointer"
+          >
+            Terms of Service
+          </button>
           <button
             type="button"
             onClick={() => onNavClick('admin')}

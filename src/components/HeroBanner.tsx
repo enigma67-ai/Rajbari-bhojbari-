@@ -18,23 +18,14 @@ import heroBgImage from '../assets/1790315575567.png';
 interface HeroBannerProps {
   onExploreMenu: () => void;
   onOpenBhojBot: () => void;
-  onViewSchedule?: () => void;
-  onOpenSchedule?: () => void;
   onBookPass?: () => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
   onExploreMenu,
   onOpenBhojBot,
-  onViewSchedule,
-  onOpenSchedule,
   onBookPass,
 }) => {
-  const handleScheduleClick = () => {
-    if (onViewSchedule) onViewSchedule();
-    else if (onOpenSchedule) onOpenSchedule();
-  };
-
   // Countdown to Friday 9th October 2026 10:00 AM IST
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -171,15 +162,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               >
                 <span>Zero-Waste Menu</span>
                 <ArrowRight className="w-4 h-4 text-amber-400" />
-              </button>
-
-              <button
-                id="hero-schedule-btn"
-                onClick={handleScheduleClick}
-                className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#24080c]/90 hover:bg-[#340c12] text-amber-100 border border-amber-500/40 font-semibold text-sm transition-all hover:border-amber-400 cursor-pointer shadow-md"
-              >
-                <Calendar className="w-4 h-4 text-amber-400" />
-                <span>Fest Schedule</span>
               </button>
 
               <button

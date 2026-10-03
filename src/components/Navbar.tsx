@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   UtensilsCrossed, 
-  Calendar, 
   Leaf, 
   MessageSquare, 
   PhoneCall, 
@@ -12,7 +11,10 @@ import {
   KeyRound, 
   Ticket, 
   Sparkles,
-  Bot
+  Bot,
+  User,
+  HelpCircle,
+  BookOpen
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { IAMChefLogo } from './IAMChefLogo';
@@ -21,8 +23,12 @@ interface NavbarProps {
   cartCount?: number;
   cartTotal?: number;
   userBookingsCount?: number;
+  userTicketsCount?: number;
   onOpenCart: () => void;
   onOpenAuth: () => void;
+  onOpenProfile?: () => void;
+  onOpenGuide?: () => void;
+  onOpenHelp?: () => void;
   onOpenBhojBot: () => void;
   currentUser: UserProfile | null;
   onLogout: () => void;
@@ -33,8 +39,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   cartCount = 0,
   cartTotal = 0,
   userBookingsCount = 0,
+  userTicketsCount = 0,
   onOpenCart,
   onOpenAuth,
+  onOpenProfile,
+  onOpenGuide,
+  onOpenHelp,
   onOpenBhojBot,
   currentUser,
   onLogout,
@@ -45,7 +55,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navLinks = [
     { id: 'ticket-booking', label: 'Booking Pass (₹349)', icon: Ticket, highlight: true },
     { id: 'menu-section', label: 'Zero-Waste Menu', icon: UtensilsCrossed },
-    { id: 'schedule-section', label: 'Fest Schedule', icon: Calendar },
     { id: 'feedback-section', label: 'Sustainability Wall', icon: MessageSquare },
     { id: 'contact-section', label: 'Campus Venue', icon: PhoneCall },
   ];
@@ -58,10 +67,33 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-[#160406]/95 backdrop-blur-xl border-b border-amber-500/25 shadow-xl shadow-black/50">
       {/* Top Banner Notice */}
-      <div className="bg-gradient-to-r from-red-950 via-[#26080c] to-stone-950 text-amber-200 text-xs py-1.5 px-4 text-center border-b border-amber-600/30 flex items-center justify-center gap-2 font-medium">
-        <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span>RAJBARI BHOJBARI 2026 • <strong>Friday, 9th October 2026</strong> • The Zero-Waste AI Food Fest</span>
-        <span className="hidden md:inline text-amber-300/90">| IAM Kolkata Campus • Authentic Bengal Heritage</span>
+      <div className="bg-gradient-to-r from-red-950 via-[#26080c] to-stone-950 text-amber-200 text-xs py-1.5 px-4 text-center border-b border-amber-600/30 flex items-center justify-between font-medium max-w-7xl mx-auto">
+        <div className="flex items-center gap-2 mx-auto">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>RAJBARI BHOJBARI 2026 • <strong>Friday, 9th October 2026</strong> • The Zero-Waste AI Food Fest</span>
+          <span className="hidden md:inline text-amber-300/90">| IAM Kolkata Campus</span>
+        </div>
+        
+        <div className="hidden sm:flex items-center gap-3 text-[11px]">
+          {onOpenGuide && (
+            <button
+              onClick={onOpenGuide}
+              className="text-amber-300 hover:text-amber-100 flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <BookOpen className="w-3 h-3 text-amber-400" />
+              <span>Festival Guide</span>
+            </button>
+          )}
+          {onOpenHelp && (
+            <button
+              onClick={onOpenHelp}
+              className="text-stone-300 hover:text-amber-300 flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <HelpCircle className="w-3 h-3 text-amber-400" />
+              <span>Help & FAQs</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -146,6 +178,33 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </button>
 
+            {/* User Profile / Login Button */}
+            {currentUser ? (
+              <button
+                id="nav-profile-btn"
+                onClick={onOpenProfile}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-amber-950/60 border border-amber-400/50 text-amber-200 hover:text-white text-xs font-semibold transition-all cursor-pointer shrink-0 shadow-md"
+                title="View My Passes & Account"
+              >
+                <User className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline max-w-[90px] truncate">{currentUser.name.split(' ')[0]}</span>
+                {(userTicketsCount > 0 || userBookingsCount > 0) && (
+                  <span className="bg-amber-500 text-stone-950 text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                    {userTicketsCount || userBookingsCount}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                id="nav-login-btn"
+                onClick={onOpenAuth}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-200 hover:text-amber-200 text-xs font-semibold transition-all cursor-pointer shrink-0"
+              >
+                <User className="w-3.5 h-3.5 text-stone-400" />
+                <span className="hidden sm:inline">Sign In</span>
+              </button>
+            )}
+
             {/* Primary Action Button: 'Booking Pass' */}
             <button
               id="nav-booking-pass-btn"
@@ -197,7 +256,35 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </button>
 
-            {/* Mobile View Cart Button (No dynamic counter badge) */}
+            {/* Profile or Sign in on Mobile */}
+            {currentUser ? (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (onOpenProfile) onOpenProfile();
+                }}
+                className="w-full mb-2 flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-amber-950/80 border border-amber-500/40 text-amber-200 text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-amber-400" />
+                  <span>My Passes & Account ({currentUser.name})</span>
+                </div>
+                <span className="text-amber-400 font-mono text-[11px]">View →</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth();
+                }}
+                className="w-full mb-2 flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-stone-900 border border-stone-800 text-stone-200 text-left"
+              >
+                <User className="w-4 h-4 text-stone-400" />
+                <span>Guest Sign In / Register</span>
+              </button>
+            )}
+
+            {/* Mobile View Cart Button */}
             <button
               id="mobile-nav-cart-btn"
               onClick={() => {
@@ -210,7 +297,36 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <ShoppingBag className="w-4 h-4 text-amber-400" />
                 <span>View Food Plate & Cart</span>
               </div>
+              <span className="text-amber-300 font-mono">₹{cartTotal}</span>
             </button>
+
+            {/* Orientation & Help */}
+            <div className="grid grid-cols-2 gap-2 pt-1 pb-1">
+              {onOpenGuide && (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenGuide();
+                  }}
+                  className="px-3 py-2 rounded-xl bg-stone-900/80 border border-stone-800 text-amber-300 text-xs font-semibold flex items-center gap-1.5 text-left"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Festival Guide</span>
+                </button>
+              )}
+              {onOpenHelp && (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenHelp();
+                  }}
+                  className="px-3 py-2 rounded-xl bg-stone-900/80 border border-stone-800 text-stone-300 text-xs font-semibold flex items-center gap-1.5 text-left"
+                >
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Help & FAQs</span>
+                </button>
+              )}
+            </div>
 
             {/* Mobile Nav Links */}
             {navLinks.map((link) => {

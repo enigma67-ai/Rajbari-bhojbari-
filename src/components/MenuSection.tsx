@@ -79,9 +79,9 @@ export const TRADITIONAL_MOHOLS: MoholDefinition[] = [
   },
   {
     id: 'matini',
-    name: 'Matini Mohol',
+    name: 'Mati Mohol',
     subtitle: 'Confectionery & Misti Mukh — ₹99',
-    bengaliTitle: 'মাতিনী মহল (মিষ্টি মুখ ও মিষ্টান্ন)',
+    bengaliTitle: 'মাটি মহল (মিষ্টি মুখ ও মিষ্টান্ন)',
     tagline: 'Heirloom Confectionery Add-on (₹99)',
     description: 'An exquisite four-sweet royal tasting platter celebrating rare, forgotten 19th-century secret confectionery recipes of Bengal.',
     badge: 'Misti Mukh Platter ₹99',
@@ -294,7 +294,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
             <span className="text-[10px] bg-emerald-950 px-1.5 py-0.5 rounded text-emerald-300 font-bold border border-emerald-500/40">₹0 Free</span>
           </button>
 
-          {/* Matini Mohol Pill */}
+          {/* Mati Mohol Pill */}
           <button
             id="tab-mohol-matini"
             onClick={() => handleScrollToMohol('matini')}
@@ -305,7 +305,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
             }`}
           >
             <Cake className="w-3.5 h-3.5 text-amber-400" />
-            <span>Matini Mohol</span>
+            <span>Mati Mohol</span>
             <span className="text-[10px] bg-amber-950/80 px-1.5 py-0.5 rounded text-amber-300 font-bold border border-amber-500/40">₹99</span>
           </button>
 
@@ -556,7 +556,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
           )}
 
           {/* =========================================================================
-              4. MATINI MOHOL (Confectionery & Misti Mukh — ₹99)
+              4. MATI MOHOL (Confectionery & Misti Mukh — ₹99)
              ========================================================================= */}
           {(selectedMohol === 'all' || selectedMohol === 'matini') && groupedDishes.matini.length > 0 && (
             <section id="mohol-matini" className="scroll-mt-36 space-y-6">
@@ -566,10 +566,10 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                     <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      Matini Mohol
+                      Mati Mohol
                     </h3>
                     <span className="text-sm sm:text-base text-amber-400 font-serif italic">
-                      (মাতিনী মহল • মিষ্টি মুখ প্লাটার)
+                      (মাটি মহল • মিষ্টি মুখ প্লাটার)
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-300 max-w-2xl">
@@ -836,7 +836,7 @@ const DishCard: React.FC<DishCardProps> = ({
                     title="Add item to Eco-Plate"
                   >
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span className="truncate">Add to Cart</span>
+                    <span className="truncate">+ Add to Cart</span>
                   </button>
 
                   <button
@@ -850,52 +850,71 @@ const DishCard: React.FC<DishCardProps> = ({
                     title="Buy now with instant checkout"
                   >
                     <Zap className="w-3.5 h-3.5 fill-stone-950 stroke-[2.5]" />
-                    <span className="truncate">Buy Now</span>
+                    <span className="truncate">⚡ Buy Now</span>
                   </button>
                 </motion.div>
               ) : (
-                /* Active counter pill: [ - ] [ quantity ] [ + ] */
+                /* Active Added State + Prominent Buy / Checkout Button */
                 <motion.div
-                  key="counter-pill"
+                  key="added-checkout-btns"
                   initial={{ opacity: 0, scale: 0.92 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.92 }}
                   transition={{ duration: 0.15 }}
-                  className="w-full flex items-center justify-between bg-black/80 border border-amber-400/80 rounded-xl p-1 shadow-lg ring-1 ring-amber-500/40"
+                  className="w-full flex items-center gap-1.5"
                 >
-                  <button
-                    id={`dish-decrement-${dish.id}`}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDecrement();
-                    }}
-                    className="w-7 h-7 rounded-lg bg-red-950 hover:bg-red-900 text-amber-300 hover:text-white flex items-center justify-center transition-all active:scale-90 cursor-pointer border border-amber-800/60"
-                    aria-label="Decrease dish quantity"
-                  >
-                    <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </button>
+                  {/* Left: 'Added' state with quantity counter [ - ] [ ✓ {quantityInCart} Added ] [ + ] */}
+                  <div className="flex-1 flex items-center justify-between bg-black/85 border border-emerald-500/70 rounded-xl p-1 shadow-md ring-1 ring-emerald-500/30">
+                    <button
+                      id={`dish-decrement-${dish.id}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDecrement();
+                      }}
+                      className="w-6 h-6 rounded-lg bg-red-950/80 hover:bg-red-900 text-amber-300 hover:text-white flex items-center justify-center transition-all active:scale-90 cursor-pointer border border-amber-800/50"
+                      aria-label="Decrease dish quantity"
+                    >
+                      <Minus className="w-3 h-3 stroke-[2.5]" />
+                    </button>
 
-                  <div className="flex items-center gap-1 px-1">
-                    <span className="font-mono text-xs font-black text-white">
-                      {quantityInCart}
-                    </span>
-                    <span className="text-[9px] text-amber-300 font-bold uppercase tracking-wider">
-                      in plate
-                    </span>
+                    <div className="flex items-center gap-1 px-1 min-w-0">
+                      <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3] shrink-0" />
+                      <span className="font-mono text-xs font-black text-white">
+                        {quantityInCart}
+                      </span>
+                      <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider truncate">
+                        Added
+                      </span>
+                    </div>
+
+                    <button
+                      id={`dish-increment-${dish.id}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onIncrement();
+                      }}
+                      className="w-6 h-6 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow border border-amber-400/40 font-bold"
+                      aria-label="Increase dish quantity"
+                    >
+                      <Plus className="w-3 h-3 stroke-[2.5]" />
+                    </button>
                   </div>
 
+                  {/* Right: Prominent Buy / Checkout Button */}
                   <button
-                    id={`dish-increment-${dish.id}`}
+                    id={`dish-checkout-btn-${dish.id}`}
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onIncrement();
+                      onBuyNow();
                     }}
-                    className="w-7 h-7 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow border border-amber-400/40 font-bold"
-                    aria-label="Increase dish quantity"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-stone-950 font-black text-xs shadow-md shadow-emerald-950/50 border border-emerald-300/60 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
+                    title="Proceed directly to Buy / Checkout this item"
                   >
-                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <Zap className="w-3.5 h-3.5 fill-stone-950 stroke-[2.5] shrink-0" />
+                    <span className="truncate">Buy / Checkout</span>
                   </button>
                 </motion.div>
               )}

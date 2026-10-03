@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
 import { MenuSection } from './components/MenuSection';
-import { ScheduleSection } from './components/ScheduleSection';
 import { FeedbackSection } from './components/FeedbackSection';
 import { ContactSection } from './components/ContactSection';
 import { TicketBookingSection } from './components/TicketBookingSection';
 import { Footer } from './components/Footer';
 import { AdminGatePage } from './components/AdminGatePage';
 
-// Modals
+// Modals & New Production Pages
 import { AuthModal } from './components/AuthModal';
 import { CartDrawer } from './components/CartDrawer';
 import { PaymentModal } from './components/PaymentModal';
@@ -18,6 +17,14 @@ import { BhojBotModal } from './components/BhojBotModal';
 import { AIPlateSuggesterModal } from './components/AIPlateSuggesterModal';
 import { CelebrationModal, CelebrationData } from './components/CelebrationModal';
 import { DPDPPrivacyModal } from './components/DPDPPrivacyModal';
+import { LegalCenterModal, LegalTabType } from './components/LegalCenterModal';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { UserProfileModal } from './components/UserProfileModal';
+import { HelpCenterModal } from './components/HelpCenterModal';
+import { FestivalGuideModal } from './components/FestivalGuideModal';
+import { NotFoundPage } from './components/NotFoundPage';
+import { OfflineNoticeBanner } from './components/OfflineNoticeBanner';
+import { MaintenanceModal } from './components/MaintenanceModal';
 
 // Types & Data
 import { MenuItem, CartItem, UserProfile, EventTicketPass } from './types';
@@ -99,6 +106,16 @@ export default function App() {
   const [pendingDishToAdd, setPendingDishToAdd] = useState<MenuItem | null>(null);
   const [shouldOpenCartOnLogin, setShouldOpenCartOnLogin] = useState(false);
   const [openCartOnLogin, setOpenCartOnLogin] = useState(false);
+  const [openCheckoutOnLogin, setOpenCheckoutOnLogin] = useState(false);
+
+  // New Production-Grade Pages & Modals States
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [legalInitialTab, setLegalInitialTab] = useState<LegalTabType>('privacy');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isHelpCenterOpen, setIsHelpCenterOpen] = useState(false);
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
+  const [isCookiePreferencesOpen, setIsCookiePreferencesOpen] = useState(false);
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
 
   // Persist Cart
   useEffect(() => {
@@ -287,39 +304,37 @@ export default function App() {
     }
   };
 
-  // Fulfill pending dish add-to-cart or buy-now after guest logs in successfully
+  // Fulfill pending dish add-to-cart, buy-now, or checkout after guest logs in successfully
   useEffect(() => {
-    if (currentUser && pendingDishToAdd) {
-      const dish = pendingDishToAdd;
-      setPendingDishToAdd(null);
-      setCart((prev) => {
-        const existing = prev.find((item) => item.dish.id === dish.id);
-        if (existing) {
-          return prev.map((item) =>
-            item.dish.id === dish.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
-        }
-        return [...prev, { dish, quantity: 1 }];
-      });
+    if (currentUser) {
+      if (pendingDishToAdd) {
+        const dish = pendingDishToAdd;
+        setPendingDishToAdd(null);
+        setCart((prev) => {
+          const existing = prev.find((item) => item.dish.id === dish.id);
+          if (existing) {
+            return prev.map((item) =>
+              item.dish.id === dish.id
+                ? { ...item, quantity: item.quantity + 1 }
+                : item
+            );
+          }
+          return [...prev, { dish, quantity: 1 }];
+        });
+      }
 
-      if (openCartOnLogin) {
+      if (openCheckoutOnLogin) {
+        setOpenCheckoutOnLogin(false);
+        setIsPaymentOpen(true);
+      } else if (openCartOnLogin) {
         setOpenCartOnLogin(false);
         setIsCartOpen(true);
       }
     }
-  }, [currentUser, pendingDishToAdd, openCartOnLogin]);
+  }, [currentUser, pendingDishToAdd, openCartOnLogin, openCheckoutOnLogin]);
 
-  // Cart operations
+  // Cart operations (Users can add to cart freely without requiring login)
   const handleAddToCart = (dish: MenuItem) => {
-    if (!currentUser) {
-      setPendingDishToAdd(dish);
-      setAuthModalMode('guest');
-      setIsAuthOpen(true);
-      return;
-    }
-
     setCart((prev) => {
       const existing = prev.find((item) => item.dish.id === dish.id);
       if (existing) {
@@ -334,26 +349,31 @@ export default function App() {
   };
 
   const handleBuyNow = (dish: MenuItem) => {
+    // Save to cart immediately so user item is retained
+    setCart((prev) => {
+      const existing = prev.find((item) => item.dish.id === dish.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.dish.id === dish.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { dish, quantity: 1 }];
+    });
+
     if (!currentUser) {
       setPendingDishToAdd(dish);
-      setOpenCartOnLogin(true);
+      setOpenCheckoutOnLogin(true);
       setAuthModalMode('guest');
       setIsAuthOpen(true);
       return;
     }
 
-    handleAddToCart(dish);
-    setIsCartOpen(true);
+    setIsPaymentOpen(true);
   };
 
   const handleAddMultipleToCart = (dishes: MenuItem[]) => {
-    if (!currentUser) {
-      if (dishes.length > 0) setPendingDishToAdd(dishes[0]);
-      setAuthModalMode('guest');
-      setIsAuthOpen(true);
-      return;
-    }
-
     setCart((prev) => {
       const newCart = [...prev];
       for (const dish of dishes) {
@@ -369,12 +389,6 @@ export default function App() {
   };
 
   const handleUpdateQuantity = (dishId: string, delta: number) => {
-    if (delta > 0 && !currentUser) {
-      setAuthModalMode('guest');
-      setIsAuthOpen(true);
-      return;
-    }
-
     setCart((prev) =>
       prev
         .map((item) => {
@@ -402,31 +416,54 @@ export default function App() {
     setIsBhojBotOpen(true);
   };
 
-  // Route Listener for /admin
+  // Route Resolver supporting '/', '/admin', and '404'
+  const resolveRoute = (path: string, hash: string): string => {
+    const p = path.toLowerCase().replace(/\/$/, '') || '/';
+    const h = hash.toLowerCase();
+    if (p === '/admin' || p.startsWith('/admin') || h === '#admin') return '/admin';
+    if (p === '/' || p === '/index.html' || p === '') return '/';
+    return '404';
+  };
+
   const [currentRoute, setCurrentRoute] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const p = window.location.pathname.toLowerCase();
-      const h = window.location.hash.toLowerCase();
-      if (p === '/admin' || p.startsWith('/admin') || h === '#admin') return '/admin';
+      return resolveRoute(window.location.pathname, window.location.hash);
     }
     return '/';
   });
 
   useEffect(() => {
     const handlePopState = () => {
-      const p = window.location.pathname.toLowerCase();
-      const h = window.location.hash.toLowerCase();
-      if (p === '/admin' || p.startsWith('/admin') || h === '#admin') {
-        setCurrentRoute('/admin');
-      } else {
-        setCurrentRoute('/');
+      const nextRoute = resolveRoute(window.location.pathname, window.location.hash);
+      setCurrentRoute(nextRoute);
+    };
+
+    const handleHashDeepLinks = () => {
+      if (typeof window === 'undefined') return;
+      const h = window.location.hash.toLowerCase().replace('#', '');
+      const legalTabs: LegalTabType[] = ['privacy', 'terms', 'refund', 'disclaimer', 'cookies', 'security', 'accessibility', 'community'];
+      if (legalTabs.includes(h as any)) {
+        setLegalInitialTab(h as LegalTabType);
+        setIsLegalModalOpen(true);
+      } else if (h === 'help' || h === 'faq') {
+        setIsHelpCenterOpen(true);
+      } else if (h === 'guide' || h === 'tour') {
+        setIsGuideModalOpen(true);
+      } else if (h === 'profile' || h === 'passes' || h === 'account') {
+        setIsProfileOpen(true);
+      } else if (h === 'cookies') {
+        setIsCookiePreferencesOpen(true);
       }
     };
+
+    handleHashDeepLinks();
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('hashchange', handlePopState);
+    window.addEventListener('hashchange', handleHashDeepLinks);
     return () => {
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('hashchange', handlePopState);
+      window.removeEventListener('hashchange', handleHashDeepLinks);
     };
   }, []);
 
@@ -447,6 +484,11 @@ export default function App() {
   // If on /admin route, render dedicated Gate Staff Admin page
   if (currentRoute === '/admin') {
     return <AdminGatePage onNavigateToHome={navigateToHome} />;
+  }
+
+  // If on unknown route, render dedicated 404 page
+  if (currentRoute === '404') {
+    return <NotFoundPage onNavigateToHome={navigateToHome} onNavigateToAdmin={navigateToAdmin} />;
   }
 
   // Smooth scroll handler
@@ -472,11 +514,15 @@ export default function App() {
         cartCount={cartTotalCount}
         cartTotal={cartTotalAmount}
         userBookingsCount={userBookings.length}
+        userTicketsCount={userTickets.length}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAuth={() => {
           setAuthModalMode('guest');
           setIsAuthOpen(true);
         }}
+        onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenGuide={() => setIsGuideModalOpen(true)}
+        onOpenHelp={() => setIsHelpCenterOpen(true)}
         onOpenBhojBot={() => {
           setBhojBotInitialQuery('');
           setIsBhojBotOpen(true);
@@ -496,7 +542,6 @@ export default function App() {
             setBhojBotInitialQuery('');
             setIsBhojBotOpen(true);
           }}
-          onViewSchedule={() => handleNavigate('schedule-section')}
           onBookPass={() => handleNavigate('ticket-booking')}
         />
 
@@ -521,9 +566,6 @@ export default function App() {
           cart={cart}
           onOpenPlateSuggester={() => setIsPlateSuggesterOpen(true)}
         />
-
-        {/* Interactive Event Schedule Section */}
-        <ScheduleSection />
 
         {/* Feedback & Guestbook Section */}
         <FeedbackSection
@@ -586,7 +628,77 @@ export default function App() {
           setBhojBotInitialQuery('');
           setIsBhojBotOpen(true);
         }}
-        onOpenDPDPPolicy={() => setIsDPDPModalOpen(true)}
+        onOpenDPDPPolicy={() => {
+          setLegalInitialTab('privacy');
+          setIsLegalModalOpen(true);
+        }}
+        onOpenLegal={(tab) => {
+          setLegalInitialTab(tab);
+          setIsLegalModalOpen(true);
+        }}
+        onOpenCookiePreferences={() => setIsCookiePreferencesOpen(true)}
+        onOpenGuide={() => setIsGuideModalOpen(true)}
+        onOpenHelp={() => setIsHelpCenterOpen(true)}
+      />
+
+      {/* Offline Connectivity Assurance Banner */}
+      <OfflineNoticeBanner
+        onOpenMyPasses={() => setIsProfileOpen(true)}
+      />
+
+      {/* Cookie Consent & Preferences Banner */}
+      <CookieConsentBanner
+        onOpenLegal={(tab) => {
+          setLegalInitialTab(tab);
+          setIsLegalModalOpen(true);
+        }}
+        forceOpenModal={isCookiePreferencesOpen}
+        onCloseModal={() => setIsCookiePreferencesOpen(false)}
+      />
+
+      {/* Comprehensive Legal & Compliance Center Modal */}
+      <LegalCenterModal
+        isOpen={isLegalModalOpen}
+        initialTab={legalInitialTab}
+        onClose={() => setIsLegalModalOpen(false)}
+      />
+
+      {/* User Profile & Digital Passes Manager */}
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        currentUser={currentUser}
+        userTickets={userTickets}
+        userBookings={userBookings}
+        onLogout={handleUserLogout}
+        onOpenBooking={() => handleNavigate('ticket-booking')}
+        onOpenLegal={(tab) => {
+          setIsProfileOpen(false);
+          setLegalInitialTab(tab || 'privacy');
+          setIsLegalModalOpen(true);
+        }}
+      />
+
+      {/* Help Center & Searchable FAQs Modal */}
+      <HelpCenterModal
+        isOpen={isHelpCenterOpen}
+        onClose={() => setIsHelpCenterOpen(false)}
+        onOpenBhojBot={() => setIsBhojBotOpen(true)}
+        onOpenBooking={() => handleNavigate('ticket-booking')}
+      />
+
+      {/* Festival Orientation & Onboarding Guide */}
+      <FestivalGuideModal
+        isOpen={isGuideModalOpen}
+        onClose={() => setIsGuideModalOpen(false)}
+        onOpenBooking={() => handleNavigate('ticket-booking')}
+        onOpenBhojBot={() => setIsBhojBotOpen(true)}
+      />
+
+      {/* Maintenance State Screen Modal */}
+      <MaintenanceModal
+        isOpen={isMaintenanceOpen}
+        onClose={() => setIsMaintenanceOpen(false)}
       />
 
       {/* Modals & Drawers */}
@@ -609,7 +721,15 @@ export default function App() {
         cart={cart}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveFromCart}
-        onProceedToCheckout={() => setIsPaymentOpen(true)}
+        onProceedToCheckout={() => {
+          if (!currentUser) {
+            setOpenCheckoutOnLogin(true);
+            setAuthModalMode('guest');
+            setIsAuthOpen(true);
+            return;
+          }
+          setIsPaymentOpen(true);
+        }}
       />
 
       <PaymentModal

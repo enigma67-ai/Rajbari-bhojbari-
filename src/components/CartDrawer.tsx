@@ -115,7 +115,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     if (groups.matini.length > 0) {
       list.push({
         id: 'matini',
-        title: 'Matini Mohol',
+        title: 'Mati Mohol',
         subtitle: 'Confectionery & Misti Mukh',
         badge: '₹99 Platter',
         icon: Cake,

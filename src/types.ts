@@ -19,19 +19,6 @@ export interface MenuItem {
   isChefSpecial?: boolean;
 }
 
-export interface ScheduleEvent {
-  id: string;
-  time: string;
-  title: string;
-  bengaliSubtitle: string;
-  location: string;
-  category: 'Ceremony' | 'Culinary Demo' | 'Live Music & Folk' | 'Hospitality Lab';
-  speakerOrChef: string;
-  description: string;
-  sustainabilityFocus?: string;
-  isHighlight?: boolean;
-}
-
 export interface CartItem {
   dish: MenuItem;
   quantity: number;

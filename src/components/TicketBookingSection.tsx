@@ -83,7 +83,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   onOpenDPDPPolicy,
 }) => {
   // Step tracker: 1: Details -> 2: Payment -> 3: Pass -> 4: Meal (Public Guest Checkout)
-  const [currentStep, setCurrentStep] = useState<'details' | 'meal' | 'payment' | 'pass' | 'auth' | 'otp'>('details');
+  const [currentStep, setCurrentStep] = useState<'details' | 'meal' | 'payment' | 'pass'>('details');
+  const [pendingAdvanceStep, setPendingAdvanceStep] = useState(false);
   const [isCelebrationModalOpen, setIsCelebrationModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -118,30 +119,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     email: false,
   });
 
-  // Passwordless Email OTP State
-  const [otpEmail, setOtpEmail] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-  const [otpStatusMsg, setOtpStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [otpCountdown, setOtpCountdown] = useState(0);
-
-  // Email OTP countdown timer
-  useEffect(() => {
-    if (otpCountdown <= 0) return;
-    const timer = setInterval(() => {
-      setOtpCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [otpCountdown]);
-
   // Supabase Auth Session Detection & Auto-fill
   useEffect(() => {
     let authSub: { unsubscribe: () => void } | null = null;
@@ -155,7 +132,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
             const userName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || '';
             if (userEmail) {
               setEmail(userEmail);
-              if (!otpEmail) setOtpEmail(userEmail);
             }
             if (userName) {
               setName(userName);
@@ -186,7 +162,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           const userName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || '';
           if (userEmail) {
             setEmail(userEmail);
-            if (!otpEmail) setOtpEmail(userEmail);
           }
           if (userName) {
             setName(userName);
@@ -230,122 +205,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     }
   };
 
-  // Email OTP: Send passwordless 6-digit OTP code
-  const handleSendEmailOtp = async (e?: React.FormEvent, customEmail?: string) => {
-    if (e) e.preventDefault();
-    const emailInput = (customEmail || otpEmail || email).trim().toLowerCase();
-    if (!emailInput || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailInput)) {
-      setOtpStatusMsg({ type: 'error', text: 'Please enter a valid email address to receive your 6-digit OTP.' });
-      return;
-    }
-
-    setIsSendingOtp(true);
-    setOtpStatusMsg(null);
-
-    try {
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email: emailInput,
-        options: {
-          shouldCreateUser: true,
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      setIsOtpSent(true);
-      setOtpCountdown(60);
-      setOtpEmail(emailInput);
-      if (!email) setEmail(emailInput);
-      setOtpStatusMsg({
-        type: 'success',
-        text: `6-digit OTP code sent to ${emailInput}! Please check your Inbox and Spam folder.`,
-      });
-      // Smoothly transition UI to dedicated OTP Verification Screen
-      setCurrentStep('otp');
-      document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
-    } catch (err: any) {
-      console.error('Email OTP send error:', err);
-      setOtpStatusMsg({
-        type: 'error',
-        text: err?.message || 'Failed to send 6-digit OTP code. Please check your email and try again.',
-      });
-    } finally {
-      setIsSendingOtp(false);
-    }
-  };
-
-  // Email OTP: Verify 6-digit code
-  const handleVerifyEmailOtp = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const guestEmail = (otpEmail || email).trim().toLowerCase();
-    const enteredCode = otpCode.trim().replace(/\D/g, '');
-
-    if (enteredCode.length !== 6) {
-      setOtpStatusMsg({ type: 'error', text: 'Please enter the complete 6-digit OTP code.' });
-      return;
-    }
-
-    setIsVerifyingOtp(true);
-    setOtpStatusMsg(null);
-
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: guestEmail,
-        token: enteredCode,
-        type: 'email',
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data?.session) {
-        setAuthSession(data.session);
-        setEmail(guestEmail);
-        const nameFromMeta = data.session.user?.user_metadata?.full_name || data.session.user?.user_metadata?.name || '';
-        if (nameFromMeta && !name) {
-          setName(nameFromMeta);
-        }
-        setOtpStatusMsg({
-          type: 'success',
-          text: '✓ 6-Digit OTP verified! Session authenticated.',
-        });
-        setIsOtpSent(false);
-        setOtpCode('');
-
-        if (!dpdpConsent) {
-          setDpdpConsent(true);
-        }
-
-        // Strict Requirement 1: On successful OTP verification, transition to Step 2 (Guest Details: Full Name, Phone, DPDP Consent). Do NOT skip to payment.
-        setCurrentStep('details');
-        document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        setOtpStatusMsg({
-          type: 'error',
-          text: 'OTP verification could not be completed. Please request a new 6-digit code.',
-        });
-      }
-    } catch (err: any) {
-      console.error('Email OTP verify error:', err);
-      setOtpStatusMsg({
-        type: 'error',
-        text: err?.message || 'Invalid or expired 6-digit OTP code. Please check and try again.',
-      });
-    } finally {
-      setIsVerifyingOtp(false);
-    }
-  };
-
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
       setAuthSession(null);
-      setIsOtpSent(false);
-      setOtpCode('');
-      setOtpStatusMsg(null);
     } catch (err) {
       console.error('Sign out error:', err);
     }
@@ -436,6 +299,15 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     }
   }, [currentUser]);
 
+  // When user successfully authenticates after submitting the Guest Details form, advance to payment
+  React.useEffect(() => {
+    if ((currentUser || authSession?.user) && pendingAdvanceStep) {
+      setPendingAdvanceStep(false);
+      setCurrentStep('payment');
+      document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [currentUser, authSession, pendingAdvanceStep]);
+
   const isUserAuthenticated = Boolean(authSession?.user || currentUser);
   const userDisplayEmail = authSession?.user?.email || (currentUser?.emailOrPhone?.includes('@') ? currentUser.emailOrPhone : currentUser?.name || 'Authenticated User');
   const isUserLoggedIn = isUserAuthenticated;
@@ -499,8 +371,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     setTimeout(() => setCopiedTid(false), 2500);
   };
 
-  // Validate Step 1 Form with Zod schema and advance directly to Step 2 (UPI Payment)
-  const handleValidateDetails = (e: React.FormEvent) => {
+  // Validate Step 1 Form with Zod schema and advance to Step 2 (UPI Payment) with Auth Check
+  const handleValidateDetails = (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
     setTouched({ name: true, phone: true, email: true });
 
@@ -540,6 +412,16 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     setPhone(result.data.phone);
     setEmail(result.data.email);
     setFormErrors({});
+
+    // Trigger Auth/Login modal when they actually submit the form to finalize the booking
+    if (!isUserAuthenticated) {
+      setPendingAdvanceStep(true);
+      if (onOpenAuth) {
+        onOpenAuth();
+      }
+      return;
+    }
+
     setCurrentStep('payment');
     // Smooth scroll to top of ticket section
     document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
@@ -663,6 +545,14 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     setName(validationResult.data.name);
     setPhone(validationResult.data.phone);
     setEmail(validationResult.data.email);
+
+    // Require authentication before finalizing pass booking
+    if (!isUserAuthenticated) {
+      if (onOpenAuth) {
+        onOpenAuth();
+      }
+      return;
+    }
 
     await finalizePassBooking(cleanUtrDigits);
   };
@@ -789,7 +679,6 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
       const recipientEmail = (
         bookedPass.customerEmail ||
         email ||
-        otpEmail ||
         userDisplayEmail ||
         authSession?.user?.email ||
         currentUser?.emailOrPhone ||
@@ -1129,281 +1018,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           </div>
         </div>
 
-        {/* STEP 1: Auth & OTP Verification Screen */}
-        {(currentStep === 'auth' || currentStep === 'otp') && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl mx-auto bg-gradient-to-b from-[#220609] via-[#1a0507] to-[#120305] border-2 border-amber-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center"
-          >
-            {isUserAuthenticated ? (
-              <div className="space-y-6">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-950/80 border-2 border-emerald-400 flex items-center justify-center text-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.35)]">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-                </div>
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider font-mono">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span>Authentication Verified</span>
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white">
-                    You're Logged In & Ready
-                  </h3>
-                  <p className="text-xs sm:text-sm text-stone-300 max-w-md mx-auto leading-relaxed">
-                    Signed in as <strong className="text-amber-300 font-mono underline">{userDisplayEmail}</strong>. Proceed to Step 2 to enter your guest details for your Digital Eco-Pass.
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 max-w-md mx-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCurrentStep('details');
-                      document.getElementById('ticket-booking')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="w-full sm:flex-1 py-4 px-6 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm shadow-[0_0_25px_rgba(245,158,11,0.35)] transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
-                  >
-                    <span>Proceed to Step 2: Guest Details</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    id="ticket-signout-btn"
-                    onClick={handleSignOut}
-                    className="px-5 py-3.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-                  >
-                    <LogOut className="w-3.5 h-3.5 text-stone-400" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </div>
-            ) : isOtpSent ? (
-              <div className="space-y-6">
-                {/* Header Icon & Title */}
-                <div className="space-y-3">
-                  <div className="w-16 h-16 mx-auto rounded-2xl bg-red-950/80 border-2 border-amber-400 flex items-center justify-center text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.35)]">
-                    <KeyRound className="w-8 h-8 text-amber-400 animate-pulse" />
-                  </div>
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider font-mono">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>6-Digit Code Dispatched</span>
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white">
-                    Enter 6-Digit Verification Code
-                  </h3>
-                  <p className="text-xs sm:text-sm text-stone-300 max-w-md mx-auto leading-relaxed">
-                    We've sent a 6-digit OTP code to{' '}
-                    <strong className="text-amber-300 font-mono underline">{otpEmail || email}</strong>.
-                    Enter the code below to verify your session and unlock Step 2: Guest Details.
-                  </p>
-                </div>
-
-                {/* OTP Form */}
-                <form onSubmit={handleVerifyEmailOtp} className="space-y-5 max-w-md mx-auto pt-2">
-                  <div className="space-y-2">
-                    <label htmlFor="ticket-otp-code-input" className="text-xs font-bold text-amber-200 uppercase tracking-widest block">
-                      6-Digit OTP Code
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="ticket-otp-code-input"
-                        type="text"
-                        required
-                        autoFocus
-                        maxLength={6}
-                        inputMode="numeric"
-                        pattern="[0-9]{6}"
-                        value={otpCode}
-                        onChange={(e) => {
-                          const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
-                          setOtpCode(digits);
-                          if (otpStatusMsg) setOtpStatusMsg(null);
-                        }}
-                        placeholder="• • • • • •"
-                        className="w-full px-4 py-4 rounded-2xl bg-stone-950 border-2 border-amber-500/70 font-mono tracking-[0.5em] text-center text-2xl sm:text-3xl font-black text-amber-300 placeholder-stone-600 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all shadow-inner"
-                      />
-                    </div>
-                    <p className="text-[11px] text-stone-400">
-                      Check your Inbox and Spam folder for the code from Supabase Auth.
-                    </p>
-                  </div>
-
-                  {/* Status Message Alert */}
-                  {otpStatusMsg && (
-                    <div
-                      className={`p-3.5 rounded-xl text-xs flex items-center justify-center gap-2 text-left ${
-                        otpStatusMsg.type === 'success'
-                          ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200'
-                          : 'bg-rose-950/80 border border-rose-500/40 text-rose-200'
-                      }`}
-                    >
-                      {otpStatusMsg.type === 'success' ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                      )}
-                      <span>{otpStatusMsg.text}</span>
-                    </div>
-                  )}
-
-                  {/* Verification Button */}
-                  <button
-                    type="submit"
-                    id="ticket-verify-otp-btn"
-                    disabled={isVerifyingOtp || otpCode.replace(/\D/g, '').length < 6}
-                    className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-stone-950 font-black text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-98"
-                  >
-                    {isVerifyingOtp ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
-                        <span>Verifying Code with Supabase...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-stone-950 stroke-[2.5]" />
-                        <span>Verify Code & Proceed to Guest Details</span>
-                        <ArrowRight className="w-4 h-4 text-stone-950 stroke-[2.5]" />
-                      </>
-                    )}
-                  </button>
-
-                  {/* Resend & Change Email Actions */}
-                  <div className="flex items-center justify-between text-xs pt-3 border-t border-amber-900/40 text-stone-400">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsOtpSent(false);
-                        setOtpCode('');
-                        if (otpStatusMsg) setOtpStatusMsg(null);
-                      }}
-                      className="hover:text-amber-300 underline cursor-pointer flex items-center gap-1 transition-colors"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Change Email</span>
-                    </button>
-
-                    {otpCountdown > 0 ? (
-                      <span className="font-mono text-stone-400">Resend in {otpCountdown}s</span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleSendEmailOtp()}
-                        disabled={isSendingOtp}
-                        className="text-amber-400 hover:text-amber-300 underline font-semibold cursor-pointer disabled:opacity-50"
-                      >
-                        {isSendingOtp ? 'Sending...' : 'Resend 6-Digit OTP'}
-                      </button>
-                    )}
-                  </div>
-                </form>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Header Icon & Title */}
-                <div className="space-y-3">
-                  <div className="w-16 h-16 mx-auto rounded-2xl bg-red-950/80 border-2 border-amber-400 flex items-center justify-center text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.35)]">
-                    <Mail className="w-8 h-8 text-amber-400" />
-                  </div>
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider font-mono">
-                    <Lock className="w-3 h-3 text-amber-400" />
-                    <span>Step 1: Guest Authentication</span>
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white">
-                    Enter Email for 6-Digit OTP
-                  </h3>
-                  <p className="text-xs sm:text-sm text-stone-300 max-w-md mx-auto leading-relaxed">
-                    We authenticate each booking with a secure 6-digit passwordless OTP. Sign in is required to generate and link your Digital Eco-Pass.
-                  </p>
-                </div>
-
-                {/* Email Input Form */}
-                <form onSubmit={handleSendEmailOtp} className="space-y-4 max-w-md mx-auto pt-2">
-                  <div className="space-y-2 text-left">
-                    <label htmlFor="ticket-auth-email-input" className="text-xs font-bold text-amber-200 uppercase tracking-widest block">
-                      Email Address *
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                      <input
-                        id="ticket-auth-email-input"
-                        type="email"
-                        required
-                        autoFocus
-                        value={otpEmail || email}
-                        onChange={(e) => {
-                          const val = e.target.value.trim().toLowerCase();
-                          setOtpEmail(val);
-                          setEmail(val);
-                          if (otpStatusMsg) setOtpStatusMsg(null);
-                        }}
-                        placeholder="Enter your email (e.g. name@example.com)"
-                        className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-stone-950 border border-amber-500/50 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors shadow-inner"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Status Alert */}
-                  {otpStatusMsg && (
-                    <div
-                      className={`p-3.5 rounded-xl text-xs flex items-center justify-center gap-2 text-left ${
-                        otpStatusMsg.type === 'success'
-                          ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200'
-                          : 'bg-rose-950/80 border border-rose-500/40 text-rose-200'
-                      }`}
-                    >
-                      {otpStatusMsg.type === 'success' ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                      )}
-                      <span>{otpStatusMsg.text}</span>
-                    </div>
-                  )}
-
-                  {/* Send OTP Button */}
-                  <button
-                    type="submit"
-                    id="ticket-send-otp-btn"
-                    disabled={isSendingOtp}
-                    className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-98"
-                  >
-                    {isSendingOtp ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
-                        <span>Sending 6-Digit OTP...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Send 6-Digit OTP Code</span>
-                        <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                      </>
-                    )}
-                  </button>
-                </form>
-
-                {/* Alternative Quick Sign In */}
-                <div className="pt-2 border-t border-amber-900/40 max-w-md mx-auto space-y-2">
-                  <span className="text-[11px] text-stone-400 block">or sign in with Google</span>
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    className="w-full py-3 px-4 rounded-xl bg-white hover:bg-stone-100 text-stone-950 font-bold text-xs flex items-center justify-center gap-2 shadow transition-all cursor-pointer active:scale-98"
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                    </svg>
-                    <span>Sign in with Google</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* STEP 2: Mandatory Guest Details Form */}
+        {/* STEP 1: Mandatory Guest Details Form */}
         {currentStep === 'details' && (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -1756,6 +1371,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                 <button
                   id="ticket-step1-continue-btn"
                   type="submit"
+                  onClick={handleValidateDetails}
                   disabled={!isStep1Valid}
                   className={`w-full py-4 px-6 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 ${
                     isStep1Valid
