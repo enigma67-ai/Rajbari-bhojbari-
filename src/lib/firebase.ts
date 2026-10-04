@@ -17,22 +17,29 @@ import {
   getDocs, 
   query, 
   orderBy, 
-  getDocFromServer 
+  getDocFromServer,
+  setLogLevel
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Initialize Firebase App
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
+// Set Firestore log level to error to avoid WebSocket offline timeout warning logs
+setLogLevel('error');
+
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export { onAuthStateChanged, type User };
 
-// Initialize Firestore with long-polling auto-detection to prevent WebSocket connection failures
+// Initialize Firestore with forced long-polling to prevent WebSocket connection delays/failures in proxy & iframe environments
 export const db = initializeFirestore(
   app, 
-  { experimentalAutoDetectLongPolling: true },
+  { 
+    experimentalForceLongPolling: true,
+    ignoreUndefinedProperties: true
+  },
   firebaseConfig.firestoreDatabaseId || '(default)'
 );
 

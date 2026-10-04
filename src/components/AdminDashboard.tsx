@@ -320,42 +320,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       : bookings.find(b => b.booking_id === bookingOrId || b.id === bookingOrId);
     const bookingId = typeof bookingOrId === 'string' 
       ? bookingOrId 
-      : (booking?.booking_id || booking?.id || '');
-    const rowId = booking?.id || bookingId;
+      : (booking?.id || booking?.booking_id || '');
+    const altId = booking?.booking_id || booking?.id || bookingId;
 
     try {
       // 1. Asynchronously update Supabase bookings table: status -> 'admitted'
-      // Adjusting table/column names to match project schema ('booking_id' or 'id')
-      let updateResult;
+      let updateResult = await supabase
+        .from('bookings')
+        .update({ status: 'admitted' })
+        .eq('id', bookingId);
 
-      if (booking?.booking_id) {
-        // Query by booking_id (standard unique column for passes in this project)
+      // Fallback if 'id' column fails or database table expects booking_id
+      if (updateResult.error && (updateResult.error.message?.includes('id') || updateResult.error.code === '42703' || updateResult.error.code === '22P02')) {
         updateResult = await supabase
           .from('bookings')
           .update({ status: 'admitted' })
-          .eq('booking_id', booking.booking_id);
-
-        // Fallback to 'id' if column 'booking_id' does not exist in the database table
-        if (updateResult.error && (updateResult.error.message?.includes('booking_id') || updateResult.error.code === '42703')) {
-          updateResult = await supabase
-            .from('bookings')
-            .update({ status: 'admitted' })
-            .eq('id', rowId);
-        }
-      } else {
-        // Query by id directly
-        updateResult = await supabase
-          .from('bookings')
-          .update({ status: 'admitted' })
-          .eq('id', bookingId);
-
-        // Fallback to 'booking_id' if column 'id' does not exist or type mismatch (e.g. UUID)
-        if (updateResult.error && (updateResult.error.message?.includes('id') || updateResult.error.code === '42703' || updateResult.error.code === '22P02')) {
-          updateResult = await supabase
-            .from('bookings')
-            .update({ status: 'admitted' })
-            .eq('booking_id', bookingId);
-        }
+          .eq('booking_id', altId);
       }
 
       // 2. Error handling from Supabase (e.g., RLS policy blocking update, auth issues)
@@ -369,7 +349,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const nowFormatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       setBookings(prev => prev.map(b => {
-        if (b.booking_id === bookingId || b.id === bookingId || (rowId && b.id === rowId)) {
+        if (b.id === bookingId || b.booking_id === altId || b.booking_id === bookingId) {
           return {
             ...b,
             status: 'admitted',
@@ -384,7 +364,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       try {
         const local = JSON.parse(localStorage.getItem('rb_supabase_purchase_history') || '[]');
         const updated = local.map((item: any) => {
-          if ((item.booking_id || item.bookingId) === bookingId || item.id === rowId) {
+          if (item.id === bookingId || (item.booking_id || item.bookingId) === altId) {
             return {
               ...item,
               status: 'admitted',
@@ -399,16 +379,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       // Optional telemetry and Firebase sync
       try {
-        await updateBookingGateVerification(bookingId, true);
+        await updateBookingGateVerification(altId || bookingId, true);
         await markTicketAsAdmitted(
-          bookingId,
+          altId || bookingId,
           currentUser?.name ? `Gate Staff (${currentUser.name})` : 'IAM Gate Security'
         );
       } catch (_) {}
 
       playCelebrationChime();
       triggerFestiveCelebration();
-      triggerNotification(`Guest ${booking?.customer_name || bookingId} admitted successfully! Status saved in Supabase.`, 'success');
+      triggerNotification(`Guest ${booking?.customer_name || altId} admitted successfully! Status saved in Supabase.`, 'success');
     } catch (err: any) {
       const errorMsg = err?.message || String(err);
       console.error('Failed to admit guest:', errorMsg);
@@ -421,19 +401,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Delete an unverified guest booking from Supabase and update state
   const handleDeleteBooking = async (bookingId: string) => {
-    if (!window.confirm('Are you sure you want to remove this guest?')) {
+    if (!window.confirm('Are you sure you want to remove this booking?')) {
       return;
     }
 
     try {
-      // Execute deletion from Supabase 'bookings' table
-      const res = await deleteBookingFromSupabase(bookingId);
-      if (!res.success && res.error) {
-        console.warn('Supabase delete returned error:', res.error);
+      // 1. Asynchronously call Supabase delete on bookings table
+      let deleteResult = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', bookingId);
+
+      // Fallback if 'id' column fails or database table expects booking_id
+      if (deleteResult.error && (deleteResult.error.message?.includes('id') || deleteResult.error.code === '42703' || deleteResult.error.code === '22P02')) {
+        deleteResult = await supabase
+          .from('bookings')
+          .delete()
+          .eq('booking_id', bookingId);
       }
 
-      // Remove the specific booking row from local state
-      setBookings(prev => prev.filter(b => b.booking_id !== bookingId));
+      // Check for Supabase deletion error
+      if (deleteResult.error) {
+        // Check secondary delete helper
+        const res = await deleteBookingFromSupabase(bookingId);
+        if (!res.success) {
+          console.error('Supabase error deleting booking:', deleteResult.error.message || res.error);
+          window.alert(`Failed to remove booking: ${deleteResult.error.message || res.error || 'Supabase error'}`);
+          return; // Halt: DO NOT remove from local UI state if Supabase delete failed
+        }
+      }
+
+      // 2. Remove the guest from the local UI state only after the Supabase deletion succeeds
+      setBookings(prev => prev.filter(b => b.booking_id !== bookingId && b.id !== bookingId));
 
       // Synchronize with local storage backups if present
       try {
@@ -447,7 +446,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         const historyData = localStorage.getItem('rb_supabase_purchase_history');
         if (historyData) {
           const parsedHistory = JSON.parse(historyData);
-          const filteredHistory = parsedHistory.filter((b: any) => b.booking_id !== bookingId);
+          const filteredHistory = parsedHistory.filter((b: any) => b.booking_id !== bookingId && b.id !== bookingId);
           localStorage.setItem('rb_supabase_purchase_history', JSON.stringify(filteredHistory));
         }
       } catch (_) {}
@@ -455,8 +454,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       triggerNotification(`Guest booking ${bookingId} successfully deleted.`, 'success');
     } catch (err: any) {
       console.error('Failed to delete booking:', err);
-      setBookings(prev => prev.filter(b => b.booking_id !== bookingId));
-      triggerNotification(`Removed booking ${bookingId} from portal.`, 'info');
+      window.alert(`Error deleting booking: ${err?.message || String(err)}`);
     }
   };
 
