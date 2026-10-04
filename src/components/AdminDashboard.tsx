@@ -41,7 +41,8 @@ import {
   fetchAllBookingsFromSupabase, 
   updateBookingGateVerification,
   deleteBookingFromSupabase,
-  isSupabaseConfigured
+  isSupabaseConfigured,
+  supabase
 } from '../lib/supabase';
 import { markTicketAsAdmitted } from '../lib/firebase';
 import { TicketScannerModal } from './TicketScannerModal';
@@ -57,6 +58,7 @@ export interface BookingRecord {
   id?: string;
   booking_id: string;
   user_id?: string;
+  status?: string;
   customer_name: string;
   customer_email: string;
   customer_phone?: string;
@@ -311,35 +313,111 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => setNotification(null), 4000);
   };
 
-  // Admit / Verify a booking
-  const handleVerifyGatePass = async (booking: BookingRecord) => {
-    try {
-      const nowFormatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      // Supabase update
-      await updateBookingGateVerification(booking.booking_id, true);
-      // Firebase update
-      await markTicketAsAdmitted(booking.booking_id, currentUser?.name ? `Gate Staff (${currentUser.name})` : 'IAM Gate Security');
+  // Admit Guest with persistent Supabase database update
+  const handleAdmit = async (bookingOrId: BookingRecord | string) => {
+    const booking = typeof bookingOrId === 'object' 
+      ? bookingOrId 
+      : bookings.find(b => b.booking_id === bookingOrId || b.id === bookingOrId);
+    const bookingId = typeof bookingOrId === 'string' 
+      ? bookingOrId 
+      : (booking?.booking_id || booking?.id || '');
+    const rowId = booking?.id || bookingId;
 
-      // Local state update
-      setBookings(prev => prev.map(b => 
-        b.booking_id === booking.booking_id 
-          ? { ...b, verified_at_gate: true, verified_at_gate_time: nowFormatted } 
-          : b
-      ));
+    try {
+      // 1. Asynchronously update Supabase bookings table: status -> 'admitted'
+      // Adjusting table/column names to match project schema ('booking_id' or 'id')
+      let updateResult;
+
+      if (booking?.booking_id) {
+        // Query by booking_id (standard unique column for passes in this project)
+        updateResult = await supabase
+          .from('bookings')
+          .update({ status: 'admitted' })
+          .eq('booking_id', booking.booking_id);
+
+        // Fallback to 'id' if column 'booking_id' does not exist in the database table
+        if (updateResult.error && (updateResult.error.message?.includes('booking_id') || updateResult.error.code === '42703')) {
+          updateResult = await supabase
+            .from('bookings')
+            .update({ status: 'admitted' })
+            .eq('id', rowId);
+        }
+      } else {
+        // Query by id directly
+        updateResult = await supabase
+          .from('bookings')
+          .update({ status: 'admitted' })
+          .eq('id', bookingId);
+
+        // Fallback to 'booking_id' if column 'id' does not exist or type mismatch (e.g. UUID)
+        if (updateResult.error && (updateResult.error.message?.includes('id') || updateResult.error.code === '42703' || updateResult.error.code === '22P02')) {
+          updateResult = await supabase
+            .from('bookings')
+            .update({ status: 'admitted' })
+            .eq('booking_id', bookingId);
+        }
+      }
+
+      // 2. Error handling from Supabase (e.g., RLS policy blocking update, auth issues)
+      if (updateResult.error) {
+        console.error('Supabase error updating booking status:', updateResult.error.message || updateResult.error);
+        window.alert(`Failed to admit guest: ${updateResult.error.message || 'Supabase database error'}`);
+        return; // Halt: DO NOT update local UI state when database update fails
+      }
+
+      // 3. Only update local UI state to 'Admitted' after Supabase successfully confirms the update
+      const nowFormatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      setBookings(prev => prev.map(b => {
+        if (b.booking_id === bookingId || b.id === bookingId || (rowId && b.id === rowId)) {
+          return {
+            ...b,
+            status: 'admitted',
+            verified_at_gate: true,
+            verified_at_gate_time: nowFormatted,
+          };
+        }
+        return b;
+      }));
+
+      // Update local storage backup & cache
+      try {
+        const local = JSON.parse(localStorage.getItem('rb_supabase_purchase_history') || '[]');
+        const updated = local.map((item: any) => {
+          if ((item.booking_id || item.bookingId) === bookingId || item.id === rowId) {
+            return {
+              ...item,
+              status: 'admitted',
+              verified_at_gate: true,
+              verified_at_gate_time: nowFormatted,
+            };
+          }
+          return item;
+        });
+        localStorage.setItem('rb_supabase_purchase_history', JSON.stringify(updated));
+      } catch (_) {}
+
+      // Optional telemetry and Firebase sync
+      try {
+        await updateBookingGateVerification(bookingId, true);
+        await markTicketAsAdmitted(
+          bookingId,
+          currentUser?.name ? `Gate Staff (${currentUser.name})` : 'IAM Gate Security'
+        );
+      } catch (_) {}
 
       playCelebrationChime();
       triggerFestiveCelebration();
-      triggerNotification(`Pass ${booking.booking_id} verified! Guest admitted at Gate.`, 'success');
+      triggerNotification(`Guest ${booking?.customer_name || bookingId} admitted successfully! Status saved in Supabase.`, 'success');
     } catch (err: any) {
-      console.error(err);
-      triggerNotification(`Gate verification updated locally: ${booking.booking_id}`, 'info');
-      setBookings(prev => prev.map(b => 
-        b.booking_id === booking.booking_id 
-          ? { ...b, verified_at_gate: true, verified_at_gate_time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } 
-          : b
-      ));
+      const errorMsg = err?.message || String(err);
+      console.error('Failed to admit guest:', errorMsg);
+      window.alert(`Error admitting guest: ${errorMsg}`);
     }
   };
+
+  // Alias for backward compatibility
+  const handleVerifyGatePass = handleAdmit;
 
   // Delete an unverified guest booking from Supabase and update state
   const handleDeleteBooking = async (bookingId: string) => {
@@ -417,10 +495,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         (b.dining_slot && b.dining_slot.toLowerCase().includes(q))
       );
 
+      const isAdmitted = Boolean(b.verified_at_gate || b.status === 'admitted');
       const matchesFilter = 
         bookingFilter === 'all' ||
-        (bookingFilter === 'verified' && b.verified_at_gate) ||
-        (bookingFilter === 'pending' && !b.verified_at_gate);
+        (bookingFilter === 'verified' && isAdmitted) ||
+        (bookingFilter === 'pending' && !isAdmitted);
 
       return matchesSearch && matchesFilter;
     });
@@ -911,13 +990,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
                       <div className="text-xs text-emerald-400 font-mono">Admitted at Gate</div>
                       <div className="text-xl font-bold text-emerald-300 font-display mt-0.5">
-                        {bookings.filter(b => b.verified_at_gate).length}
+                        {bookings.filter(b => b.verified_at_gate || b.status === 'admitted').length}
                       </div>
                     </div>
                     <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-500/30">
                       <div className="text-xs text-amber-400 font-mono">Pending Check-in</div>
                       <div className="text-xl font-bold text-amber-300 font-display mt-0.5">
-                        {bookings.filter(b => !b.verified_at_gate).length}
+                        {bookings.filter(b => !b.verified_at_gate && b.status !== 'admitted').length}
                       </div>
                     </div>
                   </div>
@@ -945,7 +1024,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2 self-end sm:self-center">
-                          {b.verified_at_gate ? (
+                          {b.verified_at_gate || b.status === 'admitted' ? (
                             <span className="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/30 text-[11px] font-mono flex items-center gap-1">
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                               <span>Admitted {b.verified_at_gate_time || ''}</span>
@@ -953,7 +1032,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           ) : (
                             <>
                               <button
-                                onClick={() => handleVerifyGatePass(b)}
+                                onClick={() => handleAdmit(b)}
                                 className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] cursor-pointer transition-all shadow-sm"
                               >
                                 Verify & Admit
@@ -1144,7 +1223,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
                         </div>
 
-                        {b.verified_at_gate ? (
+                        {b.verified_at_gate || b.status === 'admitted' ? (
                           <span className="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/30 text-[11px] font-mono flex items-center gap-1 font-bold">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                             <span>Admitted</span>
@@ -1177,10 +1256,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <span>Copy ID</span>
                         </button>
 
-                        {!b.verified_at_gate && (
+                        {!(b.verified_at_gate || b.status === 'admitted') && (
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => handleVerifyGatePass(b)}
+                              onClick={() => handleAdmit(b)}
                               className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs shadow-md cursor-pointer transition-all"
                             >
                               Admit Guest
@@ -1223,17 +1302,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <td className="p-3.5 max-w-[200px] truncate">{b.dining_slot || 'Standard Admission'}</td>
                           <td className="p-3.5 font-bold text-white">₹{b.total_amount}</td>
                           <td className="p-3.5">
-                            {b.verified_at_gate ? (
+                            {b.verified_at_gate || b.status === 'admitted' ? (
                               <span className="text-emerald-400 font-semibold font-mono">Admitted</span>
                             ) : (
                               <span className="text-amber-400 font-semibold font-mono">Pending</span>
                             )}
                           </td>
                           <td className="p-3.5 text-right">
-                            {!b.verified_at_gate ? (
+                            {!(b.verified_at_gate || b.status === 'admitted') ? (
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
-                                  onClick={() => handleVerifyGatePass(b)}
+                                  onClick={() => handleAdmit(b)}
                                   className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] cursor-pointer"
                                 >
                                   Admit Guest

@@ -155,7 +155,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Sourced from ethically raised local poultry; bones simmered down for rich zero-waste reductions.',
     wasteScore: 96,
     ingredients: ['Minced Free-Range Chicken', 'Beaten Egg Netting', 'Shahi Garam Masala', 'Fresh Mint & Coriander', 'Cold-Pressed Mustard Oil'],
-    imageUrl: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261003-WA0039.jpg',
     isChefSpecial: true,
   },
   {
@@ -173,7 +173,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Whole fish prepared with zero discarded trimmings, supporting local artisanal fishermen.',
     wasteScore: 100,
     ingredients: ['Fresh Amudi River Fish', 'Finely Sliced Onions', 'Gram Flour (Besan)', 'Kalonji (Nigella Seeds)', 'Green Chillies'],
-    imageUrl: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261003-WA0033.jpg',
     isChefSpecial: true,
   },
   {
@@ -209,7 +209,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Made using upcycled coconut pulp and indigenous heirloom grain khoi with zero food waste.',
     wasteScore: 97,
     ingredients: ['Grated Coconut Flesh', 'Puffed Paddy Khoi', 'Fresh Aamada (Mango Ginger)', 'Roasted Cumin Powder', 'Crisp Crumb Crust'],
-    imageUrl: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261003-WA0032.jpg',
     isChefSpecial: true,
   },
   {
@@ -343,7 +343,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Free-range country chicken slow-braised to extract every trace of collagen and marrow; zero stock runoff.',
     wasteScore: 97,
     ingredients: ['Country Chicken (Desi Murgi)', 'Gobindobhog Heirloom Rice', 'Cholar Dal (Bengal Gram)', 'Desi Cow Ghee', 'Radhuni Garam Masala'],
-    imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261003-WA0042.jpg',
     isChefSpecial: true,
   },
   {

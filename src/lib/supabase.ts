@@ -492,6 +492,7 @@ export async function fetchAllBookingsFromSupabase(): Promise<any[]> {
       if (!error && Array.isArray(data)) {
         remoteBookings = data.map((b: any) => ({
           ...b,
+          status: b.status || (b.verified_at_gate ? 'admitted' : 'pending'),
           verified_at_gate: Boolean(
             b.verified_at_gate === true ||
             b.status === 'confirmed' ||
@@ -573,7 +574,7 @@ export async function updateBookingGateVerification(
       const { error } = await client
         .from('bookings')
         .update({
-          status: verified ? 'confirmed' : 'pending',
+          status: verified ? 'admitted' : 'pending',
           payment_status: verified ? 'confirmed' : 'paid',
           verified_at_gate: verified,
           verified_at_gate_time: verified ? timestamp : null,
@@ -587,11 +588,11 @@ export async function updateBookingGateVerification(
         await client
           .from('bookings')
           .update({
-            status: verified ? 'confirmed' : 'pending',
+            status: verified ? 'admitted' : 'pending',
           })
           .eq('booking_id', bookingId);
       } else {
-        console.log(`[Supabase] Booking ${bookingId} status updated to ${verified ? 'confirmed' : 'pending'}`);
+        console.log(`[Supabase] Booking ${bookingId} status updated to ${verified ? 'admitted' : 'pending'}`);
       }
     } catch (e: any) {
       console.warn('Failed to update Supabase booking gate verification:', e);
@@ -629,10 +630,18 @@ export async function deleteBookingFromSupabase(
 
   if (client) {
     try {
-      const { error } = await client
+      let { error } = await client
         .from('bookings')
         .delete()
         .eq('booking_id', bookingId);
+
+      if (error && (error.message?.includes('booking_id') || error.code === '42703')) {
+        const idAttempt = await client
+          .from('bookings')
+          .delete()
+          .eq('id', bookingId);
+        error = idAttempt.error;
+      }
 
       if (error) {
         console.warn('Supabase delete booking warning, trying purchase_history:', error.message);
