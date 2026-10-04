@@ -32,7 +32,8 @@ import {
   Leaf,
   Plus,
   Table as TableIcon,
-  LayoutGrid
+  LayoutGrid,
+  Trash2
 } from 'lucide-react';
 import { UserProfile, MenuItem } from '../types';
 import { MENU_ITEMS } from '../data/festData';
@@ -340,6 +341,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  // Delete an unverified guest booking from Supabase and update state
+  const handleDeleteBooking = async (bookingId: string) => {
+    if (!window.confirm('Are you sure you want to remove this guest?')) {
+      return;
+    }
+
+    try {
+      // Execute deletion from Supabase 'bookings' table
+      const res = await deleteBookingFromSupabase(bookingId);
+      if (!res.success && res.error) {
+        console.warn('Supabase delete returned error:', res.error);
+      }
+
+      // Remove the specific booking row from local state
+      setBookings(prev => prev.filter(b => b.booking_id !== bookingId));
+
+      // Synchronize with local storage backups if present
+      try {
+        const localData = localStorage.getItem('rb_saved_bookings');
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          const filtered = parsed.filter((b: any) => b.id !== bookingId && b.bookingId !== bookingId);
+          localStorage.setItem('rb_saved_bookings', JSON.stringify(filtered));
+        }
+
+        const historyData = localStorage.getItem('rb_supabase_purchase_history');
+        if (historyData) {
+          const parsedHistory = JSON.parse(historyData);
+          const filteredHistory = parsedHistory.filter((b: any) => b.booking_id !== bookingId);
+          localStorage.setItem('rb_supabase_purchase_history', JSON.stringify(filteredHistory));
+        }
+      } catch (_) {}
+
+      triggerNotification(`Guest booking ${bookingId} successfully deleted.`, 'success');
+    } catch (err: any) {
+      console.error('Failed to delete booking:', err);
+      setBookings(prev => prev.filter(b => b.booking_id !== bookingId));
+      triggerNotification(`Removed booking ${bookingId} from portal.`, 'info');
+    }
+  };
+
   // Copy helper
   const handleCopy = (text: string, key: string) => {
     navigator.clipboard?.writeText(text);
@@ -480,7 +522,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </button>
           
           <button
-            onClick={onSignOutAdmin || onNavigateToHome}
+            onClick={() => {
+              try {
+                localStorage.removeItem('rb_gate_admin_auth');
+                sessionStorage.removeItem('rb_gate_admin_auth');
+              } catch (_) {}
+              if (onSignOutAdmin) onSignOutAdmin();
+              else onNavigateToHome();
+            }}
             className="p-1.5 rounded-lg bg-red-950/40 text-red-300 hover:bg-red-900/60 border border-red-500/30 cursor-pointer transition-all"
             title="Exit Admin"
           >
@@ -629,7 +678,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </button>
 
             <button
-              onClick={onSignOutAdmin || onNavigateToHome}
+              onClick={() => {
+                try {
+                  localStorage.removeItem('rb_gate_admin_auth');
+                  sessionStorage.removeItem('rb_gate_admin_auth');
+                } catch (_) {}
+                if (onSignOutAdmin) onSignOutAdmin();
+                else onNavigateToHome();
+              }}
               className="px-2.5 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-500/30 flex items-center justify-center gap-1.5 cursor-pointer transition-all"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -895,12 +951,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <span>Admitted {b.verified_at_gate_time || ''}</span>
                             </span>
                           ) : (
-                            <button
-                              onClick={() => handleVerifyGatePass(b)}
-                              className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] cursor-pointer transition-all shadow-sm"
-                            >
-                              Verify & Admit
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleVerifyGatePass(b)}
+                                className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] cursor-pointer transition-all shadow-sm"
+                              >
+                                Verify & Admit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBooking(b.booking_id)}
+                                className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 hover:text-red-200 border border-red-500/30 cursor-pointer transition-all"
+                                title="Remove / Delete Guest Booking"
+                                aria-label="Delete Guest Booking"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -1112,12 +1178,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </button>
 
                         {!b.verified_at_gate && (
-                          <button
-                            onClick={() => handleVerifyGatePass(b)}
-                            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs shadow-md cursor-pointer transition-all"
-                          >
-                            Verify & Admit at Gate
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleVerifyGatePass(b)}
+                              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs shadow-md cursor-pointer transition-all"
+                            >
+                              Admit Guest
+                            </button>
+                            <button
+                              onClick={() => handleDeleteBooking(b.booking_id)}
+                              className="p-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/70 text-red-400 hover:text-red-200 border border-red-500/30 cursor-pointer transition-all flex items-center justify-center"
+                              title="Delete / Remove Unverified Guest"
+                              aria-label="Delete Guest Booking"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1155,12 +1231,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </td>
                           <td className="p-3.5 text-right">
                             {!b.verified_at_gate ? (
-                              <button
-                                onClick={() => handleVerifyGatePass(b)}
-                                className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] cursor-pointer"
-                              >
-                                Admit
-                              </button>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleVerifyGatePass(b)}
+                                  className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] cursor-pointer"
+                                >
+                                  Admit Guest
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteBooking(b.booking_id)}
+                                  className="p-1 rounded-lg bg-red-950/40 hover:bg-red-900/70 text-red-400 hover:text-red-200 border border-red-500/30 cursor-pointer transition-all"
+                                  title="Delete / Remove Unverified Guest"
+                                  aria-label="Delete Guest Booking"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             ) : (
                               <span className="text-[11px] text-stone-400">{b.verified_at_gate_time || 'Done'}</span>
                             )}

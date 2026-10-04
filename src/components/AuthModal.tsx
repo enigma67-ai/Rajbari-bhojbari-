@@ -187,7 +187,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         };
         try {
           localStorage.setItem('rb_user', JSON.stringify(adminProfile));
-          sessionStorage.setItem('rb_gate_admin_auth', 'true');
+          localStorage.setItem('rb_gate_admin_auth', 'true');
         } catch (_) {}
 
         if (onSuccess) {

@@ -418,11 +418,39 @@ export default function App() {
     setIsBhojBotOpen(true);
   };
 
-  // Helper to verify if user has admin role flag
+  // Helper to verify if user has admin role flag or persistent admin flag in localStorage
   const isUserAdminRole = (user: UserProfile | null): boolean => {
+    try {
+      if (localStorage.getItem('rb_gate_admin_auth') === 'true') {
+        return true;
+      }
+    } catch (_) {}
     if (!user) return false;
     return user.role === 'admin' || (user as any).isAdmin === true;
   };
+
+  // Restore persistent admin login across reloads and tab closes
+  useEffect(() => {
+    try {
+      const hasPersistentAdmin = localStorage.getItem('rb_gate_admin_auth') === 'true';
+      if (hasPersistentAdmin && (!currentUser || currentUser.role !== 'admin')) {
+        const adminProfile: UserProfile = {
+          id: currentUser?.id || 'admin_gate_staff',
+          name: currentUser?.name || 'Festival Admin Officer',
+          emailOrPhone: currentUser?.emailOrPhone || 'admin@iamkolkata.edu',
+          role: 'admin',
+          isAdmin: true,
+          institution: currentUser?.institution || 'IAM Kolkata Royal Directorate',
+          sustainabilityKarma: currentUser?.sustainabilityKarma || 999,
+          tokens: currentUser?.tokens || ['admin_access', 'gate_officer', 'menu_editor'],
+        };
+        setCurrentUser(adminProfile);
+        localStorage.setItem('rb_user', JSON.stringify(adminProfile));
+      }
+    } catch (e) {
+      console.warn('Persistent admin restoration:', e);
+    }
+  }, []);
 
   // Route Resolver supporting '/', '/admin', and '404'
   const resolveRoute = (path: string, hash: string): string => {
@@ -555,11 +583,15 @@ export default function App() {
         currentUser={currentUser}
         onNavigateToHome={navigateToHome}
         onSignOutAdmin={() => {
+          try {
+            localStorage.removeItem('rb_gate_admin_auth');
+            sessionStorage.removeItem('rb_gate_admin_auth');
+          } catch (_) {}
+
           if (currentUser?.id === 'admin_gate_staff') {
             setCurrentUser(null);
             try {
               localStorage.removeItem('rb_user');
-              sessionStorage.removeItem('rb_gate_admin_auth');
             } catch (_) {}
           } else if (currentUser) {
             const demoted: UserProfile = { 
@@ -575,7 +607,6 @@ export default function App() {
             setCurrentUser(demoted);
             try {
               localStorage.setItem('rb_user', JSON.stringify(demoted));
-              sessionStorage.removeItem('rb_gate_admin_auth');
             } catch (_) {}
           }
           navigateToHome();
