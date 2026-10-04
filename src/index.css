@@ -12,8 +12,15 @@
     background-color: #160406;
     color: #fef3c7;
     overflow-x: hidden;
-    max-width: 100%;
+    max-width: 100vw;
     width: 100%;
+    position: relative;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, .font-royal, .font-display {

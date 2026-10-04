@@ -7,6 +7,7 @@ import { ContactSection } from './components/ContactSection';
 import { TicketBookingSection } from './components/TicketBookingSection';
 import { Footer } from './components/Footer';
 import { AdminGatePage } from './components/AdminGatePage';
+import { AdminDashboard } from './components/AdminDashboard';
 
 // Modals & New Production Pages
 import { AuthModal } from './components/AuthModal';
@@ -28,7 +29,7 @@ import { MaintenanceModal } from './components/MaintenanceModal';
 
 // Types & Data
 import { MenuItem, CartItem, UserProfile, EventTicketPass } from './types';
-import { Bot, Sparkles, ShoppingBag, Ticket } from 'lucide-react';
+import { Bot, Sparkles, ShoppingBag, Ticket, ShieldAlert, X } from 'lucide-react';
 import { 
   auth, 
   onAuthStateChanged, 
@@ -116,6 +117,7 @@ export default function App() {
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [isCookiePreferencesOpen, setIsCookiePreferencesOpen] = useState(false);
   const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
+  const [adminAccessDeniedNotice, setAdminAccessDeniedNotice] = useState(false);
 
   // Persist Cart
   useEffect(() => {
@@ -416,6 +418,12 @@ export default function App() {
     setIsBhojBotOpen(true);
   };
 
+  // Helper to verify if user has admin role flag
+  const isUserAdminRole = (user: UserProfile | null): boolean => {
+    if (!user) return false;
+    return user.role === 'admin' || (user as any).isAdmin === true;
+  };
+
   // Route Resolver supporting '/', '/admin', and '404'
   const resolveRoute = (path: string, hash: string): string => {
     const p = path.toLowerCase().replace(/\/$/, '') || '/';
@@ -427,14 +435,54 @@ export default function App() {
 
   const [currentRoute, setCurrentRoute] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return resolveRoute(window.location.pathname, window.location.hash);
+      const resolved = resolveRoute(window.location.pathname, window.location.hash);
+      if (resolved === '/admin') {
+        try {
+          const saved = localStorage.getItem('rb_user');
+          const parsed = saved ? JSON.parse(saved) : null;
+          if (!isUserAdminRole(parsed)) {
+            // Strictly redirect back to home page if no admin role flag
+            window.history.replaceState({}, '', '/');
+            return '/';
+          }
+        } catch {
+          window.history.replaceState({}, '', '/');
+          return '/';
+        }
+      }
+      return resolved;
     }
     return '/';
   });
 
+  // Strict route protection: immediately redirect if /admin is accessed without 'admin' role flag
+  useEffect(() => {
+    if (currentRoute === '/admin') {
+      const hasAdminFlag = isUserAdminRole(currentUser);
+      if (!hasAdminFlag) {
+        if (typeof window !== 'undefined') {
+          window.history.replaceState({}, '', '/');
+        }
+        setCurrentRoute('/');
+        setAdminAccessDeniedNotice(true);
+      }
+    }
+  }, [currentRoute, currentUser]);
+
   useEffect(() => {
     const handlePopState = () => {
       const nextRoute = resolveRoute(window.location.pathname, window.location.hash);
+      if (nextRoute === '/admin') {
+        const hasAdminFlag = isUserAdminRole(currentUser);
+        if (!hasAdminFlag) {
+          if (typeof window !== 'undefined') {
+            window.history.replaceState({}, '', '/');
+          }
+          setCurrentRoute('/');
+          setAdminAccessDeniedNotice(true);
+          return;
+        }
+      }
       setCurrentRoute(nextRoute);
     };
 
@@ -465,9 +513,20 @@ export default function App() {
       window.removeEventListener('hashchange', handlePopState);
       window.removeEventListener('hashchange', handleHashDeepLinks);
     };
-  }, []);
+  }, [currentUser]);
 
   const navigateToAdmin = () => {
+    const hasAdminFlag = isUserAdminRole(currentUser);
+    if (!hasAdminFlag) {
+      setAdminAccessDeniedNotice(true);
+      setAuthModalMode('admin');
+      setIsAuthOpen(true);
+      if (typeof window !== 'undefined' && window.location.pathname.includes('/admin')) {
+        window.history.replaceState({}, '', '/');
+      }
+      setCurrentRoute('/');
+      return;
+    }
     if (typeof window !== 'undefined') {
       window.history.pushState({}, '', '/admin');
     }
@@ -481,9 +540,48 @@ export default function App() {
     setCurrentRoute('/');
   };
 
-  // If on /admin route, render dedicated Gate Staff Admin page
+  // If on /admin route, enforce strict authentication and render AdminDashboard
   if (currentRoute === '/admin') {
-    return <AdminGatePage onNavigateToHome={navigateToHome} />;
+    const hasAdminFlag = isUserAdminRole(currentUser);
+    if (!hasAdminFlag) {
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/');
+      }
+      return null;
+    }
+
+    return (
+      <AdminDashboard
+        currentUser={currentUser}
+        onNavigateToHome={navigateToHome}
+        onSignOutAdmin={() => {
+          if (currentUser?.id === 'admin_gate_staff') {
+            setCurrentUser(null);
+            try {
+              localStorage.removeItem('rb_user');
+              sessionStorage.removeItem('rb_gate_admin_auth');
+            } catch (_) {}
+          } else if (currentUser) {
+            const demoted: UserProfile = { 
+              id: currentUser.id,
+              name: currentUser.name,
+              emailOrPhone: currentUser.emailOrPhone,
+              role: 'guest', 
+              isAdmin: false,
+              institution: currentUser.institution,
+              sustainabilityKarma: currentUser.sustainabilityKarma,
+              tokens: currentUser.tokens || [],
+            };
+            setCurrentUser(demoted);
+            try {
+              localStorage.setItem('rb_user', JSON.stringify(demoted));
+              sessionStorage.removeItem('rb_gate_admin_auth');
+            } catch (_) {}
+          }
+          navigateToHome();
+        }}
+      />
+    );
   }
 
   // If on unknown route, render dedicated 404 page
@@ -507,8 +605,39 @@ export default function App() {
   const cartTotalAmount = cart.reduce((acc, i) => acc + (i.dish.price * i.quantity), 0);
 
   return (
-    <div className="min-h-screen w-full bg-[#120305] text-amber-50 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950 overflow-x-hidden">
+    <div className="min-h-screen w-full max-w-[100vw] bg-[#120305] text-amber-50 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950 overflow-x-hidden">
       
+      {/* Strict Admin Route Access Denied Banner */}
+      {adminAccessDeniedNotice && (
+        <div className="w-full bg-red-950/95 border-b border-red-500/40 text-red-200 px-4 py-3 text-xs flex items-center justify-between sticky top-0 z-50 shadow-xl shadow-black/80 backdrop-blur-md">
+          <div className="flex items-center gap-3 max-w-7xl mx-auto w-full">
+            <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />
+            <div className="flex-1">
+              <span className="font-bold text-white">Access Denied:</span> The <code className="font-mono bg-red-900/60 px-1.5 py-0.5 rounded text-amber-300">/admin</code> route requires an account with an <code className="font-mono text-amber-300 font-bold">'admin'</code> role flag. You have been redirected to the home page.
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => {
+                  setAuthModalMode('admin');
+                  setIsAuthOpen(true);
+                  setAdminAccessDeniedNotice(false);
+                }}
+                className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs cursor-pointer transition-all shadow"
+              >
+                Sign In as Admin
+              </button>
+              <button 
+                onClick={() => setAdminAccessDeniedNotice(false)}
+                className="p-1 text-stone-400 hover:text-white cursor-pointer"
+                aria-label="Dismiss Alert"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Navigation Header */}
       <Navbar
         cartCount={cartTotalCount}
@@ -533,7 +662,7 @@ export default function App() {
       />
 
       {/* Main Content Sections */}
-      <main className="flex-1 space-y-8 sm:space-y-12">
+      <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden space-y-8 sm:space-y-12">
         
         {/* Hero Section */}
         <HeroBanner
@@ -672,6 +801,7 @@ export default function App() {
         userBookings={userBookings}
         onLogout={handleUserLogout}
         onOpenBooking={() => handleNavigate('ticket-booking')}
+        onNavigateToAdmin={navigateToAdmin}
         onOpenLegal={(tab) => {
           setIsProfileOpen(false);
           setLegalInitialTab(tab || 'privacy');

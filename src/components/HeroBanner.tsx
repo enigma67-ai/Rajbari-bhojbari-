@@ -60,7 +60,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
   return (
     <div 
-      className="relative overflow-hidden bg-cover bg-center bg-no-repeat border-b border-amber-500/25 py-12 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8"
+      className="relative overflow-hidden bg-cover bg-center bg-no-repeat border-b border-amber-500/25 py-10 sm:py-16 md:py-20 lg:py-24 px-3 sm:px-6 lg:px-8 w-full max-w-[100vw]"
       style={{
         backgroundImage: `url(${heroBgImage})`,
       }}
@@ -80,74 +80,74 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
       />
 
       {/* Glowing Royal Gold & Crimson Orbs */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-32 -right-32 w-80 sm:w-96 h-80 sm:h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute -bottom-32 -left-32 w-80 sm:w-96 h-80 sm:h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-7xl mx-auto">
+      <div className="relative z-10 max-w-7xl w-full mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* Main Hero Copy & Royal Red Accents */}
-          <div className="lg:col-span-8 space-y-6 text-center lg:text-left">
+          <div className="lg:col-span-8 space-y-5 sm:space-y-6 text-center lg:text-left min-w-0 w-full">
             
-            {/* World Tourism Day & AI Theme Badges (Clean Emerald Exception for AI & Zero-Waste) */}
-            <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/80 border border-amber-500/40 text-amber-200 text-xs font-semibold tracking-wide shadow-sm">
-                <Leaf className="w-3.5 h-3.5 text-amber-400" />
+            {/* World Tourism Day & AI Theme Badges */}
+            <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-red-950/80 border border-amber-500/40 text-amber-200 text-[11px] sm:text-xs font-semibold tracking-wide shadow-sm">
+                <Leaf className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>IAM Annual Food Fest 2026</span>
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-medium">
-                <Cpu className="w-3.5 h-3.5 text-emerald-400" />
-                <span>World Tourism Day: AI & Sustainable Gastronomy</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-[11px] sm:text-xs font-medium">
+                <Cpu className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>World Tourism Day: AI & Gastronomy</span>
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-bold border border-emerald-400/30">
-                <Recycle className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-[11px] font-bold border border-emerald-400/30">
+                <Recycle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span>100% Zero Food Waste</span>
               </span>
             </div>
 
-            {/* Main Hero Headline - Tech Sans-Serif */}
-            <div className="space-y-3">
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.08]">
+            {/* Main Hero Headline */}
+            <div className="space-y-2 sm:space-y-3">
+              <h1 className="font-display text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1] break-words">
                 Rajbari Bhojbari:{' '}
                 <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent block sm:inline">
                   The Zero-Waste AI Food Fest
                 </span>
               </h1>
-              <p className="font-display text-lg sm:text-2xl text-amber-200/90 font-semibold tracking-tight">
+              <p className="font-display text-base sm:text-xl md:text-2xl text-amber-200/90 font-semibold tracking-tight break-words">
                 "Authentic Heritage Flavours. Smart Gastronomy. Zero Waste."
               </p>
             </div>
 
             {/* Narrative Description */}
-            <p className="text-stone-300 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed">
+            <p className="text-stone-300 text-xs sm:text-base md:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed break-words">
               Step into a celebration of authentic heritage Bengal gastronomy at the <strong>Institute of Advanced Management (IAM) Kolkata Campus</strong>. Experience centuries-old culinary traditions crafted with zero-waste sustainability, live rural tasting counters, and real-time guidance from <strong>Bhoj-Bot</strong>.
             </p>
 
-            {/* Event Key Facts Chips - Sustainability Karma Points removed */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-amber-200/90">
-              <div className="flex items-center gap-2 bg-[#200609]/85 border border-amber-500/30 px-3.5 py-2 rounded-xl backdrop-blur-md">
-                <Calendar className="w-4 h-4 text-amber-400" />
+            {/* Event Key Facts Chips */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-xs sm:text-sm text-amber-200/90">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-[#200609]/85 border border-amber-500/30 px-3 py-1.5 sm:py-2 rounded-xl backdrop-blur-md">
+                <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
                 <span>{FESTIVAL_INFO.date} • 10 AM to 9:30 PM</span>
               </div>
-              <div className="flex items-center gap-2 bg-[#200609]/85 border border-amber-500/30 px-3.5 py-2 rounded-xl backdrop-blur-md">
-                <MapPin className="w-4 h-4 text-amber-400" />
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-[#200609]/85 border border-amber-500/30 px-3 py-1.5 sm:py-2 rounded-xl backdrop-blur-md">
+                <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
                 <span>IAM Kolkata Campus • Smart Eco-Court</span>
               </div>
-              <div className="flex items-center gap-2 bg-[#200609]/85 border border-amber-500/30 px-3.5 py-2 rounded-xl backdrop-blur-md">
-                <Sparkles className="w-4 h-4 text-amber-400" />
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-[#200609]/85 border border-amber-500/30 px-3 py-1.5 sm:py-2 rounded-xl backdrop-blur-md">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
                 <span className="text-amber-300 font-semibold">4 Authentic Bengali Mohols</span>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-4 pt-2">
               {onBookPass && (
                 <button
                   id="hero-book-pass-btn"
                   onClick={onBookPass}
-                  className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm tracking-wide shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.5)] border border-amber-300/60 transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 sm:gap-2.5 px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-xs sm:text-sm tracking-wide shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.5)] border border-amber-300/60 transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
                 >
-                  <Ticket className="w-4 h-4 text-stone-950" />
+                  <Ticket className="w-4 h-4 text-stone-950 shrink-0" />
                   <span>Booking Pass (₹349/-)</span>
                   <span className="px-1.5 py-0.5 rounded bg-black/25 text-stone-950 text-[10px] font-black uppercase">
                     All Access
@@ -158,26 +158,26 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               <button
                 id="hero-explore-menu-btn"
                 onClick={onExploreMenu}
-                className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#24080c]/90 hover:bg-[#340c12] text-amber-100 border border-amber-500/40 font-semibold text-sm transition-all hover:border-amber-400 cursor-pointer shadow-md"
+                className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl bg-[#24080c]/90 hover:bg-[#340c12] text-amber-100 border border-amber-500/40 font-semibold text-xs sm:text-sm transition-all hover:border-amber-400 cursor-pointer shadow-md"
               >
                 <span>Zero-Waste Menu</span>
-                <ArrowRight className="w-4 h-4 text-amber-400" />
+                <ArrowRight className="w-4 h-4 text-amber-400 shrink-0" />
               </button>
 
               <button
                 id="hero-bhojbot-btn"
                 onClick={onOpenBhojBot}
-                className="flex items-center gap-2 px-4 py-3.5 rounded-xl bg-blue-950/60 hover:bg-blue-900/60 text-blue-200 border border-blue-500/40 font-semibold text-sm transition-all shadow-md cursor-pointer hover:border-blue-400"
+                className="flex items-center gap-2 px-3.5 sm:px-4 py-3 sm:py-3.5 rounded-xl bg-blue-950/60 hover:bg-blue-900/60 text-blue-200 border border-blue-500/40 font-semibold text-xs sm:text-sm transition-all shadow-md cursor-pointer hover:border-blue-400"
               >
-                <IAMChefLogo className="w-5 h-5" glow={false} />
+                <IAMChefLogo className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" glow={false} />
                 <span className="text-blue-300 font-bold">Ask Bhoj-Bot</span>
               </button>
             </div>
 
             {/* Event Formula Tag */}
-            <div className="pt-2 text-xs text-stone-400 border-t border-amber-900/60 flex flex-wrap items-center justify-center lg:justify-start gap-1.5">
+            <div className="pt-2 text-[11px] sm:text-xs text-stone-400 border-t border-amber-900/60 flex flex-wrap items-center justify-center lg:justify-start gap-1.5">
               <span className="font-semibold text-amber-300">Sustainable Fest Formula: </span>
-              <span className="text-amber-100/90 font-mono">Artificial Intelligence + Zero-Waste Gastronomy + Sustainable Hospitality + Student Innovation</span>
+              <span className="text-amber-100/90 font-mono break-words">AI + Zero-Waste Gastronomy + Sustainable Hospitality</span>
             </div>
 
           </div>

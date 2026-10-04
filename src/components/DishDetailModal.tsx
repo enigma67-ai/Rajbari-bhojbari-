@@ -67,7 +67,15 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
               <img
                 src={dish.imageUrl}
                 alt={dish.name}
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.dataset.fallback) {
+                    target.dataset.fallback = 'true';
+                    target.src = 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80';
+                  }
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1a0507] via-transparent to-black/40" />
               

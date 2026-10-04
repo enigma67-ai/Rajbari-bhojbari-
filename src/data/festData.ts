@@ -191,7 +191,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Utilizes nutrient-dense tender foliage from Bengal’s regenerative jute agricultural cycle.',
     wasteScore: 98,
     ingredients: ['Fresh Tender Jute Leaves (Pat Pata)', 'Stone-Ground Rice Flour', 'White Poppy Seeds (Posto)', 'Kalonji', 'Pure Mustard Oil'],
-    imageUrl: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261003-WA0038.jpg',
     isChefSpecial: true,
   },
   {

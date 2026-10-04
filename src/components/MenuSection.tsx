@@ -198,7 +198,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   };
 
   return (
-    <section id="menu-section" className="py-12 px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto scroll-mt-16">
+    <section id="menu-section" className="py-12 px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto scroll-mt-16 overflow-hidden">
       
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-amber-500/25">
@@ -228,8 +228,8 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
       </div>
 
       {/* 4. STICKY CATEGORY NAVIGATION PILLS */}
-      <div className="sticky top-16 sm:top-20 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3.5 bg-[#140305]/95 backdrop-blur-md border-y border-amber-500/20 shadow-xl transition-all">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
+      <div className="sticky top-16 sm:top-20 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3.5 bg-[#140305]/95 backdrop-blur-md border-y border-amber-500/20 shadow-xl transition-all w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] lg:w-[calc(100%+4rem)] overflow-hidden">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 w-full">
           {/* All Mohols Tab */}
           <button
             id="tab-mohol-all"
@@ -690,8 +690,16 @@ const DishCard: React.FC<DishCardProps> = ({
         <img
           src={dish.imageUrl}
           alt={dish.name}
+          referrerPolicy="no-referrer"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = 'true';
+              target.src = 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80';
+            }
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#180406] via-transparent to-black/40" />
 

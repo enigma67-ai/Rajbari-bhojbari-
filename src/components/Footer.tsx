@@ -31,8 +31,8 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer className="bg-[#120305] border-t border-amber-500/25 text-stone-300 text-xs py-12 px-4 sm:px-6 lg:px-8 mt-16 font-sans">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-amber-900/60">
+    <footer className="bg-[#120305] border-t border-amber-500/25 text-stone-300 text-xs py-12 px-4 sm:px-6 lg:px-8 mt-16 font-sans w-full max-w-[100vw] overflow-hidden">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-amber-900/60 w-full">
         
         {/* Brand Info */}
         <div className="space-y-3 sm:col-span-2 lg:col-span-1">

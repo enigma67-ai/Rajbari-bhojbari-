@@ -175,9 +175,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsAdminLoading(false);
       if (isMatch) {
         setIsAdminUnlocked(true);
+        const adminProfile: UserProfile = {
+          id: 'admin_gate_staff',
+          name: 'Festival Admin Officer',
+          emailOrPhone: 'admin@iamkolkata.edu',
+          role: 'admin',
+          isAdmin: true,
+          institution: 'IAM Kolkata Royal Directorate',
+          sustainabilityKarma: 999,
+          tokens: ['admin_access', 'gate_officer', 'menu_editor'],
+        };
         try {
+          localStorage.setItem('rb_user', JSON.stringify(adminProfile));
           sessionStorage.setItem('rb_gate_admin_auth', 'true');
         } catch (_) {}
+
+        if (onSuccess) {
+          onSuccess(adminProfile);
+        }
 
         setTimeout(() => {
           onClose();

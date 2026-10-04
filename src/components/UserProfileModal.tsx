@@ -32,6 +32,7 @@ interface UserProfileModalProps {
   onLogout: () => void;
   onOpenBooking: () => void;
   onOpenLegal: (tab?: any) => void;
+  onNavigateToAdmin?: () => void;
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -43,6 +44,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onLogout,
   onOpenBooking,
   onOpenLegal,
+  onNavigateToAdmin,
 }) => {
   const [activeTab, setActiveTab] = useState<'passes' | 'karma' | 'data'>('passes');
   const [selectedPassQr, setSelectedPassQr] = useState<string | null>(null);
@@ -334,7 +336,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           )}
 
           {/* Footer Action Bar */}
-          <div className="pt-4 border-t border-amber-500/20 flex items-center justify-between text-xs">
+          <div className="pt-4 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2 text-xs">
             <button
               onClick={() => {
                 onLogout();
@@ -346,12 +348,27 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <span>Sign Out</span>
             </button>
 
-            <button
-              onClick={onClose}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold shadow-md cursor-pointer transition-all"
-            >
-              Close Profile
-            </button>
+            <div className="flex items-center gap-2">
+              {currentUser?.role === 'admin' && onNavigateToAdmin && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onNavigateToAdmin();
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/40 font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <span>Admin Hub (/admin)</span>
+                </button>
+              )}
+
+              <button
+                onClick={onClose}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold shadow-md cursor-pointer transition-all"
+              >
+                Close Profile
+              </button>
+            </div>
           </div>
 
           {/* QR Enlarged Sub-Modal */}

@@ -99,6 +99,15 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", fest: "RAJBARI BHOJBARI 2026", time: new Date().toISOString() });
 });
 
+// Image Route for Panchali Patpata Bora upload
+app.get(["/IMG-20261003-WA0038.jpg", "/assets/IMG-20261003-WA0038.jpg"], (_req, res) => {
+  const localFile = path.join(process.cwd(), "public", "IMG-20261003-WA0038.jpg");
+  if (fs.existsSync(localFile)) {
+    return res.sendFile(localFile);
+  }
+  res.redirect("https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80");
+});
+
 // BHOJ-BOT AI Culinary Concierge Endpoint
 app.post(["/api/bhojbot/chat", "/api/gemini/chat"], async (req, res) => {
   const { 

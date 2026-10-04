@@ -29,10 +29,11 @@ export interface UserProfile {
   id: string;
   name: string;
   emailOrPhone: string;
-  role: 'guest' | 'student_ambassador' | 'faculty_judge' | 'royal_patron';
+  role: 'guest' | 'student_ambassador' | 'faculty_judge' | 'royal_patron' | 'admin';
   institution?: string;
   sustainabilityKarma: number;
   tokens: string[];
+  isAdmin?: boolean;
 }
 
 export interface PaymentDetails {
