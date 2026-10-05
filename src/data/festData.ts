@@ -71,6 +71,16 @@ export const MOHOL_INFO = {
   },
 
   // Aliases for backwards compatibility with existing references
+  'provesh-mohol': {
+    id: 'provesh-mohol',
+    title: 'PROVESH MOHOL',
+    subtitle: 'Welcome Coolers & Starters',
+    bengaliTitle: 'প্রবেশ মহল • স্বাগতম ও পানীয়',
+    tagline: 'Handcrafted Heritage Coolers & Starters',
+    description: 'Crisp, fragrant, and savory heritage appetizers and cooling mocktails prepared freshly with authentic Bengal culinary craft.',
+    accentColor: 'from-emerald-600 to-teal-800',
+    iconName: 'Sparkles',
+  },
   starters: {
     id: 'starters',
     title: 'PROVESH MOHOL',
@@ -138,8 +148,26 @@ export const MOHOL_INFO = {
  */
 export const MENU_ITEMS: MenuItem[] = [
   // =========================================================================
-  // 1. STARTERS (₹349 each)
+  // 1. PROVESH MOHOL • BEVERAGES & STARTERS
   // =========================================================================
+  {
+    id: 'beverage-masala-thandak',
+    name: 'Masala Thandak',
+    bengaliName: 'মশলা ঠান্ডক',
+    mohol: 'provesh-mohol', 
+    moholTitle: 'PROVESH MOHOL',
+    category: 'Beverage',
+    price: 49,
+    dietary: 'pure-veg',
+    spiceLevel: 'Mild',
+    description: 'A refreshing heritage cooler blending muddled fresh mint, roasted cumin, and black salt, served over crushed ice with a twist of native lemon.',
+    historyLore: 'Inspired by the traditional summer coolers of Bengali estates, acting as a perfect digestive and palate cleanser before a royal feast.',
+    sustainabilityStory: 'Utilizes whole native lemons, including the zest, ensuring maximum flavor extraction with zero waste.',
+    wasteScore: 100,
+    ingredients: ['Fresh Mint', 'Roasted Cumin', 'Black Salt', 'Native Lemon', 'Crushed Ice'],
+    imageUrl: '/27631.png',
+    isChefSpecial: false
+  },
   {
     id: 'starter-1',
     name: 'Raj Angan Jali Kebab (Non-Veg)',

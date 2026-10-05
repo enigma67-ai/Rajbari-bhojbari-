@@ -1,4 +1,4 @@
-export type MoholType = 'starters' | 'tasting' | 'mains' | 'rural' | 'desserts' | 'probesh' | 'bhoj' | 'mati' | 'mohini' | 'matini';
+export type MoholType = 'starters' | 'tasting' | 'mains' | 'rural' | 'desserts' | 'probesh' | 'bhoj' | 'mati' | 'mohini' | 'matini' | 'provesh-mohol' | 'provesh';
 
 export interface MenuItem {
   id: string;
@@ -6,7 +6,7 @@ export interface MenuItem {
   bengaliName: string;
   mohol: MoholType;
   moholTitle: string;
-  category: 'Starter' | 'Complimentary Tasting' | 'Main Course Combo' | 'Dessert Add-on' | 'Rural Bengal Heritage' | 'Mocktail' | 'Main Course' | 'Rural Sustainable' | 'Royal Confection' | 'Artisan Confection';
+  category: 'Starter' | 'Complimentary Tasting' | 'Main Course Combo' | 'Dessert Add-on' | 'Rural Bengal Heritage' | 'Mocktail' | 'Beverage' | 'Main Course' | 'Rural Sustainable' | 'Royal Confection' | 'Artisan Confection' | string;
   price: number;
   dietary: 'pure-veg' | 'non-veg' | 'vegan';
   spiceLevel: 'Mild' | 'Medium' | 'Rich & Aromatic';

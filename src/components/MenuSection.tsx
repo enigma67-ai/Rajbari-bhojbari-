@@ -123,7 +123,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
 
   // Helper to determine which traditional Mohol a dish belongs to
   const getDishMoholId = (dish: MenuItem): 'probesh' | 'bhoj' | 'mohini' | 'matini' => {
-    if (dish.mohol === 'starters' || dish.mohol === 'rural' || dish.mohol === 'probesh') {
+    if (dish.mohol === 'starters' || dish.mohol === 'rural' || dish.mohol === 'probesh' || (dish.mohol as string) === 'provesh-mohol' || (dish.mohol as string) === 'provesh') {
       return 'probesh';
     }
     if (dish.mohol === 'mains' || dish.mohol === 'bhoj') {
