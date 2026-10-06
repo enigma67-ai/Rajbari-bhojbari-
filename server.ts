@@ -111,7 +111,7 @@ app.get(["/IMG-20261003-WA0038.jpg", "/assets/IMG-20261003-WA0038.jpg"], (_req, 
 });
 
 // BHOJ-BOT AI Culinary Concierge Endpoint
-app.post(["/api/bhojbot/chat", "/api/gemini/chat"], async (req, res) => {
+app.post(["/api/bhojbot/chat", "/api/gemini/chat", "/api/chat"], async (req, res) => {
   const { 
     message, 
     history = [], 

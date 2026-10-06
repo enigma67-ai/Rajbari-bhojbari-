@@ -224,18 +224,37 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
       // 2. If client API key not available or direct request returned empty, route via server proxy
       if (!reply) {
         try {
-          const res = await fetch('/api/gemini/chat', {
+          const payload = JSON.stringify({
+            message: textToSend,
+            history: historyPayload,
+            contextDish: contextDish || undefined,
+            userBookings, // Pass confirmed bookings memory so Bhoj-Bot remembers
+            systemPrompt: BHOJ_BOT_SYSTEM_PROMPT,
+            mode: chatMode,
+          });
+
+          // Primary route: /api/gemini/chat
+          let res = await fetch('/api/gemini/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: textToSend,
-              history: historyPayload,
-              contextDish: contextDish || undefined,
-              userBookings, // Pass confirmed bookings memory so Bhoj-Bot remembers
-              systemPrompt: BHOJ_BOT_SYSTEM_PROMPT,
-              mode: chatMode,
-            }),
+            body: payload,
           });
+
+          // If 404 (e.g. Next.js App Router using /api/chat or alternative routing convention), fallback to /api/chat
+          if (res.status === 404) {
+            try {
+              const fallbackRes = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: payload,
+              });
+              if (fallbackRes.ok || fallbackRes.status !== 404) {
+                res = fallbackRes;
+              }
+            } catch {
+              // keep primary 404 response
+            }
+          }
 
           let data: any = null;
           const contentType = res.headers.get('content-type') || '';
@@ -253,8 +272,13 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             if (data && data.groundingType) groundingType = data.groundingType;
             if (data && data.searchQueries) searchQueries = data.searchQueries;
           } else {
-            const errorMsg = data?.error || data?.reply || (!data ? await res.text().catch(() => '') : '') || `Server returned status ${res.status}`;
-            reply = errorMsg.startsWith('Error:') ? errorMsg : `Error: ${errorMsg}`;
+            if (res.status === 404) {
+              reply = "Error: Backend route not found (404). Please ensure the Next.js API route exists at 'app/api/gemini/chat/route.ts' (or 'app/api/chat/route.ts') and is deployed.";
+            } else {
+              const rawText = !data ? await res.text().catch(() => '') : '';
+              const errorMsg = data?.error || data?.reply || rawText || `Server returned status ${res.status}`;
+              reply = errorMsg.startsWith('Error:') ? errorMsg : `Error: ${errorMsg}`;
+            }
           }
         } catch (fetchErr: any) {
           reply = `Error: Connection to AI backend failed (${fetchErr?.message || 'Network error'})`;

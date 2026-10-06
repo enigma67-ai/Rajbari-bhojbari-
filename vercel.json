@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/gemini/chat",
+      "destination": "/api/gemini/chat"
+    },
+    {
+      "source": "/api/chat",
+      "destination": "/api/chat"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
