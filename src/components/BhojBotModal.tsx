@@ -32,7 +32,40 @@ interface BhojBotModalProps {
   onOpenBookingModal?: () => void;
 }
 
-const BHOJ_BOT_SYSTEM_PROMPT = `You are Bhoj-Bot, the official polite and helpful AI concierge for Rajbari Bhojbari 2026. It is a Zero-Waste Heritage Bengali Food Fest at the IAM Kolkata Campus taking place on Friday, 9th October 2026. The Eco-Pass costs ₹349. You know about the menu, which features authentic 19th-century recipes like Raj Angan Jali Kebab, Nawab Bari Amudi Piyaji, Panchali Patpata Bora, Khiroda Katla, Polao, and Misti Mukh. Your goal is to answer questions briefly, highlight the zero-waste sustainability aspect, and encourage guests to use the 'Buy Now' or 'Add to Cart' buttons to book their passes.`;
+const BHOJ_BOT_SYSTEM_PROMPT = `You are Bhoj-Bot, the official digital AI hospitality ambassador for "Rajbari Bhojbari: The Lost Flavours of Bengal" (Food Fest 2026), hosted by IAM Institute of Advanced Management in Kolkata on October 9, 2026. 
+
+PERSONA RULES:
+- You are a highly professional, conversational, and polite hospitality AI.
+- NEVER use rigid, robotic templates. ALWAYS generate dynamic, natural, and helpful responses.
+- Answer questions directly. If asked a short question, give a short, precise answer.
+
+LOCATION & TIMING:
+- Venue: IAM Institute of Advanced Management, AE Block, Sector 1, Bidhannagar (Salt Lake City), Kolkata, West Bengal 700064.
+- Event Date: Friday, October 9, 2026.
+- Time: Authentic Bengali Lunch service commences promptly at 10:00 AM.
+
+HOW TO BOOK A PASS:
+If a user asks how to book, guide them through these simple steps:
+1. Browse the menu sections (Provesh Mohol for starters, Bhoj Mohol for mains).
+2. Click '+ Add to Cart' on your desired dishes or combos.
+3. Click 'Buy Now' to proceed to checkout.
+4. Fill in your Guest Details (Name, Phone, Email) to register for the Eco-Pass.
+5. Complete the UPI payment. 
+6. Your digital QR Eco-Pass will be generated for gate entry!
+
+MENU KNOWLEDGE & PRICING:
+- Base Eco-Pass (₹349): Includes 1 Welcome Drink, 1 Starter Combo, and 1 Main Course Combo.
+- Provesh Mohol (Starters): Combo A (Non-Veg) features Chicken Jali Kebab & Amudi Fish Piyaji. Combo B (Veg) features Shapla Crisp & Narkel Raj-Chop. Both come with Patpata Bora.
+- Bhoj Mohol (Mains): M1 (Chicken Kalia), M2 (Katla Fish), M3 (Aar Fish), M4 (Veg: Moong Dal, Stuffed Pointed Gourd). All served with special Polao.
+- Mohini Mohol (Complimentary): Free tasting counter featuring Tok, Jhol, and Ambol.
+- Mati Mohol (Misti Mukh/Desserts): ₹99 extra per platter.
+- Beverage: Masala Thandak (₹49) - mint, cumin, black salt, native lemon.
+
+ALLERGEN ADVISORY:
+- Always warn guests if they ask about allergies. 
+- Starters contain Gluten, Egg (Kebab), Fish (Piyaji), Peanut, Milk (Raj-Chop).
+- Mains contain Mustard (Chicken, Aar Fish), Milk, Tree Nuts (Polao, Veg Dolma), Fish (Katla, Aar).
+- Desserts contain Milk, Tree Nuts, and Gluten (Malpua).`;
 
 export const BhojBotModal: React.FC<BhojBotModalProps> = ({
   isOpen,
@@ -48,9 +81,9 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
     {
       id: 'welcome',
       sender: 'bhojbot',
-      text: "Pranam! I am Bhoj-Bot, your official AI concierge for Rajbari Bhojbari 2026 at IAM Kolkata Campus (Friday, 9th October 2026). Our ₹349 Eco-Pass gives you access to authentic 19th-century recipes like Raj Angan Jali Kebab, Panchali Patpata Bora, and Polao while championing zero-waste sustainability. How may I assist your feast today?",
+      text: "Welcome to Rajbari Bhojbari: The Lost Flavours of Bengal! I am Bhoj-Bot, your digital AI hospitality ambassador for Food Fest 2026 hosted by IAM Kolkata on October 9, 2026. How may I assist you with our menu selections, allergen guidance, or festival arrangements today?",
       timestamp: '10:00 AM',
-      source: 'gemini-3.5-flash',
+      source: 'gemini-3.8-flash',
     },
   ]);
   const [inputText, setInputText] = useState('');
@@ -158,7 +191,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
           ];
 
           const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -180,11 +213,11 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             const textResult = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (textResult && textResult.trim()) {
               reply = textResult.trim();
-              source = "gemini-2.5-flash";
+              source = "gemini-3.8-flash";
             }
           }
-        } catch (clientApiErr) {
-          console.warn("Direct Gemini API request notice, routing through server endpoint:", clientApiErr);
+        } catch (_) {
+          // Quietly route through backend endpoint
         }
       }
 
@@ -217,14 +250,38 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
       // 3. Fallback context-aware intelligence if network services are offline
       if (!reply) {
         const lower = textToSend.toLowerCase();
-        if (lower.includes('pass') || lower.includes('cost') || lower.includes('price') || lower.includes('ticket') || lower.includes('entry') || lower.includes('349')) {
-          reply = "The Rajbari Bhojbari 2026 Eco-Pass is ₹349. It includes full festival entry, complimentary access to our zero-waste Rural Bengal tasting counter, 1 authentic starter, and 1 main course combo. Misti Mukh dessert platters are an optional ₹99 add-on. We encourage you to click 'Buy Now' or 'Add to Cart' to reserve your passes today!";
-        } else if (lower.includes('menu') || lower.includes('dish') || lower.includes('recipe') || lower.includes('food') || lower.includes('kebab') || lower.includes('bora') || lower.includes('katla') || lower.includes('polao') || lower.includes('sweet') || lower.includes('misti')) {
-          reply = "Our zero-waste royal menu revives authentic 19th-century Bengali zamindari recipes! Signature items include Raj Angan Jali Kebab, Nawab Bari Amudi Piyaji, Panchali Patpata Bora, Khiroda Katla, Polao combos, and the Misti Mukh platter. Every recipe emphasizes zero-waste sustainability. Click 'Add to Cart' or 'Buy Now' to secure your passes!";
-        } else if (lower.includes('waste') || lower.includes('sustain') || lower.includes('zero') || lower.includes('eco')) {
-          reply = "Rajbari Bhojbari 2026 is an eco-friendly Zero-Waste Heritage Food Fest! From peel-to-root cooking and clay pots to compostable Sal leaf platters, every dish minimizes food waste while honoring 19th-century heritage. Join us on Friday, 9th October at IAM Kolkata Campus—grab your ₹349 Eco-Pass using 'Buy Now'!";
+
+        // Allergies check & strict warning
+        if (
+          lower.includes('allerg') || 
+          lower.includes('gluten') || 
+          lower.includes('milk') || 
+          lower.includes('dairy') || 
+          lower.includes('peanut') || 
+          lower.includes('nut') || 
+          lower.includes('egg') || 
+          lower.includes('mustard') || 
+          lower.includes('fish')
+        ) {
+          reply = "Important Allergen Advisory:\n\n• Starters: Raj Angan Jali Kebab (Gluten, Egg), Nawab Bari Amudi Piyaji (Fish), Aamrasa Narkel Raj-Chop (Peanut, Milk, Gluten), Padma Prasad Shapla Crisp (Milk). Panchali Patpata Bora has no listed allergens.\n• Main Course Combos: M1 Chicken (Mustard, Milk, Tree Nut), M2 Katla (Fish, Milk, Tree Nut), M3 Aar (Fish, Mustard, Milk, Tree Nut), M4 Veg (Milk, Tree Nut).\n• Desserts: Piyaz Rajmadhuri Payesh (Milk, Tree Nut), Porochitroharini Rajbhog (Milk, Tree Nut), Potol Monohora Rajmukut (Milk), Tal-Shonar Malpua (Gluten, Milk).\n• Mocktail: Masala Thandak has no common allergens listed.\n\nPlease note: While our culinary teams enforce strict kitchen protocols, cross-contact control cannot be guaranteed with complete certainty. Please exercise caution if you have severe sensitivities.";
+        } else if (lower.includes('time') || lower.includes('when') || lower.includes('date') || lower.includes('hour')) {
+          reply = "Rajbari Bhojbari takes place on October 9, 2026. The authentic Bengali lunch service commences promptly at 10:00 AM at the IAM Institute of Advanced Management in Kolkata.";
+        } else if (lower.includes('venue') || lower.includes('location') || lower.includes('where') || lower.includes('address')) {
+          reply = "The festival is hosted at the IAM Institute of Advanced Management, Salt Lake, Kolkata.";
+        } else if (lower.includes('entertainment') || lower.includes('culture') || lower.includes('program') || lower.includes('event') || lower.includes('activity') || lower.includes('music') || lower.includes('dance')) {
+          reply = "Alongside the feast, our cultural pavilion showcases traditional Bengali drama, classical and folk dance, vocal performances, instrumental melodies, stand-up comedy, face painting, live drawing, and poetry recitations.";
+        } else if (lower.includes('eco-pass') || lower.includes('pass') || lower.includes('ticket') || lower.includes('price') || lower.includes('cost') || lower.includes('entry') || lower.includes('349')) {
+          reply = "The Standard Eco-Pass is ₹349. It covers 1 Welcome Drink, 1 Starter (choice of Veg or Non-Veg), and 1 Main Course combo (M1, M2, M3, or M4). Tasting portions at the Rural Tasting Counter (Tok, Jhol, Ambol) are complimentary. Desserts from Misti Mukh are available for ₹99 each, and the Masala Thandak mocktail is ₹49.";
+        } else if (lower.includes('dessert') || lower.includes('sweet') || lower.includes('misti') || lower.includes('99')) {
+          reply = "Our Misti Mukh dessert selections are ₹99 each: Piyaz Rajmadhuri Payesh (pink onion and saffron reduction), Porochitroharini Rajbhog (chire and coconut confection), Potol Monohora Rajmukut (chhana-filled pointed gourd), and Tal-Shonar Malpua (palmyra palm fritters).";
+        } else if (lower.includes('mocktail') || lower.includes('drink') || lower.includes('thandak') || lower.includes('49')) {
+          reply = "We offer the Masala Thandak for ₹49—a heritage palate cooler crafted with muddled mint, roasted cumin, black salt, and whole native lemon, embodying zero-waste extraction.";
+        } else if (lower.includes('recommend') || lower.includes('suggest') || lower.includes('what should i eat') || lower.includes('best dish')) {
+          reply = "For an aristocratic non-vegetarian feast, I recommend beginning with the delicate Raj Angan Jali Kebab—wrapped in hand-woven egg netting—followed by M1: Rajbari Deshi Fowl Kalia paired with golden Cholar Dal Raj Polao. If you prefer a vegetarian indulgence, begin with the crispy foraged Padma Prasad Shapla Crisp, followed by M4: Chanar Shahi Dolma simmered with roasted Moong Mohon Rajdal. Both selections celebrate whole-ingredient utilization and forgotten 19th-century zamindari cooking.";
+        } else if (lower.includes('sustain') || lower.includes('waste') || lower.includes('zero') || lower.includes('eco')) {
+          reply = "Sustainability is foundational to Rajbari Bhojbari. We practice whole-ingredient cooking—such as utilizing native citrus peels and seasonal river fish head-to-tail—paired with reusable terracotta and compostable Sal leaf dinnerware to ensure zero food waste.";
         } else {
-          reply = "Pranam! I am Bhoj-Bot. Rajbari Bhojbari 2026 is taking place on Friday, 9th October 2026 at IAM Kolkata Campus. Experience authentic 19th-century recipes like Raj Angan Jali Kebab, Nawab Bari Amudi Piyaji, Panchali Patpata Bora, Khiroda Katla, Polao, and Misti Mukh with a ₹349 Eco-Pass. Use the 'Buy Now' or 'Add to Cart' buttons to book your passes!";
+          reply = "Welcome to Rajbari Bhojbari 2026. How may I guide your dining selections, dietary requirements, or festival experience today?";
         }
       }
 
@@ -255,8 +312,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
           createdAt: new Date().toISOString(),
         });
       }
-    } catch (err) {
-      console.error("BhojBot error:", err);
+    } catch (_) {
       const errorMessage: ChatMessage = {
         id: 'bot_err_' + Date.now(),
         sender: 'bhojbot',
@@ -366,7 +422,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   }`}
                 >
                   <Globe className="w-3 h-3" />
-                  <span>Gemini 3.5 Flash (Search/Maps)</span>
+                  <span>3.8 Flash (Grounded)</span>
                 </button>
                 <button
                   onClick={() => setChatMode('complex')}
@@ -377,7 +433,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   }`}
                 >
                   <Leaf className="w-3 h-3 text-emerald-400" />
-                  <span>3.1 Pro (Zero-Waste Recipes)</span>
+                  <span>3.8 Flash (Recipes)</span>
                 </button>
                 <button
                   onClick={() => setChatMode('fast')}

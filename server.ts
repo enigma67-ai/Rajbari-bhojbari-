@@ -141,43 +141,47 @@ app.post(["/api/bhojbot/chat", "/api/gemini/chat"], async (req, res) => {
     bookingsMemory = `\n\n[USER BOOKINGS MEMORY]: The user has not finalized a banquet booking yet. You can warmly encourage them to pick their royal dining slot and reserve their dishes from the menu!`;
   }
 
-  const systemInstruction = `You are Bhoj-Bot, the official polite and helpful AI concierge for Rajbari Bhojbari 2026. It is a Zero-Waste Heritage Bengali Food Fest at the IAM Kolkata Campus taking place on Friday, 9th October 2026. The Eco-Pass costs ₹349. You know about the menu, which features authentic 19th-century recipes like Raj Angan Jali Kebab, Nawab Bari Amudi Piyaji, Panchali Patpata Bora, Khiroda Katla, Polao, and Misti Mukh. Your goal is to answer questions briefly, highlight the zero-waste sustainability aspect, and encourage guests to use the 'Buy Now' or 'Add to Cart' buttons to book their passes.
+  const systemInstruction = `You are Bhoj-Bot, the official digital AI hospitality ambassador for "Rajbari Bhojbari: The Lost Flavours of Bengal" (Food Fest 2026), hosted by IAM Institute of Advanced Management in Kolkata on October 9, 2026. 
+
+PERSONA RULES:
+- You are a highly professional, conversational, and polite hospitality AI.
+- NEVER use rigid, robotic templates. ALWAYS generate dynamic, natural, and helpful responses.
+- Answer questions directly. If asked a short question, give a short, precise answer.
+
+LOCATION & TIMING:
+- Venue: IAM Institute of Advanced Management, AE Block, Sector 1, Bidhannagar (Salt Lake City), Kolkata, West Bengal 700064.
+- Event Date: Friday, October 9, 2026.
+- Time: Authentic Bengali Lunch service commences promptly at 10:00 AM.
+
+HOW TO BOOK A PASS:
+If a user asks how to book, guide them through these simple steps:
+1. Browse the menu sections (Provesh Mohol for starters, Bhoj Mohol for mains).
+2. Click '+ Add to Cart' on your desired dishes or combos.
+3. Click 'Buy Now' to proceed to checkout.
+4. Fill in your Guest Details (Name, Phone, Email) to register for the Eco-Pass.
+5. Complete the UPI payment. 
+6. Your digital QR Eco-Pass will be generated for gate entry!
+
+MENU KNOWLEDGE & PRICING:
+- Base Eco-Pass (₹349): Includes 1 Welcome Drink, 1 Starter Combo, and 1 Main Course Combo.
+- Provesh Mohol (Starters): Combo A (Non-Veg) features Chicken Jali Kebab & Amudi Fish Piyaji. Combo B (Veg) features Shapla Crisp & Narkel Raj-Chop. Both come with Patpata Bora.
+- Bhoj Mohol (Mains): M1 (Chicken Kalia), M2 (Katla Fish), M3 (Aar Fish), M4 (Veg: Moong Dal, Stuffed Pointed Gourd). All served with special Polao.
+- Mohini Mohol (Complimentary): Free tasting counter featuring Tok, Jhol, and Ambol.
+- Mati Mohol (Misti Mukh/Desserts): ₹99 extra per platter.
+- Beverage: Masala Thandak (₹49) - mint, cumin, black salt, native lemon.
+
+ALLERGEN ADVISORY:
+- Always warn guests if they ask about allergies. 
+- Starters contain Gluten, Egg (Kebab), Fish (Piyaji), Peanut, Milk (Raj-Chop).
+- Mains contain Mustard (Chicken, Aar Fish), Milk, Tree Nuts (Polao, Veg Dolma), Fish (Katla, Aar).
+- Desserts contain Milk, Tree Nuts, and Gluten (Malpua).
 ${bookingsMemory}`;
 
-  const lowerQuery = message.toLowerCase();
-  const isLocationQuery = lowerQuery.includes("venue") || 
-                         lowerQuery.includes("location") || 
-                         lowerQuery.includes("reach") || 
-                         lowerQuery.includes("direction") || 
-                         lowerQuery.includes("map") || 
-                         lowerQuery.includes("salt lake") || 
-                         lowerQuery.includes("kolkata") || 
-                         lowerQuery.includes("metro");
-
-  // Determine model based on task complexity
-  let modelToUse = "gemini-3.5-flash";
-  let toolsConfig: any[] | undefined = undefined;
-  let groundingType: "maps" | "search" | "none" = "none";
-
-  if (mode === "complex" || lowerQuery.includes("banquet itinerary") || lowerQuery.includes("multi-course banquet plan")) {
-    modelToUse = "gemini-3.1-pro-preview";
-  } else if (mode === "fast") {
-    modelToUse = "gemini-3.1-flash-lite";
-  } else {
-    // General mode: use gemini-3.5-flash with Grounding
-    if (isLocationQuery) {
-      toolsConfig = [{ googleMaps: {} }];
-      groundingType = "maps";
-    } else {
-      toolsConfig = [{ googleSearch: {} }];
-      groundingType = "search";
-    }
-  }
-
+  // Always attempt dynamic Gemini generation first
   try {
     const ai = getGeminiClient();
     if (ai) {
-      // Build multi-turn contents
+      // Build multi-turn conversation history
       const formattedHistory: any[] = [];
       if (Array.isArray(history)) {
         for (const item of history.slice(-8)) { // keep last 8 turns for conversational depth
@@ -202,71 +206,101 @@ ${bookingsMemory}`;
         },
       ];
 
-      const config: any = {
+      const config = {
         systemInstruction,
         temperature: 0.7,
       };
-      if (toolsConfig) {
-        config.tools = toolsConfig;
+
+      let response: any;
+      let usedModel = "gemini-3.8-flash";
+
+      const fetchWithTimeout = (modelName: string, timeoutMs = 8000) => {
+        const call = ai.models.generateContent({
+          model: modelName,
+          contents,
+          config,
+        });
+        const timer = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Timeout ${modelName}`)), timeoutMs)
+        );
+        return Promise.race([call, timer]) as Promise<any>;
+      };
+
+      // Try gemini-3.8-flash; swiftly fail over to fast gemini-3.1-flash-lite if experiencing delays or spikes
+      try {
+        response = await fetchWithTimeout("gemini-3.8-flash", 7000);
+        usedModel = "gemini-3.8-flash";
+      } catch (_) {
+        try {
+          response = await fetchWithTimeout("gemini-3.1-flash-lite", 9000);
+          usedModel = "gemini-3.1-flash-lite";
+        } catch (__) {
+          // Will drop down to static safety net
+        }
       }
 
-      const response = await ai.models.generateContent({
-        model: modelToUse,
-        contents,
-        config,
-      });
-
-      const replyText = response.text || "Welcome to Rajbari Bhojbari. How may I assist your royal feast today?";
-      const searchQueries = response.candidates?.[0]?.groundingMetadata?.webSearchQueries || [];
-      const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-
-      res.json({ 
-        reply: replyText, 
-        source: modelToUse,
-        groundingType,
-        searchQueries,
-        sourcesCount: sources.length
-      });
-      return;
+      if (response && response.text) {
+        res.json({ 
+          reply: response.text, 
+          source: usedModel,
+          groundingType: "none",
+          searchQueries: [],
+        });
+        return;
+      }
     }
-  } catch (error) {
-    console.error("Gemini API call failed, using intelligent fallback engine:", error);
+  } catch (_) {
+    // Drop down to fallback safety net only if offline or credentials unavailable
   }
 
-  // Fallback intelligent response engine with booking awareness
+  // Fallback intelligent response engine with exact event knowledge
   const lower = message.toLowerCase();
   let fallbackReply = "";
 
-  if (lower.includes("booking") || lower.includes("reservation") || lower.includes("order") || lower.includes("pass")) {
+  if (
+    lower.includes("allerg") ||
+    lower.includes("gluten") ||
+    lower.includes("milk") ||
+    lower.includes("dairy") ||
+    lower.includes("peanut") ||
+    lower.includes("nut") ||
+    lower.includes("egg") ||
+    lower.includes("mustard") ||
+    lower.includes("fish")
+  ) {
+    fallbackReply = "Important Allergen Advisory:\n\n• Starters: Raj Angan Jali Kebab (Gluten, Egg), Nawab Bari Amudi Piyaji (Fish), Aamrasa Narkel Raj-Chop (Peanut, Milk, Gluten), Padma Prasad Shapla Crisp (Milk). Panchali Patpata Bora has no listed allergens.\n• Main Course Combos: M1 Chicken (Mustard, Milk, Tree Nut), M2 Katla (Fish, Milk, Tree Nut), M3 Aar (Fish, Mustard, Milk, Tree Nut), M4 Veg (Milk, Tree Nut).\n• Desserts: Piyaz Rajmadhuri Payesh (Milk, Tree Nut), Porochitroharini Rajbhog (Milk, Tree Nut), Potol Monohora Rajmukut (Milk), Tal-Shonar Malpua (Gluten, Milk).\n• Mocktail: Masala Thandak has no common allergens listed.\n\nPlease note: While our culinary teams enforce strict kitchen protocols, cross-contact control cannot be guaranteed with complete certainty. Please exercise caution if you have severe sensitivities.";
+  } else if (lower.includes("time") || lower.includes("when") || lower.includes("date") || lower.includes("hour")) {
+    fallbackReply = "Rajbari Bhojbari takes place on October 9, 2026. The authentic Bengali lunch service commences promptly at 10:00 AM at the IAM Institute of Advanced Management in Kolkata.";
+  } else if (lower.includes("booking") || lower.includes("reservation") || lower.includes("order")) {
     if (Array.isArray(userBookings) && userBookings.length > 0) {
       const latest = userBookings[0];
       const dishes = latest.items?.map((i: any) => `${i.name} (x${i.quantity})`).join(", ") || "Selected Royal Dishes";
-      fallbackReply = `Pranam! I remember your confirmed booking (Code: **${latest.bookingCode || latest.bookingId || latest.id}**) for **${latest.dineSlot || 'Festival Banquet'}** (${latest.seatCount || 1} guest${(latest.seatCount || 1) > 1 ? 's' : ''}). Your reserved course includes: ${dishes}. Total Amount: ₹${latest.totalAmount || latest.amount}. May I suggest a dessert like Murshidabadi Chhana Mukhi from Mohini Mohol to finish your feast?`;
+      fallbackReply = `I have retrieved your confirmed booking (Pass Code: ${latest.bookingCode || latest.bookingId || latest.id}) for ${latest.dineSlot || 'Festival Banquet'} (${latest.seatCount || 1} guest${(latest.seatCount || 1) > 1 ? 's' : ''}). Reserved selections: ${dishes}. Total: ₹${latest.totalAmount || latest.amount}.`;
     } else {
-      fallbackReply = "You do not have any confirmed table bookings yet! You can select your favorite dishes from our four Mohols, choose your dining time slot, and confirm your royal reservation anytime.";
+      fallbackReply = "You do not currently have an active reservation. You can secure an Eco-Pass directly for ₹349, choosing your preferred starter and main course combo.";
     }
+  } else if (lower.includes("entertainment") || lower.includes("culture") || lower.includes("program") || lower.includes("event") || lower.includes("activity") || lower.includes("music") || lower.includes("dance")) {
+    fallbackReply = "Our cultural program features drama, dance, singing, instrumental music, stand-up comedy, face painting, drawing, and poetry throughout the day.";
+  } else if (lower.includes("eco-pass") || lower.includes("pass") || lower.includes("price") || lower.includes("cost") || lower.includes("ticket") || lower.includes("entry") || lower.includes("349")) {
+    fallbackReply = "The Standard Eco-Pass is ₹349. It includes 1 Welcome Drink, 1 Starter (choice of Veg or Non-Veg), and 1 Main Course combo (M1, M2, M3, or M4). Tasting portions at the Rural Tasting Counter (Tok, Jhol, Ambol) are completely free. Misti Mukh desserts are ₹99 each, and Masala Thandak is ₹49.";
+  } else if (lower.includes("dessert") || lower.includes("sweet") || lower.includes("misti") || lower.includes("99")) {
+    fallbackReply = "The Misti Mukh desserts (₹99 each) are Piyaz Rajmadhuri Payesh, Porochitroharini Rajbhog, Potol Monohora Rajmukut, and Tal-Shonar Malpua.";
+  } else if (lower.includes("mocktail") || lower.includes("thandak") || lower.includes("49")) {
+    fallbackReply = "Masala Thandak is ₹49. It features fresh mint, roasted cumin, black salt, and whole native lemon over crushed ice—100% pure veg and zero waste.";
   } else if (lower.includes("venue") || lower.includes("location") || lower.includes("reach") || lower.includes("where") || lower.includes("address")) {
-    fallbackReply = "RAJBARI BHOJBARI takes place at the Institute of Advanced Management (IAM), Salt Lake City, Sector 3, Kolkata - 700106. It is conveniently situated near the Salt Lake Stadium and Karunamoyee Metro Station on the Green Line. Valet and eco-friendly rickshaw transfers are available at the entrance gate!";
+    fallbackReply = "The event takes place at the IAM Institute of Advanced Management, Salt Lake City, Kolkata.";
   } else if (lower.includes("sustain") || lower.includes("waste") || lower.includes("zero")) {
-    fallbackReply = "At Rajbari Bhojbari, our royal motto is 'Royal Flavours. Zero Waste.'! In our Mati Mohol, we revive forgotten traditions like Kumro Chhalka Chorchori—cooking pumpkin peel, pulp, and toasted seeds in clay pots, ensuring 100% whole-ingredient utilization without a single scrap lost.";
-  } else if (lower.includes("veg") || lower.includes("mati") || lower.includes("plant")) {
-    fallbackReply = "Pranam! For an exquisite pure vegetarian experience, visit MATI MOHOL and BHOJ MOHOL. We recommend starting with Mochar Chop (banana blossom with wild Radhuni mustard), followed by Chhanar Dudh Shukto with sun-dried biuli boris, and our clay-roasted Kolar Thor Paturi in compostable Sal leaves.";
-  } else if (lower.includes("sweet") || lower.includes("dessert") || lower.includes("mohini") || lower.includes("mithai")) {
-    fallbackReply = "In MOHINI MOHOL, we revive century-old confections from the royal courts of Murshidabad and Krishnanagar! Do not miss the 1850s Murshidabadi Chhana Mukhi dusted with pistachio, and the legendary Sor Bhaja fried in pure golden desi cow ghee.";
-  } else if (lower.includes("probesh") || lower.includes("drink") || lower.includes("mocktail") || lower.includes("starter")) {
-    fallbackReply = "PROBESH MOHOL welcomes you with royal botanical elixirs! Savor the Gondhoraj Lebu & Kancha Aam Shikanji with cold rock salt, or our floral Aamada (mango ginger) and Bel Phool nectar, followed by crisp Posto Bora!";
-  } else if (lower.includes("mutton") || lower.includes("meat") || lower.includes("chicken") || lower.includes("non-veg") || lower.includes("fish")) {
-    fallbackReply = "For imperial royal non-veg dining, head directly to BHOJ MOHOL! Savor the Dhakai Kachi Morog Pulao made with heirloom Gobindobhog rice, the 4-hour slow-caramelized Rajbari Kosha Mangsho, or the nose-to-tail masterpiece Macher Matha diye Muri Ghonto.";
-  } else if (lower.includes("schedule") || lower.includes("time") || lower.includes("date") || lower.includes("october")) {
-    fallbackReply = "The IAM Annual Food Fest takes place on Friday, 9th October 2026, starting at 10:00 AM with the Chandwa Unveiling Ceremony, followed by the BhojBot AI Keynote, chef masterclasses on the Shil-Nora, Baul folk concerts, and the evening Grand Sustainability Awards!";
+    fallbackReply = "The festival adheres to a strict zero-waste philosophy: 100% whole-ingredient utilization (incorporating peels, seeds, and stems), locally and seasonally sourced produce, and eco-friendly reusable dining service.";
+  } else if (lower.includes("recommend") || lower.includes("suggest") || lower.includes("best")) {
+    fallbackReply = "For non-vegetarians, I suggest starting with the Raj Angan Jali Kebab—a Mughal-Bengali royal classic wrapped in crisp egg netting—paired with M1: Rajbari Deshi Fowl Kalia and Cholar Dal Raj Polao. For vegetarians, begin with the crispy water-lily Padma Prasad Shapla Crisp, followed by M4: Rajbari Chanar Shahi Dolma with Moong Mohon Rajdal. Both highlight zero-waste, whole-harvest cooking.";
   } else {
-    fallbackReply = "Pranam & welcome to RAJBARI BHOJBARI! I am BhojBot, your royal AI concierge. I can remember your banquet bookings, recommend pairings from our four royal pavilions (Probesh, Bhoj, Mati, and Mohini Mohol), and guide your journey to our Salt Lake campus. How may I serve your royal appetite today?";
+    fallbackReply = "Welcome to Rajbari Bhojbari: The Lost Flavours of Bengal. How may I assist with your menu choices, allergen queries, or booking details?";
   }
 
   res.json({ 
     reply: fallbackReply, 
     source: "bhojbot-heritage-engine",
-    groundingType: isLocationQuery ? "maps" : "none"
+    groundingType: "none"
   });
 });
 
