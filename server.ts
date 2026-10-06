@@ -25,9 +25,11 @@ app.use(express.static(path.join(process.cwd(), "public")));
 // Initialize Gemini Client
 let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
-  if (!geminiClient && process.env.GEMINI_API_KEY) {
+  const key = (process.env.GEMINI_API_KEY || "").trim();
+  if (!key) return null;
+  if (!geminiClient) {
     geminiClient = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
+      apiKey: key,
       httpOptions: {
         headers: {
           'User-Agent': 'aistudio-build',
@@ -177,131 +179,107 @@ ALLERGEN ADVISORY:
 - Desserts contain Milk, Tree Nuts, and Gluten (Malpua).
 ${bookingsMemory}`;
 
-  // Always attempt dynamic Gemini generation first
+  // Check API key configuration explicitly
+  const apiKey = (process.env.GEMINI_API_KEY || "").trim();
+  if (!apiKey) {
+    res.status(500).json({
+      error: "Error: GEMINI_API_KEY is missing or empty in server environment variables. Please configure GEMINI_API_KEY in your hosting dashboard (e.g., Vercel / Cloud Run / .env).",
+      reply: "Error: GEMINI_API_KEY is missing or empty in server environment variables. Please configure GEMINI_API_KEY in your hosting dashboard (e.g., Vercel / Cloud Run / .env)."
+    });
+    return;
+  }
+
   try {
     const ai = getGeminiClient();
-    if (ai) {
-      // Build multi-turn conversation history
-      const formattedHistory: any[] = [];
-      if (Array.isArray(history)) {
-        for (const item of history.slice(-8)) { // keep last 8 turns for conversational depth
-          if (item && item.text) {
-            formattedHistory.push({
-              role: item.sender === 'user' || item.role === 'user' ? 'user' : 'model',
-              parts: [{ text: item.text }],
-            });
-          }
+    if (!ai) {
+      res.status(500).json({
+        error: "Error: Failed to initialize GoogleGenAI client with GEMINI_API_KEY.",
+        reply: "Error: Failed to initialize GoogleGenAI client with GEMINI_API_KEY."
+      });
+      return;
+    }
+
+    // Build multi-turn conversation history
+    const formattedHistory: any[] = [];
+    if (Array.isArray(history)) {
+      for (const item of history.slice(-8)) { // keep last 8 turns for conversational depth
+        if (item && item.text) {
+          formattedHistory.push({
+            role: item.sender === 'user' || item.role === 'user' ? 'user' : 'model',
+            parts: [{ text: item.text }],
+          });
         }
       }
+    }
 
-      const currentPrompt = contextDish
-        ? `[Context Dish: ${contextDish.name} from ${contextDish.mohol}]\n${message}`
-        : message;
+    const currentPrompt = contextDish
+      ? `[Context Dish: ${contextDish.name} from ${contextDish.mohol}]\n${message}`
+      : message;
 
-      const contents = [
-        ...formattedHistory,
-        {
-          role: 'user',
-          parts: [{ text: currentPrompt }],
-        },
-      ];
+    const contents = [
+      ...formattedHistory,
+      {
+        role: 'user',
+        parts: [{ text: currentPrompt }],
+      },
+    ];
 
-      const config = {
-        systemInstruction,
-        temperature: 0.7,
-      };
+    const config = {
+      systemInstruction,
+      temperature: 0.7,
+    };
 
-      let response: any;
-      let usedModel = "gemini-3.8-flash";
+    let response: any;
+    let usedModel = "gemini-3.8-flash";
 
-      const fetchWithTimeout = (modelName: string, timeoutMs = 8000) => {
-        const call = ai.models.generateContent({
-          model: modelName,
+    // Pass user prompt directly to Gemini model
+    try {
+      response = await ai.models.generateContent({
+        model: "gemini-3.8-flash",
+        contents,
+        config,
+      });
+      usedModel = "gemini-3.8-flash";
+    } catch (primaryErr: any) {
+      // If primary model has transient spike or error, try gemini-3.1-flash-lite
+      try {
+        response = await ai.models.generateContent({
+          model: "gemini-3.1-flash-lite",
           contents,
           config,
         });
-        const timer = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`Timeout ${modelName}`)), timeoutMs)
-        );
-        return Promise.race([call, timer]) as Promise<any>;
-      };
-
-      // Try gemini-3.8-flash; swiftly fail over to fast gemini-3.1-flash-lite if experiencing delays or spikes
-      try {
-        response = await fetchWithTimeout("gemini-3.8-flash", 7000);
-        usedModel = "gemini-3.8-flash";
-      } catch (_) {
-        try {
-          response = await fetchWithTimeout("gemini-3.1-flash-lite", 9000);
-          usedModel = "gemini-3.1-flash-lite";
-        } catch (__) {
-          // Will drop down to static safety net
-        }
-      }
-
-      if (response && response.text) {
-        res.json({ 
-          reply: response.text, 
-          source: usedModel,
-          groundingType: "none",
-          searchQueries: [],
+        usedModel = "gemini-3.1-flash-lite";
+      } catch (secondaryErr: any) {
+        const errorMsg = secondaryErr?.message || primaryErr?.message || "AI service call failed";
+        res.status(502).json({
+          error: `Error: AI service unavailable (${errorMsg})`,
+          reply: `Error: AI service unavailable (${errorMsg})`,
         });
         return;
       }
     }
-  } catch (_) {
-    // Drop down to fallback safety net only if offline or credentials unavailable
-  }
 
-  // Fallback intelligent response engine with exact event knowledge
-  const lower = message.toLowerCase();
-  let fallbackReply = "";
-
-  if (
-    lower.includes("allerg") ||
-    lower.includes("gluten") ||
-    lower.includes("milk") ||
-    lower.includes("dairy") ||
-    lower.includes("peanut") ||
-    lower.includes("nut") ||
-    lower.includes("egg") ||
-    lower.includes("mustard") ||
-    lower.includes("fish")
-  ) {
-    fallbackReply = "Important Allergen Advisory:\n\n• Starters: Raj Angan Jali Kebab (Gluten, Egg), Nawab Bari Amudi Piyaji (Fish), Aamrasa Narkel Raj-Chop (Peanut, Milk, Gluten), Padma Prasad Shapla Crisp (Milk). Panchali Patpata Bora has no listed allergens.\n• Main Course Combos: M1 Chicken (Mustard, Milk, Tree Nut), M2 Katla (Fish, Milk, Tree Nut), M3 Aar (Fish, Mustard, Milk, Tree Nut), M4 Veg (Milk, Tree Nut).\n• Desserts: Piyaz Rajmadhuri Payesh (Milk, Tree Nut), Porochitroharini Rajbhog (Milk, Tree Nut), Potol Monohora Rajmukut (Milk), Tal-Shonar Malpua (Gluten, Milk).\n• Mocktail: Masala Thandak has no common allergens listed.\n\nPlease note: While our culinary teams enforce strict kitchen protocols, cross-contact control cannot be guaranteed with complete certainty. Please exercise caution if you have severe sensitivities.";
-  } else if (lower.includes("time") || lower.includes("when") || lower.includes("date") || lower.includes("hour")) {
-    fallbackReply = "Rajbari Bhojbari takes place on October 9, 2026. The authentic Bengali lunch service commences promptly at 10:00 AM at the IAM Institute of Advanced Management in Kolkata.";
-  } else if (lower.includes("booking") || lower.includes("reservation") || lower.includes("order")) {
-    if (Array.isArray(userBookings) && userBookings.length > 0) {
-      const latest = userBookings[0];
-      const dishes = latest.items?.map((i: any) => `${i.name} (x${i.quantity})`).join(", ") || "Selected Royal Dishes";
-      fallbackReply = `I have retrieved your confirmed booking (Pass Code: ${latest.bookingCode || latest.bookingId || latest.id}) for ${latest.dineSlot || 'Festival Banquet'} (${latest.seatCount || 1} guest${(latest.seatCount || 1) > 1 ? 's' : ''}). Reserved selections: ${dishes}. Total: ₹${latest.totalAmount || latest.amount}.`;
+    if (response && response.text) {
+      res.json({ 
+        reply: response.text, 
+        source: usedModel,
+      });
+      return;
     } else {
-      fallbackReply = "You do not currently have an active reservation. You can secure an Eco-Pass directly for ₹349, choosing your preferred starter and main course combo.";
+      res.status(500).json({
+        error: "Error: Gemini model completed but returned no response text.",
+        reply: "Error: Gemini model completed but returned no response text."
+      });
+      return;
     }
-  } else if (lower.includes("entertainment") || lower.includes("culture") || lower.includes("program") || lower.includes("event") || lower.includes("activity") || lower.includes("music") || lower.includes("dance")) {
-    fallbackReply = "Our cultural program features drama, dance, singing, instrumental music, stand-up comedy, face painting, drawing, and poetry throughout the day.";
-  } else if (lower.includes("eco-pass") || lower.includes("pass") || lower.includes("price") || lower.includes("cost") || lower.includes("ticket") || lower.includes("entry") || lower.includes("349")) {
-    fallbackReply = "The Standard Eco-Pass is ₹349. It includes 1 Welcome Drink, 1 Starter (choice of Veg or Non-Veg), and 1 Main Course combo (M1, M2, M3, or M4). Tasting portions at the Rural Tasting Counter (Tok, Jhol, Ambol) are completely free. Misti Mukh desserts are ₹99 each, and Masala Thandak is ₹49.";
-  } else if (lower.includes("dessert") || lower.includes("sweet") || lower.includes("misti") || lower.includes("99")) {
-    fallbackReply = "The Misti Mukh desserts (₹99 each) are Piyaz Rajmadhuri Payesh, Porochitroharini Rajbhog, Potol Monohora Rajmukut, and Tal-Shonar Malpua.";
-  } else if (lower.includes("mocktail") || lower.includes("thandak") || lower.includes("49")) {
-    fallbackReply = "Masala Thandak is ₹49. It features fresh mint, roasted cumin, black salt, and whole native lemon over crushed ice—100% pure veg and zero waste.";
-  } else if (lower.includes("venue") || lower.includes("location") || lower.includes("reach") || lower.includes("where") || lower.includes("address")) {
-    fallbackReply = "The event takes place at the IAM Institute of Advanced Management, Salt Lake City, Kolkata.";
-  } else if (lower.includes("sustain") || lower.includes("waste") || lower.includes("zero")) {
-    fallbackReply = "The festival adheres to a strict zero-waste philosophy: 100% whole-ingredient utilization (incorporating peels, seeds, and stems), locally and seasonally sourced produce, and eco-friendly reusable dining service.";
-  } else if (lower.includes("recommend") || lower.includes("suggest") || lower.includes("best")) {
-    fallbackReply = "For non-vegetarians, I suggest starting with the Raj Angan Jali Kebab—a Mughal-Bengali royal classic wrapped in crisp egg netting—paired with M1: Rajbari Deshi Fowl Kalia and Cholar Dal Raj Polao. For vegetarians, begin with the crispy water-lily Padma Prasad Shapla Crisp, followed by M4: Rajbari Chanar Shahi Dolma with Moong Mohon Rajdal. Both highlight zero-waste, whole-harvest cooking.";
-  } else {
-    fallbackReply = "Welcome to Rajbari Bhojbari: The Lost Flavours of Bengal. How may I assist with your menu choices, allergen queries, or booking details?";
+  } catch (err: any) {
+    const errorDetails = err?.message || String(err);
+    res.status(500).json({
+      error: `Error: AI request failed (${errorDetails})`,
+      reply: `Error: AI request failed (${errorDetails})`,
+    });
+    return;
   }
-
-  res.json({ 
-    reply: fallbackReply, 
-    source: "bhojbot-heritage-engine",
-    groundingType: "none"
-  });
 });
 
 // AI Plate Builder Endpoint

@@ -223,66 +223,36 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
 
       // 2. If client API key not available or direct request returned empty, route via server proxy
       if (!reply) {
-        const res = await fetch('/api/gemini/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: textToSend,
-            history: historyPayload,
-            contextDish: contextDish || undefined,
-            userBookings, // Pass confirmed bookings memory so Bhoj-Bot remembers
-            systemPrompt: BHOJ_BOT_SYSTEM_PROMPT,
-            mode: chatMode,
-          }),
-        });
+        try {
+          const res = await fetch('/api/gemini/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: textToSend,
+              history: historyPayload,
+              contextDish: contextDish || undefined,
+              userBookings, // Pass confirmed bookings memory so Bhoj-Bot remembers
+              systemPrompt: BHOJ_BOT_SYSTEM_PROMPT,
+              mode: chatMode,
+            }),
+          });
 
-        if (res.ok) {
-          try {
-            const data = await res.json();
+          const data = await res.json();
+          if (res.ok) {
             if (data && data.reply) reply = data.reply;
             if (data && data.source) source = data.source;
             if (data && data.groundingType) groundingType = data.groundingType;
             if (data && data.searchQueries) searchQueries = data.searchQueries;
-          } catch (_) {}
+          } else {
+            reply = data?.error || data?.reply || `Error: Server returned status ${res.status}`;
+          }
+        } catch (fetchErr: any) {
+          reply = `Error: Connection to AI backend failed (${fetchErr?.message || 'Network error'})`;
         }
       }
 
-      // 3. Fallback context-aware intelligence if network services are offline
       if (!reply) {
-        const lower = textToSend.toLowerCase();
-
-        // Allergies check & strict warning
-        if (
-          lower.includes('allerg') || 
-          lower.includes('gluten') || 
-          lower.includes('milk') || 
-          lower.includes('dairy') || 
-          lower.includes('peanut') || 
-          lower.includes('nut') || 
-          lower.includes('egg') || 
-          lower.includes('mustard') || 
-          lower.includes('fish')
-        ) {
-          reply = "Important Allergen Advisory:\n\n• Starters: Raj Angan Jali Kebab (Gluten, Egg), Nawab Bari Amudi Piyaji (Fish), Aamrasa Narkel Raj-Chop (Peanut, Milk, Gluten), Padma Prasad Shapla Crisp (Milk). Panchali Patpata Bora has no listed allergens.\n• Main Course Combos: M1 Chicken (Mustard, Milk, Tree Nut), M2 Katla (Fish, Milk, Tree Nut), M3 Aar (Fish, Mustard, Milk, Tree Nut), M4 Veg (Milk, Tree Nut).\n• Desserts: Piyaz Rajmadhuri Payesh (Milk, Tree Nut), Porochitroharini Rajbhog (Milk, Tree Nut), Potol Monohora Rajmukut (Milk), Tal-Shonar Malpua (Gluten, Milk).\n• Mocktail: Masala Thandak has no common allergens listed.\n\nPlease note: While our culinary teams enforce strict kitchen protocols, cross-contact control cannot be guaranteed with complete certainty. Please exercise caution if you have severe sensitivities.";
-        } else if (lower.includes('time') || lower.includes('when') || lower.includes('date') || lower.includes('hour')) {
-          reply = "Rajbari Bhojbari takes place on October 9, 2026. The authentic Bengali lunch service commences promptly at 10:00 AM at the IAM Institute of Advanced Management in Kolkata.";
-        } else if (lower.includes('venue') || lower.includes('location') || lower.includes('where') || lower.includes('address')) {
-          reply = "The festival is hosted at the IAM Institute of Advanced Management, Salt Lake, Kolkata.";
-        } else if (lower.includes('entertainment') || lower.includes('culture') || lower.includes('program') || lower.includes('event') || lower.includes('activity') || lower.includes('music') || lower.includes('dance')) {
-          reply = "Alongside the feast, our cultural pavilion showcases traditional Bengali drama, classical and folk dance, vocal performances, instrumental melodies, stand-up comedy, face painting, live drawing, and poetry recitations.";
-        } else if (lower.includes('eco-pass') || lower.includes('pass') || lower.includes('ticket') || lower.includes('price') || lower.includes('cost') || lower.includes('entry') || lower.includes('349')) {
-          reply = "The Standard Eco-Pass is ₹349. It covers 1 Welcome Drink, 1 Starter (choice of Veg or Non-Veg), and 1 Main Course combo (M1, M2, M3, or M4). Tasting portions at the Rural Tasting Counter (Tok, Jhol, Ambol) are complimentary. Desserts from Misti Mukh are available for ₹99 each, and the Masala Thandak mocktail is ₹49.";
-        } else if (lower.includes('dessert') || lower.includes('sweet') || lower.includes('misti') || lower.includes('99')) {
-          reply = "Our Misti Mukh dessert selections are ₹99 each: Piyaz Rajmadhuri Payesh (pink onion and saffron reduction), Porochitroharini Rajbhog (chire and coconut confection), Potol Monohora Rajmukut (chhana-filled pointed gourd), and Tal-Shonar Malpua (palmyra palm fritters).";
-        } else if (lower.includes('mocktail') || lower.includes('drink') || lower.includes('thandak') || lower.includes('49')) {
-          reply = "We offer the Masala Thandak for ₹49—a heritage palate cooler crafted with muddled mint, roasted cumin, black salt, and whole native lemon, embodying zero-waste extraction.";
-        } else if (lower.includes('recommend') || lower.includes('suggest') || lower.includes('what should i eat') || lower.includes('best dish')) {
-          reply = "For an aristocratic non-vegetarian feast, I recommend beginning with the delicate Raj Angan Jali Kebab—wrapped in hand-woven egg netting—followed by M1: Rajbari Deshi Fowl Kalia paired with golden Cholar Dal Raj Polao. If you prefer a vegetarian indulgence, begin with the crispy foraged Padma Prasad Shapla Crisp, followed by M4: Chanar Shahi Dolma simmered with roasted Moong Mohon Rajdal. Both selections celebrate whole-ingredient utilization and forgotten 19th-century zamindari cooking.";
-        } else if (lower.includes('sustain') || lower.includes('waste') || lower.includes('zero') || lower.includes('eco')) {
-          reply = "Sustainability is foundational to Rajbari Bhojbari. We practice whole-ingredient cooking—such as utilizing native citrus peels and seasonal river fish head-to-tail—paired with reusable terracotta and compostable Sal leaf dinnerware to ensure zero food waste.";
-        } else {
-          reply = "Welcome to Rajbari Bhojbari 2026. How may I guide your dining selections, dietary requirements, or festival experience today?";
-        }
+        reply = "Error: No response generated by AI model. Please try again.";
       }
 
       const isBookingRecall = textToSend.toLowerCase().includes('booking') || 
