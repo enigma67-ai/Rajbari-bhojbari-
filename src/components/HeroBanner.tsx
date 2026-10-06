@@ -26,7 +26,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   onOpenBhojBot,
   onBookPass,
 }) => {
-  // Countdown to Friday 9th October 2026 10:00 AM IST
+  // Countdown to Friday 9th October 2026 12:00 PM IST
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -35,7 +35,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   });
 
   useEffect(() => {
-    const targetDate = new Date('2026-10-09T10:00:00+05:30').getTime();
+    const targetDate = new Date('2026-10-09T12:00:00+05:30').getTime();
 
     const updateTimer = () => {
       const now = new Date().getTime();
@@ -114,7 +114,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 </span>
               </h1>
               <p className="font-display text-base sm:text-xl md:text-2xl text-amber-200/90 font-semibold tracking-tight break-words">
-                "Authentic Heritage Flavours. Smart Gastronomy. Zero Waste."
+                "Culture of Bengal Royalty — Authentic Heritage Flavours & Smart Gastronomy"
               </p>
             </div>
 
@@ -127,7 +127,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-xs sm:text-sm text-amber-200/90">
               <div className="flex items-center gap-1.5 sm:gap-2 bg-[#200609]/85 border border-amber-500/30 px-3 py-1.5 sm:py-2 rounded-xl backdrop-blur-md">
                 <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
-                <span>{FESTIVAL_INFO.date} • 10 AM to 9:30 PM</span>
+                <span>Friday, 9th October 2026 • 12:00 PM – 3:00 PM (Strict Entry Deadline: 3:00 PM)</span>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2 bg-[#200609]/85 border border-amber-500/30 px-3 py-1.5 sm:py-2 rounded-xl backdrop-blur-md">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />

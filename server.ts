@@ -110,6 +110,51 @@ app.get(["/IMG-20261003-WA0038.jpg", "/assets/IMG-20261003-WA0038.jpg"], (_req, 
   res.redirect("https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80");
 });
 
+// Image Route for Misti Mukh Platter upload
+app.get(["/IMG-20261006-WA0015.jpg", "/assets/IMG-20261006-WA0015.jpg"], (_req, res) => {
+  const localFile = path.join(process.cwd(), "public", "IMG-20261006-WA0015.jpg");
+  if (fs.existsSync(localFile)) {
+    return res.sendFile(localFile);
+  }
+  res.status(404).send("Image not found");
+});
+
+// Image Route for Combo A Non-Veg Starter upload
+app.get(["/IMG-20261006-WA0009.jpg", "/assets/IMG-20261006-WA0009.jpg"], (_req, res) => {
+  const localFile = path.join(process.cwd(), "public", "IMG-20261006-WA0009.jpg");
+  if (fs.existsSync(localFile)) {
+    return res.sendFile(localFile);
+  }
+  res.status(404).send("Image not found");
+});
+
+// Image Route for Combo B Veg Starter upload
+app.get(["/IMG-20261006-WA0011.jpg", "/assets/IMG-20261006-WA0011.jpg"], (_req, res) => {
+  const localFile = path.join(process.cwd(), "public", "IMG-20261006-WA0011.jpg");
+  if (fs.existsSync(localFile)) {
+    return res.sendFile(localFile);
+  }
+  res.status(404).send("Image not found");
+});
+
+// Image Route for Combo 1 Chicken Main Course upload
+app.get(["/IMG-20261006-WA0010.jpg", "/assets/IMG-20261006-WA0010.jpg"], (_req, res) => {
+  const localFile = path.join(process.cwd(), "public", "IMG-20261006-WA0010.jpg");
+  if (fs.existsSync(localFile)) {
+    return res.sendFile(localFile);
+  }
+  res.status(404).send("Image not found");
+});
+
+// Image Route for Combo 2 Katla Fish Main Course upload
+app.get(["/IMG-20261006-WA0012.jpg", "/assets/IMG-20261006-WA0012.jpg"], (_req, res) => {
+  const localFile = path.join(process.cwd(), "public", "IMG-20261006-WA0012.jpg");
+  if (fs.existsSync(localFile)) {
+    return res.sendFile(localFile);
+  }
+  res.status(404).send("Image not found");
+});
+
 // BHOJ-BOT AI Culinary Concierge Endpoint
 app.post(["/api/bhojbot/chat", "/api/gemini/chat", "/api/chat"], async (req, res) => {
   const { 
@@ -153,7 +198,7 @@ PERSONA RULES:
 LOCATION & TIMING:
 - Venue: IAM Institute of Advanced Management, AE Block, Sector 1, Bidhannagar (Salt Lake City), Kolkata, West Bengal 700064.
 - Event Date: Friday, October 9, 2026.
-- Time: Authentic Bengali Lunch service commences promptly at 10:00 AM.
+- Time: Lunch service begins at 12:00 PM and concludes at 3:00 PM sharp. Guests must arrive before the 3:00 PM gate closing deadline.
 
 HOW TO BOOK A PASS:
 If a user asks how to book, guide them through these simple steps:
@@ -525,7 +570,7 @@ app.post("/api/tickets/book-pass", async (req, res) => {
     includeDessert = false,
     dessertDish,
     paymentMethod = "UPI_QR",
-    slot = "Grand Aristocratic Dinner (7:30 PM - 10:30 PM)",
+    slot = "Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)",
     eventDate = "Friday, 9th October 2026",
     razorpayPaymentId,
     razorpayOrderId,
@@ -875,7 +920,7 @@ app.post("/api/send-booking-confirmation", async (req, res) => {
       customerEmail,
       customerPhone,
       eventDate = "Friday, 9th October 2026",
-      slot = "Grand Aristocratic Dinner (7:30 PM - 10:30 PM)",
+      slot = "Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)",
       quantity = 1,
       totalAmount = 349,
       paymentMethod = "upi",
@@ -1037,4 +1082,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// Start standalone HTTP server in container/local environments, export Express app for Vercel Serverless
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;

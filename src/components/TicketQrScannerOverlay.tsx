@@ -349,7 +349,7 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
       totalAmount: 797,
       paymentMethod: 'UPI_QR',
       paymentStatus: 'paid',
-      slot: 'Grand Aristocratic Dinner (7:30 PM - 10:30 PM)',
+      slot: 'Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)',
       eventDate: 'Friday, 9th October 2026',
       welcomeDrink: 'Aam Pora Lebu Shorbot (Complimentary)',
       starterDish: 'Raj Angan Jali Kebab (Non-Veg)',
@@ -809,7 +809,7 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
                         </div>
                         <div className="text-stone-300 flex items-center gap-1.5 text-[11px]">
                           <Clock className="w-3 h-3 text-stone-500" />
-                          <span>{validationResult.ticket.slot || 'Grand Aristocratic Dinner'}</span>
+                          <span>{validationResult.ticket.slot || 'Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)'}</span>
                         </div>
                         <div className="text-stone-300 text-[11px] font-bold">
                           Pass Quantity: <span className="text-emerald-400">{validationResult.ticket.ticketQuantity || 1} Guest(s)</span>

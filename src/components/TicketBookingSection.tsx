@@ -103,7 +103,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [slot, setSlot] = useState('Grand Aristocratic Dinner (7:30 PM - 10:30 PM)');
+  const [slot, setSlot] = useState('Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)');
   const [eventDate, setEventDate] = useState('Friday, 9th October 2026');
   const [dpdpConsent, setDpdpConsent] = useState(false);
 
@@ -2468,7 +2468,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                   <div className="flex flex-wrap items-center gap-3 text-xs text-stone-300">
                     <div className="flex items-center gap-1.5 bg-stone-900 px-3 py-1.5 rounded-xl border border-stone-800">
                       <Calendar className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{generatedPass.eventDate}</span>
+                      <span>Friday, 9th October 2026 • 12:00 PM – 3:00 PM (Strict Entry Deadline: 3:00 PM)</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-stone-900 px-3 py-1.5 rounded-xl border border-stone-800">
                       <Clock className="w-3.5 h-3.5 text-amber-400" />

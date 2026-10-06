@@ -42,7 +42,7 @@ PERSONA RULES:
 LOCATION & TIMING:
 - Venue: IAM Institute of Advanced Management, AE Block, Sector 1, Bidhannagar (Salt Lake City), Kolkata, West Bengal 700064.
 - Event Date: Friday, October 9, 2026.
-- Time: Authentic Bengali Lunch service commences promptly at 10:00 AM.
+- Time: Lunch service begins at 12:00 PM and concludes at 3:00 PM sharp. Guests must arrive before the 3:00 PM gate closing deadline.
 
 HOW TO BOOK A PASS:
 If a user asks how to book, guide them through these simple steps:
@@ -82,7 +82,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
       id: 'welcome',
       sender: 'bhojbot',
       text: "Welcome to Rajbari Bhojbari: The Lost Flavours of Bengal! I am Bhoj-Bot, your digital AI hospitality ambassador for Food Fest 2026 hosted by IAM Kolkata on October 9, 2026. How may I assist you with our menu selections, allergen guidance, or festival arrangements today?",
-      timestamp: '10:00 AM',
+      timestamp: '12:00 PM',
       source: 'gemini-3.8-flash',
     },
   ]);

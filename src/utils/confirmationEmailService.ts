@@ -19,7 +19,7 @@ import emailjs from '@emailjs/browser';
  */
 
 export const EVENT_VENUE = 'Main Green Gate, Institute of Advanced Management (IAM), Sector V, Salt Lake, Kolkata, West Bengal 700091';
-export const EVENT_DEFAULT_DATE_TIME = 'Friday, 9th October 2026 | Smart Zero-Waste Gastronomy (10:00 AM - 9:30 PM)';
+export const EVENT_DEFAULT_DATE_TIME = 'Friday, 9th October 2026 • 12:00 PM – 3:00 PM (Strict Entry Deadline: 3:00 PM)';
 export const OFFICIAL_EMAIL = 'ks7901424@gmail.com';
 export const OFFICIAL_PHONE = '+91 83340 55747';
 export const WHATSAPP_NUMBER = '+91 73659 28593';
@@ -31,7 +31,7 @@ export interface BookingConfirmationPayload {
   customerEmail: string;
   customerPhone: string;
   eventDate: string; // e.g., 'Friday, 9th October 2026'
-  slot: string; // e.g., 'Grand Aristocratic Dinner (7:30 PM - 10:30 PM)'
+  slot: string; // e.g., 'Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)'
   quantity: number;
   totalAmount: number;
   paymentMethod: string; // 'cash' | 'razorpay' | 'card' | 'upi'
@@ -330,7 +330,7 @@ export async function sendEmailJsConfirmation(
     ? `Note: You have selected to pay by cash. Please bring ${formattedAmount} to pay at the entrance before you can scan your QR code and enter.`
     : '';
 
-  const dateTime = `${data.eventDate || 'Friday, 9th October 2026'} | ${data.slot || 'Grand Aristocratic Dinner (7:30 PM - 10:30 PM)'}`;
+  const dateTime = `${data.eventDate || 'Friday, 9th October 2026'} | ${data.slot || 'Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)'}`;
 
   // Read Vite Environment Variables (strictly from import.meta.env with no hardcoded fallback secrets)
   const emailJsServiceId = (import.meta.env?.VITE_EMAILJS_SERVICE_ID || '').trim();

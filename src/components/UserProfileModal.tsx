@@ -237,7 +237,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         </div>
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                          <span className="truncate">{pass.slot || 'Grand Aristocratic Dinner'}</span>
+                          <span className="truncate">{pass.slot || 'Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)'}</span>
                         </div>
                       </div>
 

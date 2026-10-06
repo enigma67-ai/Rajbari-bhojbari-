@@ -141,7 +141,7 @@ export const ContactSection: React.FC = () => {
                 <div>
                   <div className="font-bold text-amber-200">Date & Timings</div>
                   <div className="mt-0.5 font-semibold text-amber-100">{FESTIVAL_INFO.date}</div>
-                  <div className="text-stone-400">10:00 AM – 9:00 PM IST</div>
+                  <div className="text-stone-400">Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)</div>
                 </div>
               </div>
 

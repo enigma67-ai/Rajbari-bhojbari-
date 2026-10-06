@@ -3,9 +3,9 @@ import { MenuItem } from '../types';
 export const FESTIVAL_INFO = {
   title: 'Rajbari Bhojbari 2026',
   subtitle: 'The Zero-Waste AI Food Fest • IAM Kolkata',
-  tagline: 'Authentic Heritage Flavours. Smart Gastronomy. Zero Waste.',
+  tagline: 'Culture of Bengal Royalty — Authentic Heritage Flavours & Smart Gastronomy',
   date: 'Friday, 9th October 2026',
-  time: '10:00 AM - 09:30 PM IST',
+  time: 'Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)',
   venue: 'IAM Kolkata Campus, Salt Lake Sector V, Kolkata',
   phone: '+91 83340 55747',
   contactEmail: 'ks7901424@gmail.com',
@@ -154,19 +154,19 @@ export const MENU_ITEMS: MenuItem[] = [
     id: 'beverage-masala-thandak',
     name: 'Masala Thandak',
     bengaliName: 'মশলা ঠান্ডক',
-    mohol: 'provesh-mohol', 
-    moholTitle: 'PROVESH MOHOL',
+    mohol: 'desserts',
+    moholTitle: 'MOHINI MOHOL',
     category: 'Beverage',
     price: 49,
     dietary: 'pure-veg',
     spiceLevel: 'Mild',
-    description: 'A refreshing heritage cooler blending muddled fresh mint, roasted cumin, and black salt, served over crushed ice with a twist of native lemon.',
+    description: 'Chilled Royal Heritage Cooler — freshly muddled native mint, slow-roasted cumin, and black salt over crystal ice, finished with fragrant Gondhoraj lemon twist. The ultimate refreshing pairing for your royal feast!',
     historyLore: 'Inspired by the traditional summer coolers of Bengali estates, acting as a perfect digestive and palate cleanser before a royal feast.',
     sustainabilityStory: 'Utilizes whole native lemons, including the zest, ensuring maximum flavor extraction with zero waste.',
     wasteScore: 100,
     ingredients: ['Fresh Mint', 'Roasted Cumin', 'Black Salt', 'Native Lemon', 'Crushed Ice'],
     imageUrl: '/27631.png',
-    isChefSpecial: false
+    isChefSpecial: true,
   },
   {
     id: 'starter-combo-a',
@@ -192,7 +192,7 @@ export const MENU_ITEMS: MenuItem[] = [
       'Stone-Ground Rice Flour & Gram Flour (Besan)',
       'Cold-Pressed Mustard Oil'
     ],
-    imageUrl: '/IMG-20261003-WA0039.jpg',
+    imageUrl: '/IMG-20261006-WA0009.jpg',
     isChefSpecial: true,
   },
   {
@@ -219,7 +219,7 @@ export const MENU_ITEMS: MenuItem[] = [
       'Roasted Cumin & Himalayan Rock Salt',
       'Pure Mustard Oil'
     ],
-    imageUrl: '/IMG-20261003-WA0032.jpg',
+    imageUrl: '/IMG-20261006-WA0011.jpg',
     isChefSpecial: true,
   },
 
@@ -335,7 +335,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Free-range country chicken slow-braised to extract every trace of collagen and marrow; zero stock runoff.',
     wasteScore: 97,
     ingredients: ['Country Chicken (Desi Murgi)', 'Gobindobhog Heirloom Rice', 'Cholar Dal (Bengal Gram)', 'Desi Cow Ghee', 'Radhuni Garam Masala'],
-    imageUrl: '/IMG-20261003-WA0042.jpg',
+    imageUrl: '/IMG-20261006-WA0010.jpg',
     isChefSpecial: true,
   },
   {
@@ -353,7 +353,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Sustainable pond-farmed Bengal Katla; fish head and bones used for stocks and compost.',
     wasteScore: 95,
     ingredients: ['Fresh River Katla Fish', 'Reduced Milk & Cream (Khiroda)', 'Almond Paste', 'Rajnandini Fragrant Polao', 'Kashmiri Saffron'],
-    imageUrl: 'https://images.unsplash.com/photo-1545247181-516773cae754?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261006-WA0012.jpg',
     isChefSpecial: true,
   },
   {
@@ -371,7 +371,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Wild-harvested river Aar fish paired with seasonal local spices in biodegradable leaf platters.',
     wasteScore: 96,
     ingredients: ['River Aar Fish', 'Gobindobhog Rice', 'Golden Cashews & Kishmish', 'Saffron Ghee', 'Traditional Astomongola Spices'],
-    imageUrl: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261006-WA0013.jpg',
     isChefSpecial: true,
   },
   {
@@ -389,7 +389,7 @@ export const MENU_ITEMS: MenuItem[] = [
     sustainabilityStory: 'Vegetarian zero-waste triumph utilizing dried mango preserves (aamsotto) and fresh farm dairy whey.',
     wasteScore: 98,
     ingredients: ['Roasted Sona Moong Dal', 'Artisan Chhana Dolma', 'Aamsotto (Sun-Dried Mango Leather)', 'Green Chillies', 'Gobindobhog Polao'],
-    imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261006-WA0014.jpg',
     isChefSpecial: true,
   },
 
@@ -601,7 +601,7 @@ export const MENU_ITEMS: MenuItem[] = [
       'Tal-Shonar Malpua (Ripe Palmyra Palm Fritters)',
       'Cardamom & Pure Desi Ghee'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/IMG-20261006-WA0015.jpg',
     isChefSpecial: true,
   },
 ];

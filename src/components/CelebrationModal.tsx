@@ -89,8 +89,8 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
       `Pass/Booking Ref: ${data.bookingCode}\nGuest: ${data.guestName}\nStatus: Verified & Confirmed\n\nImportant: Strict Entry Policy — show this pass at the Main Green Gate.\nVenue: IAM Kolkata, Salt Lake Sector 3.`
     );
     const location = encodeURIComponent('Institute of Advanced Management (IAM), Salt Lake Sector 3, Kolkata 700106');
-    // Friday, Oct 9, 2026 10:00 to 20:30 IST (04:30 to 15:00 UTC)
-    const dates = '20261009T043000Z/20261009T150000Z';
+    // Friday, Oct 9, 2026 12:00 to 15:00 IST (06:30 to 09:30 UTC)
+    const dates = '20261009T063000Z/20261009T093000Z';
     const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
     window.open(gCalUrl, '_blank', 'noopener,noreferrer');
   };
@@ -281,11 +281,11 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-500/20 text-[11px] text-stone-400">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Friday, 9th October 2026</span>
+                  <span>Friday, 9th October 2026 • 12:00 PM – 3:00 PM (Strict Entry Deadline: 3:00 PM)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{data.dineSlot || '10:00 AM - 08:30 PM'}</span>
+                  <span>{data.dineSlot || 'Authentic Bengali Lunch (Starts 12:00 PM • Entry closes 3:00 PM)'}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-amber-400" />
