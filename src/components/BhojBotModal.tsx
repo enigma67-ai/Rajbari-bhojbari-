@@ -233,17 +233,17 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             mode: chatMode,
           });
 
-          // Primary route: /api/gemini/chat
-          let res = await fetch('/api/gemini/chat', {
+          // Primary route: /api/chat (Vercel Serverless Function & Express Backend)
+          let res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: payload,
           });
 
-          // If 404 (e.g. Next.js App Router using /api/chat or alternative routing convention), fallback to /api/chat
+          // Fallback to /api/gemini/chat if /api/chat returns 404
           if (res.status === 404) {
             try {
-              const fallbackRes = await fetch('/api/chat', {
+              const fallbackRes = await fetch('/api/gemini/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: payload,
@@ -273,7 +273,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             if (data && data.searchQueries) searchQueries = data.searchQueries;
           } else {
             if (res.status === 404) {
-              reply = "Error: Backend route not found (404). Please ensure the Next.js API route exists at 'app/api/gemini/chat/route.ts' (or 'app/api/chat/route.ts') and is deployed.";
+              reply = "Error: Backend route not found (404). Please ensure 'api/chat.ts' is deployed in the root 'api/' directory of your Vercel project.";
             } else {
               const rawText = !data ? await res.text().catch(() => '') : '';
               const errorMsg = data?.error || data?.reply || rawText || `Server returned status ${res.status}`;

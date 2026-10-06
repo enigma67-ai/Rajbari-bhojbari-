@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/gemini/chat",
-      "destination": "/api/gemini/chat"
-    },
-    {
       "source": "/api/chat",
       "destination": "/api/chat"
     },
@@ -13,7 +9,7 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
