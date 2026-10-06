@@ -217,7 +217,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
   // Step 2: Meal Selections (Included in ₹349/- base pass)
   const [welcomeDrink, setWelcomeDrink] = useState('Rural Bengal Counter (Full Complimentary Tasting)');
   const [starterType, setStarterType] = useState<StarterOptionType>('non_veg');
-  const [starterDish, setStarterDish] = useState('Raj Angan Jali Kebab (Non-Veg)');
+  const [starterDish, setStarterDish] = useState('Combo A (Non-Veg)');
   
   const [mainsType, setMainsType] = useState<MainsOptionType>('non_veg_1');
   const [mainsDish, setMainsDish] = useState('Combo 1 (Chicken): Rajbari Deshi Fowl Kalia served with Cholar Dal Raj Polao');
@@ -1546,37 +1546,19 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               </div>
 
               {/* Starter Dish Choices */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   {
-                    name: 'Raj Angan Jali Kebab (Non-Veg)',
-                    bengali: 'রাজ অঙ্গন জালি কাবাব',
+                    name: 'Combo A (Non-Veg)',
+                    bengali: 'কম্বো এ (আমিষ)',
                     type: 'non-veg',
-                    desc: 'Minced chicken in fragrant shahi spices enveloped in a golden egg-lace (jali) web.',
+                    desc: 'Raj Angan Jali Kebab & Nawab Bari Amudi Piyaji, served with Panchali Patpata Bora.',
                   },
                   {
-                    name: 'Nawab Bari Amudi Piyaji (Non-Veg)',
-                    bengali: 'নবাব বাড়ি আমোদি পেঁয়াজি',
-                    type: 'non-veg',
-                    desc: 'Crisp golden river fritters of fresh local Amudi fish with sweet sliced onions & kalonji.',
-                  },
-                  {
-                    name: 'Panchali Patpata Bora (Veg)',
-                    bengali: 'পাঁচালী পাটপাতা বড়া',
+                    name: 'Combo B (Veg)',
+                    bengali: 'কম্বো বি (নিরামিষ)',
                     type: 'pure-veg',
-                    desc: 'Tender fresh jute leaves crisp-fried in stone-ground rice flour and poppy seed batter.',
-                  },
-                  {
-                    name: 'Aamrasa Narkel Raj-Chop (Veg)',
-                    bengali: 'আমড়াসা নারকেল রাজ-চপ',
-                    type: 'pure-veg',
-                    desc: 'Heritage croquettes of grated coconut, puffed khoi, and fragrant fresh mango-ginger.',
-                  },
-                  {
-                    name: 'Padma Prasad Shapla Crisp (Veg)',
-                    bengali: 'পদ্মা প্রসাদ শাপলা ক্রিস্প',
-                    type: 'vegan',
-                    desc: 'Crunchy golden fritters of wild water lily stems seasoned with roasted cumin and rock salt.',
+                    desc: 'Padma Prasad Shapla Crisp & Aamrasa Narkel Raj-Chop, served with Panchali Patpata Bora.',
                   },
                 ].map((item) => (
                   <button
@@ -1622,13 +1604,10 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                     {extraStarters.length} Extra ({extraStartersTotal > 0 ? `+₹${extraStartersTotal}` : '₹0'})
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                   {[
-                    'Raj Angan Jali Kebab (Non-Veg)',
-                    'Nawab Bari Amudi Piyaji (Non-Veg)',
-                    'Panchali Patpata Bora (Veg)',
-                    'Aamrasa Narkel Raj-Chop (Veg)',
-                    'Padma Prasad Shapla Crisp (Veg)',
+                    'Combo A (Non-Veg)',
+                    'Combo B (Veg)',
                   ].map((starter) => {
                     const isExtraSelected = extraStarters.includes(starter);
                     return (
@@ -1646,7 +1625,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
                             : 'bg-stone-900/60 border-stone-800 text-stone-300 hover:border-stone-700'
                         }`}
                       >
-                        <span className="truncate pr-1 text-[11px]">{starter.split(' (')[0]}</span>
+                        <span className="truncate pr-1 text-[11px]">{starter}</span>
                         <span className="text-[10px] font-bold text-cyan-300 font-mono whitespace-nowrap">
                           {isExtraSelected ? '✓ Added +₹349' : '+₹349'}
                         </span>

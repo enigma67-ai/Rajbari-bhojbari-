@@ -68,9 +68,9 @@ export const TRADITIONAL_MOHOLS: MoholDefinition[] = [
   },
   {
     id: 'mohini',
-    name: 'Mohini Mohol',
+    name: 'Mati Mohol',
     subtitle: 'Complimentary Tasting Counter — ₹0',
-    bengaliTitle: 'মোহিনী মহল (পরিপাক ও চাটনি)',
+    bengaliTitle: 'মাটি মহল (পরিপাক ও চাটনি)',
     tagline: 'Complimentary Tasting Counter — ₹0',
     description: 'Centuries-old palate cleansers, cooling broths, and Ayurvedic digestive chutneys offered complimentary with every festival pass.',
     badge: 'Complimentary Tasting — ₹0',
@@ -79,9 +79,9 @@ export const TRADITIONAL_MOHOLS: MoholDefinition[] = [
   },
   {
     id: 'matini',
-    name: 'Mati Mohol',
+    name: 'Mohini Mohol',
     subtitle: 'Confectionery & Misti Mukh — ₹99',
-    bengaliTitle: 'মাটি মহল (মিষ্টি মুখ ও মিষ্টান্ন)',
+    bengaliTitle: 'মোহিনী মহল (মিষ্টি মুখ ও মিষ্টান্ন)',
     tagline: 'Heirloom Confectionery Add-on (₹99)',
     description: 'An exquisite four-sweet royal tasting platter celebrating rare, forgotten 19th-century secret confectionery recipes of Bengal.',
     badge: 'Misti Mukh Platter ₹99',
@@ -279,7 +279,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
             <span className="text-[10px] hidden md:inline text-amber-200/80 font-normal">• Combos (₹349)</span>
           </button>
 
-          {/* Mohini Mohol Pill */}
+          {/* Mati Mohol (Tasting) Pill */}
           <button
             id="tab-mohol-mohini"
             onClick={() => handleScrollToMohol('mohini')}
@@ -290,11 +290,11 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
             }`}
           >
             <Leaf className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Mohini Mohol</span>
+            <span>Mati Mohol</span>
             <span className="text-[10px] bg-emerald-950 px-1.5 py-0.5 rounded text-emerald-300 font-bold border border-emerald-500/40">₹0 Free</span>
           </button>
 
-          {/* Mati Mohol Pill */}
+          {/* Mohini Mohol (Desserts) Pill */}
           <button
             id="tab-mohol-matini"
             onClick={() => handleScrollToMohol('matini')}
@@ -305,7 +305,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
             }`}
           >
             <Cake className="w-3.5 h-3.5 text-amber-400" />
-            <span>Mati Mohol</span>
+            <span>Mohini Mohol</span>
             <span className="text-[10px] bg-amber-950/80 px-1.5 py-0.5 rounded text-amber-300 font-bold border border-amber-500/40">₹99</span>
           </button>
 
@@ -521,10 +521,10 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
                     <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      Mohini Mohol
+                      Mati Mohol
                     </h3>
                     <span className="text-sm sm:text-base text-emerald-400 font-serif italic">
-                      (মোহিনী মহল • টক, ঝোল, অম্বল)
+                      (মাটি মহল • টক, ঝোল, অম্বল)
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-300 max-w-2xl">
@@ -566,10 +566,10 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                     <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      Mati Mohol
+                      Mohini Mohol
                     </h3>
                     <span className="text-sm sm:text-base text-amber-400 font-serif italic">
-                      (মাটি মহল • মিষ্টি মুখ প্লাটার)
+                      (মোহিনী মহল • মিষ্টি মুখ প্লাটার)
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-300 max-w-2xl">
