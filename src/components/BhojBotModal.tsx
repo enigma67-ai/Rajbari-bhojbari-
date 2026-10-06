@@ -191,7 +191,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
           ];
 
           const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -213,7 +213,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             const textResult = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (textResult && textResult.trim()) {
               reply = textResult.trim();
-              source = "gemini-3.8-flash";
+              source = "gemini-3.1-flash-lite";
             }
           }
         } catch (_) {
@@ -237,14 +237,24 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
             }),
           });
 
-          const data = await res.json();
+          let data: any = null;
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            try {
+              data = await res.json();
+            } catch {
+              data = null;
+            }
+          }
+
           if (res.ok) {
             if (data && data.reply) reply = data.reply;
             if (data && data.source) source = data.source;
             if (data && data.groundingType) groundingType = data.groundingType;
             if (data && data.searchQueries) searchQueries = data.searchQueries;
           } else {
-            reply = data?.error || data?.reply || `Error: Server returned status ${res.status}`;
+            const errorMsg = data?.error || data?.reply || (!data ? await res.text().catch(() => '') : '') || `Server returned status ${res.status}`;
+            reply = errorMsg.startsWith('Error:') ? errorMsg : `Error: ${errorMsg}`;
           }
         } catch (fetchErr: any) {
           reply = `Error: Connection to AI backend failed (${fetchErr?.message || 'Network error'})`;
@@ -392,7 +402,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   }`}
                 >
                   <Globe className="w-3 h-3" />
-                  <span>3.8 Flash (Grounded)</span>
+                  <span>Heritage Concierge</span>
                 </button>
                 <button
                   onClick={() => setChatMode('complex')}
@@ -403,7 +413,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   }`}
                 >
                   <Leaf className="w-3 h-3 text-emerald-400" />
-                  <span>3.8 Flash (Recipes)</span>
+                  <span>Royal Recipes</span>
                 </button>
                 <button
                   onClick={() => setChatMode('fast')}
@@ -414,7 +424,7 @@ export const BhojBotModal: React.FC<BhojBotModalProps> = ({
                   }`}
                 >
                   <Zap className="w-3 h-3" />
-                  <span>3.1 Flash Lite</span>
+                  <span>Fast Q&A</span>
                 </button>
               </div>
             </div>

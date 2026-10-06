@@ -230,28 +230,28 @@ ${bookingsMemory}`;
     };
 
     let response: any;
-    let usedModel = "gemini-3.8-flash";
+    let usedModel = "gemini-3.1-flash-lite";
 
-    // Pass user prompt directly to Gemini model
+    // Pass user prompt directly to Gemini model (gemini-3.1-flash-lite has active quota and responsive generation)
     try {
       response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+        model: "gemini-3.1-flash-lite",
         contents,
         config,
       });
-      usedModel = "gemini-3.8-flash";
+      usedModel = "gemini-3.1-flash-lite";
     } catch (primaryErr: any) {
-      // If primary model has transient spike or error, try gemini-3.1-flash-lite
+      // If primary model has transient spike or error, try gemini-3.8-flash
       try {
         response = await ai.models.generateContent({
-          model: "gemini-3.1-flash-lite",
+          model: "gemini-3.8-flash",
           contents,
           config,
         });
-        usedModel = "gemini-3.1-flash-lite";
+        usedModel = "gemini-3.8-flash";
       } catch (secondaryErr: any) {
         const errorMsg = secondaryErr?.message || primaryErr?.message || "AI service call failed";
-        res.status(502).json({
+        res.status(500).json({
           error: `Error: AI service unavailable (${errorMsg})`,
           reply: `Error: AI service unavailable (${errorMsg})`,
         });
