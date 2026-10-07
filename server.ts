@@ -546,7 +546,7 @@ app.post("/api/payments/verify-and-confirm", (req, res) => {
     }
   }
 
-  const bookingId = "RB-2026-" + Math.floor(10000 + Math.random() * 90000);
+  const bookingId = `RB-2026-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   const confirmedData = {
     ...booking,
     bookingId,
@@ -612,7 +612,8 @@ app.post("/api/tickets/book-pass", async (req, res) => {
     ? clientTotalAmount 
     : computedGrandTotal;
 
-  const passId = "RB-2026-" + Math.floor(10000 + Math.random() * 90000);
+  // Completely unique primary key / pass_id with millisecond timestamp to prevent collisions
+  const passId = `RB-2026-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   const transactionId = upiUtr 
     ? `UTR-${upiUtr}`
     : (razorpayPaymentId
@@ -654,15 +655,15 @@ app.post("/api/tickets/book-pass", async (req, res) => {
   ticketsStore.set(passId, ticketPass);
 
   // =========================================================================
-  // 📧 AUTOMATED CONFIRMATION EMAIL & MESSAGE DISPATCH
+  // 📧 AUTOMATED CONFIRMATION EMAIL & MESSAGE DISPATCH (DECOUPLED)
   // =========================================================================
   let emailDispatchStatus = { sent: false, service: "simulation_preview", error: null as string | null };
   try {
     const emailResult = await sendAutomatedConfirmationEmail(ticketPass);
-    emailDispatchStatus = { sent: emailResult.sent, service: emailResult.service, error: null };
+    emailDispatchStatus = { sent: Boolean(emailResult.sent), service: emailResult.service || "smtp", error: null };
   } catch (emailErr: any) {
-    console.warn("Automated email dispatch error (gracefully caught):", emailErr?.message);
-    emailDispatchStatus = { sent: false, service: "fallback_simulation", error: emailErr?.message };
+    console.error("[Automated Email Dispatch Error (Decoupled)]:", emailErr?.message || emailErr);
+    emailDispatchStatus = { sent: false, service: "fallback_simulation", error: emailErr?.message || String(emailErr) };
   }
 
   res.json({
@@ -948,7 +949,7 @@ app.post("/api/send-booking-confirmation", async (req, res) => {
     }
 
     const payload = {
-      id: bookingId || "RB-PASS-2026-" + Math.floor(10000 + Math.random() * 90000),
+      id: bookingId || `RB-2026-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       customerName,
       customerEmail,
       customerPhone,

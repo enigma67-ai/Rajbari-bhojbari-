@@ -563,7 +563,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
     setPaymentProcessingError(null);
     const startTime = Date.now();
     const activeUtr = verifiedUtr || upiUtr.replace(/\D/g, '') || ('UTR' + Math.floor(100000000000 + Math.random() * 900000000000));
-    const generatedBookingId = 'RB-2026-' + Math.floor(10000 + Math.random() * 90000);
+    // Completely unique primary key / pass_id with millisecond timestamp to prevent collisions
+    const generatedBookingId = `RB-2026-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     try {
       let bookedPass: EventTicketPass;
@@ -773,8 +774,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
           console.info('[EmailJS] Simulation/preview mode enabled.');
         }
       } catch (sendErr: any) {
-        // Crucial requirement: Log error to console but DO NOT throw or block the user!
-        console.warn('EmailJS dispatch notice (non-blocking fallback):', sendErr?.text || sendErr?.message || sendErr);
+        // Decoupled dispatch: Log email error clearly, but DO NOT throw or abort the confirmed booking!
+        console.error('[Decoupled Email Dispatch Error]: Confirmation email could not be delivered to', recipientEmail, sendErr?.text || sendErr?.message || sendErr);
       } finally {
         setIsSendingEmail(false);
       }

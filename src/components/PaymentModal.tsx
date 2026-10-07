@@ -363,7 +363,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           dineSlot: 'Eco Dining Slot: 12:30 PM - 02:30 PM',
           seatCount: 2,
           specialRequests: 'Traditional bronze utensils requested',
-          bookingCode: data.booking.bookingId || 'RB-2026-' + Math.floor(10000 + Math.random() * 90000),
+          bookingCode: data.booking.bookingId || `RB-2026-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           createdAt: new Date().toISOString(),
         };
 

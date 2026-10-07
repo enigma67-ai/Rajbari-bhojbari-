@@ -326,34 +326,20 @@ export async function recordPurchaseToSupabase(
       upi_utr: purchase.upiUtr || null,
     };
 
+    // Pure .insert([...]) operation - no upsert or conflict target on customer_email
     const { error: bookingError } = await client
       .from('bookings')
-      .insert(sanitizedBookingPayload);
+      .insert([sanitizedBookingPayload]);
 
     if (bookingError) {
-      // If error is duplicate key / already exists on booking_id, update with sanitized payload
-      if (
-        bookingError.code === '23505' ||
-        bookingError.message?.toLowerCase().includes('duplicate') ||
-        bookingError.message?.toLowerCase().includes('already exists')
-      ) {
-        const { error: updateError } = await client
-          .from('bookings')
-          .update(sanitizedBookingPayload)
-          .eq('booking_id', purchase.bookingId);
-        if (!updateError) {
-          console.log(`[Supabase] Successfully updated booking ${purchase.bookingId} for user ${purchase.userId}`);
-          return { success: true, mode: 'supabase' };
-        }
-      }
-
+      console.warn('Supabase bookings insert notice:', bookingError.message);
       // Fallback attempt to legacy 'purchase_history' table with the same sanitized payload
       const { error: historyError } = await client
         .from('purchase_history')
-        .insert(sanitizedBookingPayload);
+        .insert([sanitizedBookingPayload]);
 
       if (historyError) {
-        console.warn('Supabase bookings insert notice:', bookingError.message);
+        console.warn('Supabase purchase_history insert notice:', historyError.message);
         return { success: false, mode: 'supabase', error: bookingError.message };
       }
     }
