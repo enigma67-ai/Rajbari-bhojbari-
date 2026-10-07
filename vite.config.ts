@@ -20,9 +20,11 @@ export default defineConfig(() => {
       host: true,
       strictPort: true,
       hmr: {
+        overlay: false,
+      },
+      ws: {
         clientPort: 443,
         protocol: 'wss',
-        overlay: false,
       },
     },
   };
