@@ -991,8 +991,8 @@ app.get("/api/tickets/passes", (req, res) => {
 });
 
 // Royal Guestbook Feedback Query
-app.get("/api/feedback", (_req, res) => {
-  res.json({ success: true, reviews: feedbackStore });
+app.get(["/api/feedback", "/api/feedback/list"], (_req, res) => {
+  res.json({ success: true, reviews: feedbackStore, feedbacks: feedbackStore });
 });
 
 // Royal Guestbook Feedback Submission
