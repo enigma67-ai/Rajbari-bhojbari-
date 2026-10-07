@@ -4,7 +4,6 @@ import fs from "fs";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import { GoogleGenAI } from "@google/genai";
-import { createServer as createViteServer } from "vite";
 
 dotenv.config();
 
@@ -1061,14 +1060,18 @@ app.all("/api/*", (req, res) => {
 // Vite Middleware & Static Serving Setup
 async function startServer() {
   if (!isProduction) {
+    // Imported lazily so production/serverless bundles never load Vite.
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
         host: true,
         strictPort: true,
         hmr: {
-          clientPort: 443,
           overlay: false,
+        },
+        ws: {
+          clientPort: 443,
         },
       },
       appType: "spa",
