@@ -19,6 +19,18 @@ const PORT = isProduction ? (process.env.PORT ? parseInt(process.env.PORT, 10) :
 
 const app = express();
 
+// CORS and Preflight handler for Vercel serverless deployment
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.static(path.join(process.cwd(), "public")));
 
@@ -157,24 +169,25 @@ app.get(["/IMG-20261006-WA0012.jpg", "/assets/IMG-20261006-WA0012.jpg"], (_req, 
 
 // BHOJ-BOT AI Culinary Concierge Endpoint
 app.post(["/api/bhojbot/chat", "/api/gemini/chat", "/api/chat"], async (req, res) => {
-  const { 
-    message, 
-    history = [], 
-    contextDish, 
-    userBookings = [], 
-    mode = "general" 
-  } = req.body;
+  try {
+    const { 
+      message, 
+      history = [], 
+      contextDish, 
+      userBookings = [], 
+      mode = "general" 
+    } = req.body || {};
 
-  if (!message || typeof message !== "string") {
-    res.status(400).json({ error: "Message is required" });
-    return;
-  }
+    if (!message || typeof message !== "string") {
+      res.status(400).json({ error: "Message is required" });
+      return;
+    }
 
-  // Compose user booking memory context so Bhoj-Bot remembers bookings in the future
-  let bookingsMemory = "";
-  if (Array.isArray(userBookings) && userBookings.length > 0) {
-    bookingsMemory = `\n\n[USER'S CONFIRMED BOOKINGS & RESERVATIONS IN MEMORY]:\n` +
-      userBookings.map((b: any, idx: number) => `
+    // Compose user booking memory context so Bhoj-Bot remembers bookings in the future
+    let bookingsMemory = "";
+    if (Array.isArray(userBookings) && userBookings.length > 0) {
+      bookingsMemory = `\n\n[USER'S CONFIRMED BOOKINGS & RESERVATIONS IN MEMORY]:\n` +
+        userBookings.map((b: any, idx: number) => `
 - Booking #${idx + 1} (Pass Code: ${b.bookingCode || b.bookingId || b.id || 'N/A'})
   * Dining Slot: ${b.dineSlot || 'General Festival Access'}
   * Party Size: ${b.seatCount || 1} guest(s)
@@ -184,11 +197,11 @@ app.post(["/api/bhojbot/chat", "/api/gemini/chat", "/api/chat"], async (req, res
   * Booking Date: ${b.createdAt || 'Festival Day'}
 `).join('\n') +
 `\nINSTRUCTION FOR BOOKINGS: When the user asks about their reservations, orders, passes, booking code, or what they selected, refer directly to the above details with royal warmth. You can also proactively suggest royal pairings or desserts from MOHINI MOHOL that complement their already-booked dishes!`;
-  } else {
-    bookingsMemory = `\n\n[USER BOOKINGS MEMORY]: The user has not finalized a banquet booking yet. You can warmly encourage them to pick their royal dining slot and reserve their dishes from the menu!`;
-  }
+    } else {
+      bookingsMemory = `\n\n[USER BOOKINGS MEMORY]: The user has not finalized a banquet booking yet. You can warmly encourage them to pick their royal dining slot and reserve their dishes from the menu!`;
+    }
 
-  const systemInstruction = `You are Bhoj-Bot, the official digital AI hospitality ambassador for "Rajbari Bhojbari: The Lost Flavours of Bengal" (Food Fest 2026), hosted by IAM Institute of Advanced Management in Kolkata on October 9, 2026. 
+    const systemInstruction = `You are Bhoj-Bot, the official digital AI hospitality ambassador for "Rajbari Bhojbari: The Lost Flavours of Bengal" (Food Fest 2026), hosted by IAM Institute of Advanced Management in Kolkata on October 9, 2026. 
 
 PERSONA RULES:
 - You are a highly professional, conversational, and polite hospitality AI.
@@ -224,17 +237,16 @@ ALLERGEN ADVISORY:
 - Desserts contain Milk, Tree Nuts, and Gluten (Malpua).
 ${bookingsMemory}`;
 
-  // Check API key configuration explicitly
-  const apiKey = (process.env.GEMINI_API_KEY || "").trim();
-  if (!apiKey) {
-    res.status(500).json({
-      error: "Error: GEMINI_API_KEY is missing or empty in server environment variables. Please configure GEMINI_API_KEY in your hosting dashboard (e.g., Vercel / Cloud Run / .env).",
-      reply: "Error: GEMINI_API_KEY is missing or empty in server environment variables. Please configure GEMINI_API_KEY in your hosting dashboard (e.g., Vercel / Cloud Run / .env)."
-    });
-    return;
-  }
+    // Check API key configuration explicitly
+    const apiKey = (process.env.GEMINI_API_KEY || "").trim();
+    if (!apiKey) {
+      res.status(500).json({
+        error: "Error: GEMINI_API_KEY is missing or empty in server environment variables. Please configure GEMINI_API_KEY in your hosting dashboard (e.g., Vercel / Cloud Run / .env).",
+        reply: "Error: GEMINI_API_KEY is missing or empty in server environment variables. Please configure GEMINI_API_KEY in your hosting dashboard (e.g., Vercel / Cloud Run / .env)."
+      });
+      return;
+    }
 
-  try {
     const ai = getGeminiClient();
     if (!ai) {
       res.status(500).json({
@@ -318,12 +330,14 @@ ${bookingsMemory}`;
       return;
     }
   } catch (err: any) {
-    const errorDetails = err?.message || String(err);
-    res.status(500).json({
-      error: `Error: AI request failed (${errorDetails})`,
-      reply: `Error: AI request failed (${errorDetails})`,
-    });
-    return;
+    console.error("[Bhoj-Bot AI Chat Error]:", err);
+    if (!res.headersSent) {
+      const errorDetails = err?.message || String(err);
+      res.status(500).json({
+        error: `Error: AI request failed (${errorDetails})`,
+        reply: `Error: AI request failed (${errorDetails})`,
+      });
+    }
   }
 });
 
@@ -1082,9 +1096,30 @@ async function startServer() {
   });
 }
 
-// Start standalone HTTP server in container/local environments, export Express app for Vercel Serverless
-if (!process.env.VERCEL) {
+// Global unhandled promise rejection and exception guards for Vercel and Node runtimes
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[Process Guard] Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("[Process Guard] Uncaught Exception thrown:", err);
+});
+
+// Environment detection: Skip listening when executed as a Vercel Serverless Function
+const isVercelEnvironment = Boolean(
+  process.env.VERCEL || 
+  process.env.VERCEL_ENV || 
+  process.env.NOW_REGION
+);
+
+if (!isVercelEnvironment) {
   startServer();
+}
+
+// Export Express app for Vercel Serverless execution (supports both CommonJS & ES Module imports)
+if (typeof module !== "undefined" && (module as any).exports) {
+  (module as any).exports = app;
+  (module as any).exports.default = app;
 }
 
 export default app;
