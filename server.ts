@@ -1116,10 +1116,4 @@ if (!isVercelEnvironment) {
   startServer();
 }
 
-// Export Express app for Vercel Serverless execution (supports both CommonJS & ES Module imports)
-if (typeof module !== "undefined" && (module as any).exports) {
-  (module as any).exports = app;
-  (module as any).exports.default = app;
-}
-
 export default app;
