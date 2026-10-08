@@ -350,8 +350,29 @@ export default function App() {
     });
   };
 
-  const handleBuyNow = (_dish: MenuItem) => {
-    alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you");
+  const handleBuyNow = (dish: MenuItem) => {
+    // Save to cart immediately so user item is retained
+    setCart((prev) => {
+      const existing = prev.find((item) => item.dish.id === dish.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.dish.id === dish.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { dish, quantity: 1 }];
+    });
+
+    if (!currentUser) {
+      setPendingDishToAdd(dish);
+      setOpenCheckoutOnLogin(true);
+      setAuthModalMode('guest');
+      setIsAuthOpen(true);
+      return;
+    }
+
+    setIsPaymentOpen(true);
   };
 
   const handleAddMultipleToCart = (dishes: MenuItem[]) => {

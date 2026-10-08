@@ -386,7 +386,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <button
                     id="drawer-proceed-checkout-btn"
                     type="button"
-                    onClick={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")}
+                    onClick={() => {
+                      onClose();
+                      onProceedToCheckout();
+                    }}
                     className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm tracking-wide shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.55)] border border-amber-300/60 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-98 cursor-pointer"
                   >
                     <span>Proceed to Checkout / Book Pass (₹{grandTotal}/-)</span>
