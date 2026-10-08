@@ -215,7 +215,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Primary Action Button: 'Booking Pass' (hidden on mobile since bottom floating CTA and mobile menu have it) */}
             <button
               id="nav-booking-pass-btn"
-              onClick={() => handleLinkClick('ticket-booking')}
+              onClick={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")}
               className="hidden sm:flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-bold text-xs sm:text-sm shadow-md shadow-amber-950/50 transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
             >
               <Ticket className="w-3.5 h-3.5 text-stone-950 shrink-0" />
@@ -252,7 +252,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Primary Mobile Action: Booking Pass */}
             <button
               id="mobile-nav-booking-pass-btn"
-              onClick={() => handleLinkClick('ticket-booking')}
+              onClick={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")}
               className="w-full mb-2 flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 shadow-md text-left cursor-pointer"
             >
               <div className="flex items-center gap-2">

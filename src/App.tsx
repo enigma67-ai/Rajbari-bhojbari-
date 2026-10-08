@@ -350,29 +350,8 @@ export default function App() {
     });
   };
 
-  const handleBuyNow = (dish: MenuItem) => {
-    // Save to cart immediately so user item is retained
-    setCart((prev) => {
-      const existing = prev.find((item) => item.dish.id === dish.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.dish.id === dish.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { dish, quantity: 1 }];
-    });
-
-    if (!currentUser) {
-      setPendingDishToAdd(dish);
-      setOpenCheckoutOnLogin(true);
-      setAuthModalMode('guest');
-      setIsAuthOpen(true);
-      return;
-    }
-
-    setIsPaymentOpen(true);
+  const handleBuyNow = (_dish: MenuItem) => {
+    alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you");
   };
 
   const handleAddMultipleToCart = (dishes: MenuItem[]) => {
@@ -702,7 +681,7 @@ export default function App() {
             setBhojBotInitialQuery('');
             setIsBhojBotOpen(true);
           }}
-          onBookPass={() => handleNavigate('ticket-booking')}
+          onBookPass={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")}
         />
 
         {/* Mandatory Event Pass & Ticket Booking Section */}
@@ -746,7 +725,7 @@ export default function App() {
         {/* Floating Primary CTA: 'Booking Pass' Button in Royal Red & Gold */}
         <button
           id="floating-booking-pass-btn"
-          onClick={() => handleNavigate('ticket-booking')}
+          onClick={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")}
           className="group flex items-center gap-2.5 px-4.5 py-3 rounded-full bg-gradient-to-r from-[#991b1b] via-[#7f1d1d] to-[#b45309] hover:from-[#b91c1c] hover:to-[#d97706] text-amber-100 font-extrabold text-xs sm:text-sm border border-amber-400/60 shadow-[0_0_25px_rgba(245,158,11,0.45)] hover:shadow-[0_0_35px_rgba(245,158,11,0.65)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
           title="Book Your Festival Booking Pass"
         >

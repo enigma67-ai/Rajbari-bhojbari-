@@ -1371,8 +1371,8 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               <div className="pt-2">
                 <button
                   id="ticket-step1-continue-btn"
-                  type="submit"
-                  onClick={handleValidateDetails}
+                  type="button"
+                  onClick={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")}
                   disabled={!isStep1Valid}
                   className={`w-full py-4 px-6 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 ${
                     isStep1Valid
@@ -2130,7 +2130,7 @@ export const TicketBookingSection: React.FC<TicketBookingSectionProps> = ({
               <button
                 type="button"
                 id="ticket-pay-now-btn"
-                onClick={handleExecutePayment}
+                onClick={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")}
                 disabled={
                   isProcessingPayment ||
                   isSendingEmail ||

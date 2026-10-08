@@ -86,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({
               </button>
             </li>
             <li>
-              <button onClick={() => onNavClick('ticket-booking')} className="text-amber-400 font-bold hover:text-amber-300 transition-colors text-left cursor-pointer">
+              <button onClick={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")} className="text-amber-400 font-bold hover:text-amber-300 transition-colors text-left cursor-pointer">
                 Book ₹349 Eco-Pass →
               </button>
             </li>

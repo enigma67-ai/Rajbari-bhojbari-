@@ -144,7 +144,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               {onBookPass && (
                 <button
                   id="hero-book-pass-btn"
-                  onClick={onBookPass}
+                  onClick={() => alert("Sorry we are sold out. Please leave your no. or mail id. We will definitely contact you first for our next event.\n\nThank you")}
                   className="flex items-center gap-2 sm:gap-2.5 px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-xs sm:text-sm tracking-wide shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.5)] border border-amber-300/60 transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
                 >
                   <Ticket className="w-4 h-4 text-stone-950 shrink-0" />
