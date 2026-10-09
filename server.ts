@@ -4,6 +4,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import { GoogleGenAI } from "@google/genai";
+import { createClient } from "@supabase/supabase-js";
 
 dotenv.config();
 
@@ -1051,6 +1052,122 @@ app.get(["/health", "/_health"], (_req, res) => {
 
 // Public static files (e.g. Google Search Console verification files, assets)
 app.use(express.static(path.join(process.cwd(), "public")));
+
+// Gate Scanner API Endpoint: Validate Pass
+app.post("/api/validate-pass", async (req, res) => {
+  try {
+    const booking_id = (
+      req.body?.booking_id ||
+      req.body?.bookingId ||
+      req.body?.id ||
+      ""
+    ).toString().trim();
+
+    if (!booking_id) {
+      return res.status(400).json({ success: false, message: "Missing booking_id parameter" });
+    }
+
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.VITE_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      "https://rrvjsyppggtthqfxvquq.supabase.co";
+
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.VITE_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_ANON_KEY ||
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJydmpzeXBwZ2d0dGhxZnh2cXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.mock_key";
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: booking, error: fetchError } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("booking_id", booking_id)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("[validate-pass] Supabase query error:", fetchError);
+      return res.status(500).json({ success: false, message: "Database query error", error: fetchError.message });
+    }
+
+    if (!booking) {
+      // Local in-memory ticketsStore fallback for offline or seed tickets
+      const localPass = ticketsStore.get(booking_id);
+      if (localPass) {
+        if (localPass.isUsed) {
+          return res.status(400).json({ success: false, message: "Pass Already Used", booking: localPass });
+        }
+        localPass.isUsed = true;
+        localPass.admittedAt = new Date().toISOString();
+        ticketsStore.set(booking_id, localPass);
+        return res.json({ success: true, message: "Valid Pass", booking: localPass });
+      }
+
+      return res.status(404).json({ success: false, message: "Invalid Pass" });
+    }
+
+    const isAlreadyAdmitted =
+      booking.status === "admitted" ||
+      booking.entry_status === "admitted" ||
+      booking.verified_at_gate === true ||
+      booking.is_admitted === true;
+
+    if (isAlreadyAdmitted) {
+      return res.status(400).json({
+        success: false,
+        message: "Pass Already Used",
+        booking: {
+          booking_id: booking.booking_id,
+          customer_name: booking.customer_name,
+          admitted_at: booking.admitted_at || booking.verified_at_gate_time || booking.updated_at,
+        },
+      });
+    }
+
+    const nowIso = new Date().toISOString();
+    const { error: updateError } = await supabase
+      .from("bookings")
+      .update({
+        status: "admitted",
+        entry_status: "admitted",
+        verified_at_gate: true,
+        verified_at_gate_time: nowIso,
+        admitted_at: nowIso,
+        updated_at: nowIso,
+      })
+      .eq("booking_id", booking_id);
+
+    if (updateError) {
+      console.error("[validate-pass] Supabase update error:", updateError);
+      return res.status(500).json({ success: false, message: "Failed to update pass status", error: updateError.message });
+    }
+
+    const localPass = ticketsStore.get(booking_id);
+    if (localPass) {
+      localPass.isUsed = true;
+      localPass.admittedAt = nowIso;
+      ticketsStore.set(booking_id, localPass);
+    }
+
+    return res.json({
+      success: true,
+      message: "Valid Pass",
+      booking: {
+        booking_id: booking.booking_id,
+        customer_name: booking.customer_name,
+        customer_email: booking.customer_email,
+        pass_quantity: booking.pass_quantity,
+        admitted_at: nowIso,
+      },
+    });
+  } catch (err: any) {
+    console.error("[validate-pass] Server error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error", error: err?.message || String(err) });
+  }
+});
 
 // API 404 Guard: Ensure unhandled /api routes NEVER fall through to HTML Vite SPA index
 app.all("/api/*", (req, res) => {
