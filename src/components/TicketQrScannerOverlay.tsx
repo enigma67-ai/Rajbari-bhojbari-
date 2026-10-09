@@ -102,14 +102,100 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
     setHasTorch(false);
   }, []);
 
-  // Handle validating extracted QR code payload against Firestore
+  // Handle validating extracted QR code payload against validate-pass API
   const handleValidatePayload = useCallback(async (payload: string) => {
     if (!payload.trim() || isVerifying) return;
 
     setIsVerifying(true);
     setAdmitSuccess(null);
     try {
-      const result = await validateTicketAgainstFirestore(payload);
+      // Extract ticket ID from payload
+      const trimmed = payload.trim();
+      let extractedTicketId = trimmed;
+
+      const rajbariMatch = trimmed.match(/RAJBARI_BHOJBARI_PASS_([^_]+)_TOTAL/i);
+      if (rajbariMatch && rajbariMatch[1]) {
+        extractedTicketId = rajbariMatch[1].trim();
+      } else {
+        const colonMatch = trimmed.match(/IAM_ECO_PASS:([^:]+):/i);
+        if (colonMatch && colonMatch[1]) {
+          extractedTicketId = colonMatch[1].trim();
+        } else {
+          const rbMatch = trimmed.match(/(RB(?:-PASS)?-2026-[A-Za-z0-9-]+)/i);
+          if (rbMatch && rbMatch[1]) {
+            extractedTicketId = rbMatch[1].trim();
+          } else if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              extractedTicketId = parsed.booking_id || parsed.bookingId || parsed.id || extractedTicketId;
+            } catch (_) {}
+          }
+        }
+      }
+
+      // Query validate-pass API endpoint using strict relative URL path
+      let apiResult: any = null;
+      try {
+        const res = await fetch('/api/validate-pass', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ booking_id: extractedTicketId }),
+        });
+        apiResult = await res.json();
+      } catch (fetchErr) {
+        console.warn('API validation notice (falling back to direct verification):', fetchErr);
+      }
+
+      let result: any;
+
+      if (apiResult && apiResult.success && apiResult.booking) {
+        result = {
+          isValid: true,
+          ticketId: apiResult.booking.booking_id || extractedTicketId,
+          rawPayload: payload,
+          status: 'verified',
+          message: `✓ Valid Festival Eco-Pass confirmed for ${apiResult.booking.customer_name || 'Honored Guest'}.`,
+          ticket: {
+            id: apiResult.booking.booking_id || extractedTicketId,
+            customerName: apiResult.booking.customer_name,
+            customerEmail: apiResult.booking.customer_email,
+            ticketQuantity: apiResult.booking.pass_quantity || 1,
+            scanned: false,
+            entryStatus: 'Valid • Ready for Entry',
+          },
+          source: 'database_direct',
+        };
+      } else if (apiResult && apiResult.message === 'Pass Already Used') {
+        result = {
+          isValid: true,
+          ticketId: apiResult.booking?.booking_id || extractedTicketId,
+          rawPayload: payload,
+          status: 'already_used',
+          message: `Pass ${extractedTicketId} has already been admitted at the gate.`,
+          scannedAt: apiResult.booking?.admitted_at,
+          ticket: {
+            id: extractedTicketId,
+            customerName: apiResult.booking?.customer_name || 'Honored Guest',
+            scanned: true,
+            entryStatus: 'Already Admitted',
+          },
+          source: 'database_direct',
+        };
+      } else if (apiResult && apiResult.message === 'Invalid Pass') {
+        result = {
+          isValid: false,
+          ticketId: extractedTicketId,
+          rawPayload: payload,
+          status: 'invalid',
+          message: `Pass ID '${extractedTicketId}' not found in festival registry.`,
+          source: 'not_found',
+        };
+      } else {
+        result = await validateTicketAgainstFirestore(payload);
+      }
+
       setValidationResult(result);
 
       if (result.isValid && result.status === 'verified') {
@@ -295,34 +381,54 @@ export const TicketQrScannerOverlay: React.FC<TicketQrScannerOverlayProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Mark ticket as admitted in Firestore
+  // Mark ticket as admitted via validate-pass API endpoint
   const handleMarkAdmitted = async () => {
     if (!validationResult?.ticketId) return;
 
     setIsAdmitting(true);
     try {
-      const res = await markTicketAsAdmitted(
-        validationResult.ticketId, 
-        currentUser?.name ? `Gate Staff (${currentUser.name})` : 'IAM Gate Security'
-      );
-      if (res.success) {
-        setAdmitSuccess(`Successfully admitted pass ${validationResult.ticketId} into IAM Kolkata Fest.`);
-        // Refresh validation state
-        setValidationResult(prev => prev ? {
-          ...prev,
-          status: 'already_used',
-          message: `Pass ${validationResult.ticketId} has been successfully validated and admitted.`,
-          scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          ticket: {
-            ...prev.ticket,
-            scanned: true,
-            scannedAt: new Date().toISOString(),
-            entryStatus: 'Admitted & Verified',
-          }
-        } : null);
+      // Use strict relative URL path to call validation API
+      const res = await fetch('/api/validate-pass', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ booking_id: validationResult.ticketId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok && data.message === 'Invalid Pass') {
+        throw new Error(data.message || 'Pass not found');
       }
+
+      // Sync Firestore in background
+      try {
+        await markTicketAsAdmitted(
+          validationResult.ticketId, 
+          currentUser?.name ? `Gate Staff (${currentUser.name})` : 'IAM Gate Security'
+        );
+      } catch (_) {}
+
+      setAdmitSuccess(`Successfully admitted pass ${validationResult.ticketId} into IAM Kolkata Fest.`);
+      // Refresh validation state
+      setValidationResult(prev => prev ? {
+        ...prev,
+        status: 'already_used',
+        message: data.message === 'Pass Already Used'
+          ? `Pass ${validationResult.ticketId} has already been admitted.`
+          : `Pass ${validationResult.ticketId} has been successfully validated and admitted.`,
+        scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        ticket: {
+          ...prev.ticket,
+          scanned: true,
+          scannedAt: new Date().toISOString(),
+          entryStatus: 'Admitted & Verified',
+        }
+      } : null);
     } catch (err: any) {
-      console.error('Error admitting ticket:', err);
+      console.error('Error updating pass status:', err);
+      window.alert(`Error updating pass status: ${err?.message || 'Failed to update pass'}`);
     } finally {
       setIsAdmitting(false);
     }

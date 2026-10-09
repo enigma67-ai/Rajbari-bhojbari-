@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+import cors from "cors";
 import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
 
@@ -19,17 +20,14 @@ const PORT = isProduction ? (process.env.PORT ? parseInt(process.env.PORT, 10) :
 
 const app = express();
 
-// CORS and Preflight handler for Vercel serverless deployment
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  if (req.method === "OPTIONS") {
-    res.sendStatus(200);
-    return;
-  }
-  next();
-});
+// Full CORS enablement for all origins and headers
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
+  allowedHeaders: ["*"],
+  exposedHeaders: ["*"],
+  credentials: false
+}));
 
 app.use(express.json());
 app.use(express.static(path.join(process.cwd(), "public")));

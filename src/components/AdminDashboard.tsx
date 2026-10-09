@@ -324,25 +324,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const altId = booking?.booking_id || booking?.id || bookingId;
 
     try {
-      // 1. Asynchronously update Supabase bookings table: status -> 'admitted'
-      let updateResult = await supabase
-        .from('bookings')
-        .update({ status: 'admitted' })
-        .eq('id', bookingId);
-
-      // Fallback if 'id' column fails or database table expects booking_id
-      if (updateResult.error && (updateResult.error.message?.includes('id') || updateResult.error.code === '42703' || updateResult.error.code === '22P02')) {
-        updateResult = await supabase
-          .from('bookings')
-          .update({ status: 'admitted' })
-          .eq('booking_id', altId);
+      // 1. Asynchronously call validate-pass API endpoint using strict relative URL path
+      let apiSuccess = false;
+      try {
+        const res = await fetch('/api/validate-pass', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ booking_id: altId || bookingId }),
+        });
+        const data = await res.json();
+        if (data.success || data.message === 'Valid Pass' || data.message === 'Pass Already Used') {
+          apiSuccess = true;
+        }
+      } catch (apiErr) {
+        console.warn('validate-pass API notice:', apiErr);
       }
 
-      // 2. Error handling from Supabase (e.g., RLS policy blocking update, auth issues)
-      if (updateResult.error) {
-        console.error('Supabase error updating booking status:', updateResult.error.message || updateResult.error);
-        window.alert(`Failed to admit guest: ${updateResult.error.message || 'Supabase database error'}`);
-        return; // Halt: DO NOT update local UI state when database update fails
+      if (!apiSuccess) {
+        // Fallback directly to client update
+        let updateResult = await supabase
+          .from('bookings')
+          .update({ status: 'admitted' })
+          .eq('id', bookingId);
+
+        if (updateResult.error && (updateResult.error.message?.includes('id') || updateResult.error.code === '42703' || updateResult.error.code === '22P02')) {
+          updateResult = await supabase
+            .from('bookings')
+            .update({ status: 'admitted' })
+            .eq('booking_id', altId);
+        }
+
+        if (updateResult.error) {
+          console.error('Supabase error updating booking status:', updateResult.error.message || updateResult.error);
+          window.alert(`Failed to admit guest: ${updateResult.error.message || 'Supabase database error'}`);
+          return;
+        }
       }
 
       // 3. Only update local UI state to 'Admitted' after Supabase successfully confirms the update

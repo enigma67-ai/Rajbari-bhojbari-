@@ -104,15 +104,102 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
     setHasTorch(false);
   }, []);
 
-  // Handle validating extracted QR code payload against Supabase
+  // Handle validating extracted QR code payload against Supabase & validate-pass API
   const handleValidatePayload = useCallback(async (payload: string) => {
     if (!payload.trim() || isVerifying) return;
 
     setIsVerifying(true);
     setAdmitSuccess(null);
     try {
-      const result = await validateTicketAgainstSupabase(payload);
-      setValidationResult(result as TicketValidationResult);
+      // Extract ticket ID from payload
+      const trimmed = payload.trim();
+      let extractedTicketId = trimmed;
+
+      const rajbariMatch = trimmed.match(/RAJBARI_BHOJBARI_PASS_([^_]+)_TOTAL/i);
+      if (rajbariMatch && rajbariMatch[1]) {
+        extractedTicketId = rajbariMatch[1].trim();
+      } else {
+        const colonMatch = trimmed.match(/IAM_ECO_PASS:([^:]+):/i);
+        if (colonMatch && colonMatch[1]) {
+          extractedTicketId = colonMatch[1].trim();
+        } else {
+          const rbMatch = trimmed.match(/(RB(?:-PASS)?-2026-[A-Za-z0-9-]+)/i);
+          if (rbMatch && rbMatch[1]) {
+            extractedTicketId = rbMatch[1].trim();
+          } else if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              extractedTicketId = parsed.booking_id || parsed.bookingId || parsed.id || extractedTicketId;
+            } catch (_) {}
+          }
+        }
+      }
+
+      // Query validate-pass API endpoint using strict relative URL path
+      let apiResult: any = null;
+      try {
+        const res = await fetch('/api/validate-pass', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ booking_id: extractedTicketId }),
+        });
+        apiResult = await res.json();
+      } catch (fetchErr) {
+        console.warn('API validation notice (falling back to direct client check):', fetchErr);
+      }
+
+      let result: TicketValidationResult;
+
+      if (apiResult && apiResult.success && apiResult.booking) {
+        result = {
+          isValid: true,
+          ticketId: apiResult.booking.booking_id || extractedTicketId,
+          rawPayload: payload,
+          status: 'verified',
+          message: `✓ Valid Festival Eco-Pass confirmed for ${apiResult.booking.customer_name || 'Honored Guest'}.`,
+          ticket: {
+            id: apiResult.booking.booking_id || extractedTicketId,
+            customerName: apiResult.booking.customer_name,
+            customerEmail: apiResult.booking.customer_email,
+            ticketQuantity: apiResult.booking.pass_quantity || 1,
+            scanned: false,
+            entryStatus: 'Valid • Ready for Entry',
+          },
+          source: 'firestore_direct',
+        };
+      } else if (apiResult && apiResult.message === 'Pass Already Used') {
+        result = {
+          isValid: true,
+          ticketId: apiResult.booking?.booking_id || extractedTicketId,
+          rawPayload: payload,
+          status: 'already_used',
+          message: `Pass ${extractedTicketId} has already been admitted at the gate.`,
+          scannedAt: apiResult.booking?.admitted_at,
+          ticket: {
+            id: extractedTicketId,
+            customerName: apiResult.booking?.customer_name || 'Honored Guest',
+            scanned: true,
+            entryStatus: 'Already Admitted',
+          },
+          source: 'firestore_direct',
+        };
+      } else if (apiResult && apiResult.message === 'Invalid Pass') {
+        result = {
+          isValid: false,
+          ticketId: extractedTicketId,
+          rawPayload: payload,
+          status: 'invalid',
+          message: `Pass ID '${extractedTicketId}' not found in festival registry.`,
+          source: 'not_found',
+        };
+      } else {
+        const clientRes = await validateTicketAgainstSupabase(payload);
+        result = clientRes as TicketValidationResult;
+      }
+
+      setValidationResult(result);
 
       if (result.isValid && result.status === 'verified') {
         try {
@@ -122,7 +209,7 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
       }
 
       if (onTicketValidated) {
-        onTicketValidated(result as TicketValidationResult);
+        onTicketValidated(result);
       }
     } catch (err) {
       console.error('Ticket validation error:', err);
@@ -295,28 +382,30 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Mark ticket as admitted in Supabase & Firestore
+  // Mark ticket as admitted via validate-pass API endpoint
   const handleMarkAdmitted = async () => {
     if (!validationResult?.ticketId) return;
 
     setIsAdmitting(true);
     try {
-      const client = getSupabaseClient();
-      if (client) {
-        await client
-          .from('bookings')
-          .update({
-            status: 'confirmed',
-            payment_status: 'confirmed',
-            verified_at_gate: true,
-            verified_at_gate_time: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('booking_id', validationResult.ticketId);
+      // Use strict relative URL path to call validation API
+      const res = await fetch('/api/validate-pass', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ booking_id: validationResult.ticketId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok && data.message === 'Invalid Pass') {
+        throw new Error(data.message || 'Pass not found');
       }
 
-      await updateBookingGateVerification(validationResult.ticketId, true);
+      // Sync Firestore in background
       try {
+        await updateBookingGateVerification(validationResult.ticketId, true);
         await markTicketAsAdmitted(
           validationResult.ticketId, 
           currentUser?.name ? `Gate Staff (${currentUser.name})` : 'IAM Gate Security'
@@ -327,7 +416,9 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
       setValidationResult(prev => prev ? {
         ...prev,
         status: 'already_used',
-        message: `Pass ${validationResult.ticketId} has been successfully validated and admitted in Supabase.`,
+        message: data.message === 'Pass Already Used'
+          ? `Pass ${validationResult.ticketId} has already been admitted.`
+          : `Pass ${validationResult.ticketId} has been successfully validated and admitted in Supabase.`,
         scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         ticket: {
           ...prev.ticket,
@@ -337,7 +428,8 @@ export const TicketScannerModal: React.FC<TicketScannerModalProps> = ({
         }
       } : null);
     } catch (err: any) {
-      console.error('Error admitting ticket in Supabase:', err);
+      console.error('Error updating pass status:', err);
+      window.alert(`Error updating pass status: ${err?.message || 'Failed to update pass'}`);
     } finally {
       setIsAdmitting(false);
     }
